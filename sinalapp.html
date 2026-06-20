@@ -1632,10 +1632,10 @@ function showCRMModal(card,isNew){
         <textarea id="cm_notas" rows="3">${card.notas||''}</textarea>
       </div>
     </div>
-    ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return`<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">${lt.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:${TASK_STATUS_COLOR[t.status]||'var(--text2)'};flex-shrink:0;display:inline-block"></span><span style="flex:1;font-size:12px">${t.titulo}</span>${t.modulo?`<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">${t.modulo}</span>`:''} ${(t.checklist||[]).length?`<span style="font-size:10px;color:var(--text2)">${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>`:''}</div>`).join('')}</div></div>`;})()}
+    ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return`<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">${lt.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:${TASK_STATUS_COLOR[t.status]||'var(--text2)'};flex-shrink:0;display:inline-block"></span><span style="flex:1;font-size:12px">${t.titulo}</span>${(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>`<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">${m}</span>`).join('')} ${(t.checklist||[]).length?`<span style="font-size:10px;color:var(--text2)">${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>`:''}</div>`).join('')}</div></div>`;})()}
     <div class="modal-footer">
       ${!isNew?`<button class="btn btn-danger" onclick="deleteCRMCard('${card.id}',this)">Excluir</button>`:''}
-      <button class="btn" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e40" onclick="openNovaTarefaFromCard('${card.id}','${card.orcamentoId||''}')">+ Tarefa</button>
+      <button class="btn" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e40" onclick="openNovaTarefaFromCard('${card.id}')">+ Tarefa</button>
       ${card.orcamentoId?`<button class="btn" style="background:var(--blue);color:#fff;border:1px solid var(--blue)" onclick="this.closest('.modal-bg').remove();editOrcamento('${card.orcamentoId}')">📋 Ver Orçamento</button>`:''}
       <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
       <button class="btn btn-primary" onclick="saveCRMCard('${card.id||''}',${isNew},this)">Salvar</button>
@@ -2160,11 +2160,10 @@ const TASK_STATUS=['Pendente','Em Andamento','Concluída','Bloqueada'];
 const TASK_STATUS_COLOR={Pendente:'var(--text2)','Em Andamento':'var(--accent)','Concluída':'var(--green)',Bloqueada:'var(--red)'};
 const TASK_MODULOS=['','Arte/Design','Corte a Laser','Impressão Adesivo','Impressão UV','Montagem','Instalação','Outros'];
 const CHECKLIST_TPL={
-  producao:['Arte aprovada pelo cliente','Material adquirido/separado','Corte / usinagem realizado','Acabamento e limpeza','Controle de qualidade','Embalado para entrega'],
+  producao:['Arte aprovada pelo cliente','Material adquirido/separado','Corte / usinagem realizado','Impressão realizada','Pintura realizada','Acabamento e limpeza','Controle de qualidade','Embalado para entrega'],
   instalacao:['Agendamento confirmado com cliente','Ferramentas e equipamentos separados','Material carregado no veículo','Fotos antes da instalação','Instalação realizada','Fotos após a instalação','Limpeza do local','Avaliação solicitada ao cliente']
 };
 function applyChecklistTemplate(tipo){
-  if((formTarefa.checklist||[]).length>0&&!confirm('Substituir checklist existente?'))return;
   formTarefa.checklist=CHECKLIST_TPL[tipo].map(texto=>({id:genId(),texto,done:false}));
   render();
 }
@@ -2183,10 +2182,24 @@ function removeChecklistItem(id){
   formTarefa.checklist=(formTarefa.checklist||[]).filter(x=>x.id!==id);
   render();
 }
-function openNovaTarefaFromCard(cardId,orcId){
+function addModulo(){
+  const sel=document.getElementById('modulo-add-sel');
+  const val=sel?.value;
+  if(!val)return;
+  if(!(formTarefa.modulos||[]).includes(val)){
+    formTarefa.modulos=[...(formTarefa.modulos||[]),val];
+  }
+  render();
+}
+function removeModulo(m){
+  formTarefa.modulos=(formTarefa.modulos||[]).filter(x=>x!==m);
+  render();
+}
+function openNovaTarefaFromCard(cardId){
   document.querySelector('.modal-bg')?.remove();
+  const card=S.crm.find(x=>x.id===cardId)||{};
   goTab('tarefas');
-  openNovaTarefa({crmCardId:cardId||'',orcamentoId:orcId||''});
+  openNovaTarefa({crmCardId:cardId||'',orcamentoId:card.orcamentoId||''});
 }
 
 function newTarefa(opts={}){
@@ -2202,6 +2215,7 @@ function newTarefa(opts={}){
     responsavel:'Marcelo',
     checklist:[],
     modulo:'',
+    modulos:[],
     crmCardId:'',
     createdAt:new Date().toISOString(),
     ...opts
@@ -2223,7 +2237,7 @@ function renderTarefas(){
         ${t.descricao?`<div style="font-size:11px;color:var(--text2)">${t.descricao}</div>`:''}
         ${(showSprint&&t.sprint)||t.modulo?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
           ${showSprint&&t.sprint?`<span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:99px;font-size:10px">${t.sprint}</span>`:''}
-          ${t.modulo?`<span style="background:var(--bg3);color:var(--text2);padding:1px 6px;border-radius:99px;font-size:10px;border:1px solid var(--border)">${t.modulo}</span>`:''}
+          ${(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>`<span style="background:var(--bg3);color:var(--text2);padding:1px 6px;border-radius:99px;font-size:10px;border:1px solid var(--border)">${m}</span>`).join('')}
         </div>`:''}
         ${(t.checklist||[]).length?`<div style="margin-top:4px">
           <span style="font-size:10px;color:${t.checklist.filter(x=>x.done).length===t.checklist.length?'var(--green)':'var(--text2)'}">☑ ${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>
@@ -2322,16 +2336,22 @@ function renderFormTarefa(){
 
       <div class="form-row"><label>Prazo</label><input type="date" value="${t.prazo}" onchange="formTarefa.prazo=this.value"></div>
       <div class="form-row"><label>Responsável</label><input value="${t.responsavel}" oninput="formTarefa.responsavel=this.value"></div>
-      <div class="form-row"><label>Módulo</label>
-        <select onchange="formTarefa.modulo=this.value">
-          ${TASK_MODULOS.map(m=>`<option value="${m}" ${t.modulo===m?'selected':''}>${m||'— Sem módulo —'}</option>`).join('')}
-        </select>
+      <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:6px">
+        <label>Módulos</label>
+        ${(t.modulos||[]).length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${(t.modulos||[]).map(m=>`<span style="background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:2px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px">${m}<button type="button" onclick="removeModulo('${m}')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:11px;line-height:1;padding:0">✕</button></span>`).join('')}</div>`:''}
+        <div style="display:flex;gap:6px;width:100%">
+          <select id="modulo-add-sel" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
+            <option value="">— Adicionar módulo —</option>
+            ${TASK_MODULOS.filter(m=>m&&!(t.modulos||[]).includes(m)).map(m=>`<option value="${m}">${m}</option>`).join('')}
+          </select>
+          <button class="btn btn-secondary" type="button" onclick="addModulo()" style="white-space:nowrap;font-size:12px">+ Add</button>
+        </div>
       </div>
       <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">
         <label>Checklist</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('producao')">📋 Template Produção</button>
-          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('instalacao')">🔧 Template Instalação</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('producao')">📋 Produção</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('instalacao')">🔧 Entrega/Instalação</button>
         </div>
         ${(t.checklist||[]).length>0?`
         <div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;display:flex;flex-direction:column;gap:2px">
@@ -2365,13 +2385,14 @@ function openNovaTarefa(opts={}){
 function editTarefa(id){
   const t=S.tarefas.find(x=>x.id===id);
   if(!t)return;
-  formTarefa={...t};
+  formTarefa={...t,modulos:t.modulos||(t.modulo?[t.modulo]:[])};
   tarefaTab='editar';
   render();
 }
 function salvarTarefa(){
   if(!formTarefa.titulo){toast('Informe o título da tarefa','error');return;}
-  const obj={...formTarefa,updatedAt:new Date().toISOString()};
+  const mods=formTarefa.modulos||[];
+  const obj={...formTarefa,modulos:mods,modulo:mods[0]||'',updatedAt:new Date().toISOString()};
   if(tarefaTab==='editar'){
     const idx=S.tarefas.findIndex(x=>x.id===obj.id);
     if(idx>=0) S.tarefas[idx]=obj;
