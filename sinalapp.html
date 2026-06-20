@@ -1,0 +1,3318 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Design Visual — Orçamentos, CRM & Financeiro</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjcyIDQzMCAyNDAgMjc0Ij48cGF0aCBmaWxsPSJ3aGl0ZSIgZD0iTTMwMS45NSw1MDMuMzlsLTEwOS45MS02My40NS0xMTAuMDMsNjMuNDl2MTI2Ljk1bDEwOS45OCw2My41NCwxMTAtNjMuNTEtLjA1LTEyNy4wMloiLz48cGF0aCBmaWxsPSIjNTg4OWM2IiBkPSJNMzAxLjk1LDUwMy4zOWwtMTA5LjkxLTYzLjQ1LTExMC4wMyw2My40OXYxMjYuOTVsMTA5Ljk4LDYzLjU0LDExMC02My41MS0uMDUtMTI3LjAyWk0xMjAuOTYsNjQxLjA2bDEuMzkuMTZjMzEuNDMsMi45OSw2MC44OC02LjE3LDg1LjI4LTI3LjEyLDE1LjI0LTEzLjc4LDE4LjQtMzAuMzgsMTEuMjgtNDYuNS0zLjgxLTguMjgtOC43OC0xMy4zNy0yMC4yNy0xNC45OCw4LjM1LDQuNzYsMTEuNzUsMTEuMTQsMTEuMDYsMTguODYtMS41NywxMC41Mi04LjIzLDE5LjgzLTIwLjQ5LDI3LjgxLTguOTcsNS40My0xOS43Nyw2LjcxLTMyLjQxLDMuOC0xMy42Mi0zLjctMjUuODctOS40LTM3LjEzLTE5LjM0LTcuNzYtNi4zOC0yMC4wMy0yMy44OS0yNi40Ni00MC4xMS0uMDItLjA0LS41NC0xLjI2LS45Ny0yLjE2di0zMi4xM2w2OS43OC00MC4yNi0uMDIuMDNjLTE4LjA1LDI1LjktMjQuNTUsNTYuMDUtMTguMjksODcuNiw0LjUxLDIwLjA0LDE3LjQyLDMwLjk1LDM0Ljk1LDMyLjY3LDkuMDguNzYsMTUuOTYtMS4wNywyMy4wMS0xMC4yOS04LjI1LDQuOTMtMTUuNDcsNC43NS0yMS44Ni4zNi04LjM5LTYuNTQtMTMuMjItMTYuOTEtMTQuMTUtMzEuNTEtLjMyLTEwLjQ4LDMuODgtMjAuNTIsMTIuNjItMzAuMDksOS45MS0xMC4wNSwyMC45LTE3LjkxLDM1LjEtMjIuODMsOS4zNC0zLjYxLDMwLjUzLTUuNjksNDcuNzktMy4zNWwzMC41NCwxNy42My4wMyw4MC4zMy0uMDItLjA0Yy0xMy4yNy0yOC42NS0zNi4wMy00OS40Ni02Ni40My01OS45Ni0xOS41OC02LjIxLTM1LjUxLS41Ni00NS44NCwxMy43MS01LjIzLDcuNDYtNy4xMiwxNC4zMi0yLjcxLDI1LjA2LS4xLTkuNjEsMy43LTE1Ljc2LDEwLjcxLTE5LjA2LDkuODctMy45NSwyMS4yNy0yLjg5LDM0LjM0LDMuNjcsOS4yMiw1LjAxLDE1Ljc2LDEzLjY5LDE5LjYyLDI2LjA3LDMuNjgsMTMuNjMsNC45MywyNy4wNywyLjAyLDQxLjgyLTEuNiw5LjkyLTEwLjUzLDI5LjM0LTIxLjI5LDQzLjA4LS4wMi4wMi0uNDQuNTktLjg4LDEuMjFsLTI5LjI3LDE2LjktNzEuMDMtNDEuMDNaIi8+PC9zdmc+">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@400;700&family=Baloo+2:wght@400;600;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+
+<style>
+:root{--bg:#0b1929;--bg2:#112238;--bg3:#1a3350;--border:#264d72;--accent:#5889c6;--accent2:#35597f;--green:#22c55e;--red:#ef4444;--yellow:#eab308;--text:#f0f6fc;--text2:#9dc0e0;--text3:#5d8db5;--radius:8px;--shadow:0 4px 24px rgba(0,0,0,.5)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;font-size:14px;min-height:100vh}
+a{color:var(--accent);text-decoration:none}
+button{cursor:pointer;border:none;border-radius:var(--radius);font-size:13px;font-family:inherit;transition:all .15s}
+input,select,textarea{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:inherit;width:100%;outline:none}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+select option{background:var(--bg3)}
+label{display:block;font-size:12px;color:var(--text2);margin-bottom:4px}
+h1{font-size:20px;font-weight:700;font-family:'Alegreya Sans SC',serif}
+h2{font-size:16px;font-weight:600;font-family:'Alegreya Sans SC',serif}
+h3{font-size:14px;font-weight:600}
+.badge{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600}
+.badge-green{background:#166534;color:#86efac}
+.badge-yellow{background:#713f12;color:#fde68a}
+.badge-red{background:#7f1d1d;color:#fca5a5}
+.badge-blue{background:#1e3a5f;color:#93c5fd}
+.badge-gray{background:#374151;color:#d1d5db}
+.status-sel{border:none;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;appearance:none;-webkit-appearance:none;outline:none}
+.ss-blue{background:#1e3a5f;color:#93c5fd}
+.ss-green{background:#166534;color:#86efac}
+.ss-red{background:#7f1d1d;color:#fca5a5}
+.ss-yellow{background:#713f12;color:#fde68a}
+.ss-gray{background:#374151;color:#d1d5db}
+.badge-purple{background:#4c1d95;color:#c4b5fd}
+/* NAV */
+#nav{display:flex;align-items:center;background:#35597f;border-bottom:1px solid #264d72;padding:0 20px;gap:4px;position:sticky;top:0;z-index:100}
+#nav .logo{font-weight:800;font-size:16px;color:var(--accent);margin-right:16px;padding:14px 0}
+.nav-btn{background:none;color:rgba(255,255,255,0.7);padding:14px 14px;border-radius:0;border-bottom:2px solid transparent;font-size:13px;font-weight:500;font-family:'Lato',sans-serif}
+.nav-btn:hover{color:white;background:rgba(255,255,255,.08)}
+.nav-btn.active{color:white;border-bottom-color:#5889c6}
+/* CONTENT */
+#app{max-width:1400px;margin:0 auto;padding:24px 20px}
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.card-sm{padding:16px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:1fr 1fr}
+.g3{grid-template-columns:1fr 1fr 1fr}
+.g4{grid-template-columns:1fr 1fr 1fr 1fr}
+.flex{display:flex;gap:12px;align-items:center}
+.flex-end{display:flex;gap:8px;justify-content:flex-end}
+.flex-wrap{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+/* STAT */
+.stat-val{font-size:28px;font-weight:700;margin:4px 0}
+.stat-lbl{font-size:12px;color:var(--text2)}
+.stat-delta{font-size:12px;margin-top:4px}
+/* BTN */
+.btn{padding:8px 16px;font-weight:600;border-radius:var(--radius)}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#4678b6}
+.btn-secondary{background:var(--bg3);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--text2)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#dc2626}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{background:none;color:var(--text2);padding:6px;border-radius:4px}
+.btn-icon:hover{background:var(--bg3);color:var(--text)}
+/* TABLE */
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;padding:8px 12px;border-bottom:1px solid var(--border)}
+td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:hover td{background:rgba(255,255,255,.02)}
+tr:last-child td{border-bottom:none}
+/* FORM */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-full{grid-column:1/-1}
+.form-row{margin-bottom:12px}
+/* SECTION HEADER */
+.section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+/* MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;width:90%;max-width:800px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+/* KANBAN */
+.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:12px}
+.kanban-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);min-width:200px;max-width:220px;flex-shrink:0}
+.kanban-col-header{padding:12px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.kanban-col-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.kanban-count{background:var(--bg3);color:var(--text2);font-size:11px;padding:1px 6px;border-radius:99px}
+.kanban-cards{padding:8px;min-height:200px;display:flex;flex-direction:column;gap:8px}
+.kanban-card{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;cursor:grab;transition:border-color .15s,opacity .15s}
+.kanban-card:hover{border-color:var(--accent)}
+.kanban-card.dragging{opacity:.35;cursor:grabbing}
+.kanban-col.drag-over>.kanban-cards{background:rgba(99,179,237,.08);border-radius:4px;outline:2px dashed var(--accent)}
+.kanban-card-title{font-size:13px;font-weight:600;margin-bottom:4px}
+.kanban-card-sub{font-size:11px;color:var(--text2)}
+.kanban-card-val{font-size:13px;font-weight:700;color:var(--green);margin-top:6px}
+/* TABS within page */
+.page-tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.page-tab{background:none;color:var(--text2);padding:8px 16px;border-radius:var(--radius) var(--radius) 0 0;border-bottom:2px solid transparent;font-size:13px}
+.page-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+/* DIVIDER */
+.divider{border:none;border-top:1px solid var(--border);margin:16px 0}
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast-item{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;box-shadow:var(--shadow);animation:slidein .2s ease;max-width:320px}
+.toast-item.success{border-left:4px solid var(--green)}
+.toast-item.error{border-left:4px solid var(--red)}
+@keyframes slidein{from{transform:translateX(40px);opacity:0}to{transform:none;opacity:1}}
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 24px;color:var(--text3)}
+.empty svg{margin-bottom:12px;opacity:.4}
+/* PROGRESS BAR */
+.progress-bar{height:6px;background:var(--bg3);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .3s}
+/* COLORS FOR ETAPAS */
+.etapa-0{color:#60a5fa}.etapa-1{color:#a78bfa}.etapa-2{color:#fb923c}.etapa-3{color:#f87171}.etapa-4{color:#34d399}.etapa-5{color:#fbbf24}.etapa-6{color:#e879f9}.etapa-7{color:#86efac}.etapa-8{color:#5eead4}.etapa-9{color:#9ca3af}
+.etapa-bg-0{background:#1e3a5f}.etapa-bg-1{background:#3b1f6e}.etapa-bg-2{background:#7c2d12}.etapa-bg-3{background:#7f1d1d}.etapa-bg-4{background:#064e3b}.etapa-bg-5{background:#78350f}.etapa-bg-6{background:#701a75}.etapa-bg-7{background:#14532d}.etapa-bg-8{background:#134e4a}.etapa-bg-9{background:#1f2937}
+/* CHART BARS */
+.chart-bars{display:flex;align-items:flex-end;gap:8px;height:120px}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.chart-bar{width:100%;background:var(--accent);border-radius:4px 4px 0 0;min-height:4px;transition:height .3s}
+.chart-bar-lbl{font-size:10px;color:var(--text3)}
+.chart-bar-val{font-size:10px;color:var(--text2)}
+@media(max-width:768px){.g2,.g3,.g4{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.kanban-col{min-width:160px}}
+/* Override inputs */
+.price-override{border-color:var(--yellow)!important;color:var(--yellow)!important}
+.price-auto{color:var(--green)}
+.override-row{display:flex;gap:6px;align-items:center}
+.override-row input{flex:1}
+.reset-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text3);padding:5px 8px;border-radius:4px;font-size:11px;white-space:nowrap;flex-shrink:0}
+.reset-btn:hover{color:var(--text);border-color:var(--text2)}
+/* Print styles for Word export preview */
+@media print{#nav,#toast{display:none!important}}
+</style>
+</head>
+<body>
+
+<nav id="nav">
+  <a href="#" onclick="goTab('dashboard');return false" style="display:flex;align-items:center;gap:10px;margin-right:16px;text-decoration:none;padding:10px 0">
+  <svg viewBox="72 430 240 274" width="32" height="37" xmlns="http://www.w3.org/2000/svg"><path fill="white" d="M301.95,503.39l-109.91-63.45-110.03,63.49v126.95l109.98,63.54,110-63.51-.05-127.02ZM120.96,641.06l1.39.16c31.43,2.99,60.88-6.17,85.28-27.12,15.24-13.78,18.4-30.38,11.28-46.5-3.81-8.28-8.78-13.37-20.27-14.98,8.35,4.76,11.75,11.14,11.06,18.86-1.57,10.52-8.23,19.83-20.49,27.81-8.97,5.43-19.77,6.71-32.41,3.8-13.62-3.7-25.87-9.4-37.13-19.34-7.76-6.38-20.03-23.89-26.46-40.11-.02-.04-.54-1.26-.97-2.16v-32.13l69.78-40.26-.02.03c-18.05,25.9-24.55,56.05-18.29,87.6,4.51,20.04,17.42,30.95,34.95,32.67,9.08.76,15.96-1.07,23.01-10.29-8.25,4.93-15.47,4.75-21.86.36-8.39-6.54-13.22-16.91-14.15-31.51-.32-10.48,3.88-20.52,12.62-30.09,9.91-10.05,20.9-17.91,35.1-22.83,9.34-3.61,30.53-5.69,47.79-3.35l30.54,17.63.03,80.33-.02-.04c-13.27-28.65-36.03-49.46-66.43-59.96-19.58-6.21-35.51-.56-45.84,13.71-5.23,7.46-7.12,14.32-2.71,25.06-.1-9.61,3.7-15.76,10.71-19.06,9.87-3.95,21.27-2.89,34.34,3.67,9.22,5.01,15.76,13.69,19.62,26.07,3.68,13.63,4.93,27.07,2.02,41.82-1.6,9.92-10.53,29.34-21.29,43.08-.02.02-.44.59-.88,1.21l-29.27,16.9-71.03-41.03Z"/></svg>
+  <span style="font-family:'Alegreya Sans SC',serif;font-size:17px;font-weight:700;color:white;letter-spacing:0.04em;line-height:1">Design Visual</span>
+</a>
+  <button class="nav-btn active" onclick="goTab('dashboard')">Dashboard</button>
+  <button class="nav-btn" onclick="goTab('orcamentos')">Orçamentos</button>
+  <button class="nav-btn" onclick="goTab('crm')">Funil</button>
+  <button class="nav-btn" onclick="goTab('financeiro')">Financeiro</button>
+  <button class="nav-btn" onclick="goTab('relatorios')">Relatórios</button>
+  <button class="nav-btn" onclick="goTab('tarefas')">Tarefas</button>
+  <button class="nav-btn" onclick="goTab('calcular')" style="color:#86efac;border-bottom-color:transparent">🧮 Calcular</button><button class="nav-btn" onclick="openImportModal()" style="margin-left:auto;color:#7dd3fc;border-bottom-color:transparent" title="Importar orçamento de Claude">📥 Importar</button>
+</nav>
+
+<div id="app"></div>
+<div id="toast"></div>
+
+<script>
+// --- PRICE DATABASE ----------------------------------------------------------
+const ETAPAS = [
+  'Consultoria','Orçamento/Arte','Acompanhamento','Produção',
+  'Pendente','Entrega/Instalação','Pagamento','Avaliação','Finalizado','Perdido'
+];
+const E_CONSULTORIA=0,E_ORC_ARTE=1,E_ACOMPANHAMENTO=2,E_PRODUCAO=3,E_PERDIDO=9;
+const STATUS_ETAPA={'Aberto':E_ORC_ARTE,'Em negociação':E_ACOMPANHAMENTO,'Fechado':E_PRODUCAO,'Perdido':E_PERDIDO};
+
+const MATERIAIS_DB = [
+  // Forma, Material, Espessura, Tamanho (LxA em cm), Cor, Preço (por chapa/barra)
+  // === BARRAS ===
+  {f:'Barra',m:'Metalon 20x20 mm',e:'Chapa 14 (2 mm)',t:'600 cm',c:'Padrão',p:40,tw:600,th:1},
+  {f:'Barra',m:'Metalon 20x20 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:40,tw:600,th:1},
+  {f:'Barra',m:'Metalon 30x30 mm',e:'Chapa 14 (2 mm)',t:'600 cm',c:'Padrão',p:90,tw:600,th:1},
+  {f:'Barra',m:'Metalon 30x30 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:120,tw:600,th:1},
+  {f:'Barra',m:'Metalon 50x30 mm',e:'Chapa 14 (2 mm)',t:'600 cm',c:'Padrão',p:150,tw:600,th:1},
+  {f:'Barra',m:'Metalon 50x30 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:180,tw:600,th:1},
+  // === CANTONEIRAS ===
+  {f:'Cantoneira',m:'Ferro 15 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:240,tw:600,th:1},
+  {f:'Cantoneira',m:'Ferro 15 mm',e:'Chapa 18 (1,2 mm)',t:'600 cm',c:'Padrão',p:270,tw:600,th:1},
+  {f:'Cantoneira',m:'Ferro 20 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:300,tw:600,th:1},
+  {f:'Cantoneira',m:'Ferro 20 mm',e:'Chapa 18 (1,2 mm)',t:'600 cm',c:'Padrão',p:330,tw:600,th:1},
+  {f:'Cantoneira',m:'Alumínio 15 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:360,tw:600,th:1},
+  {f:'Cantoneira',m:'Alumínio 15 mm',e:'Chapa 18 (1,2 mm)',t:'600 cm',c:'Padrão',p:390,tw:600,th:1},
+  {f:'Cantoneira',m:'Alumínio 20 mm',e:'Chapa 16 (1,5 mm)',t:'600 cm',c:'Padrão',p:420,tw:600,th:1},
+  {f:'Cantoneira',m:'Alumínio 20 mm',e:'Chapa 18 (1,2 mm)',t:'600 cm',c:'Padrão',p:450,tw:600,th:1},
+  // === CHAPAS ACM ===
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'300x122 cm',c:'Padrão',p:260,tw:300,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'300x122 cm',c:'Colorido',p:540,tw:300,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'300x122 cm',c:'Especial',p:570,tw:300,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'500x122 cm',c:'Padrão',p:600,tw:500,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'500x122 cm',c:'Colorido',p:630,tw:500,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'500x122 cm',c:'Especial',p:660,tw:500,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'500x150 cm',c:'Padrão',p:750,tw:500,th:150},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'500x150 cm',c:'Colorido',p:720,tw:500,th:150},
+  {f:'Chapa',m:'ACM',e:'ACM 3 mm',t:'500x150 cm',c:'Especial',p:750,tw:500,th:150},
+  {f:'Chapa',m:'ACM',e:'ACM 4 mm',t:'300x122 cm',c:'Padrão',p:780,tw:300,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 4 mm',t:'300x122 cm',c:'Colorido',p:810,tw:300,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 4 mm',t:'300x122 cm',c:'Especial',p:840,tw:300,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 4 mm',t:'500x122 cm',c:'Padrão',p:870,tw:500,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 4 mm',t:'500x122 cm',c:'Colorido',p:900,tw:500,th:122},
+  {f:'Chapa',m:'ACM',e:'ACM 4 mm',t:'500x150 cm',c:'Padrão',p:60,tw:500,th:150},
+  // === CHAPAS ACRÍLICO ===
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 1 mm',t:'200x100 cm',c:'Padrão',p:150,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 1 mm',t:'200x100 cm',c:'Colorido',p:210,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 1 mm',t:'200x100 cm',c:'Especial',p:230,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 1 mm',t:'220x120 cm',c:'Padrão',p:240,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 1 mm',t:'220x120 cm',c:'Colorido',p:270,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 1 mm',t:'220x120 cm',c:'Especial',p:300,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 2 mm',t:'200x100 cm',c:'Padrão',p:250,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 2 mm',t:'200x100 cm',c:'Colorido',p:360,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 2 mm',t:'220x120 cm',c:'Padrão',p:420,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 3 mm',t:'200x100 cm',c:'Padrão',p:285,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 3 mm',t:'200x100 cm',c:'Colorido',p:328,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 3 mm',t:'200x100 cm',c:'Especial',p:570,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 3 mm',t:'220x120 cm',c:'Padrão',p:376,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 3 mm',t:'220x120 cm',c:'Colorido',p:630,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 3 mm',t:'300x200 cm',c:'Padrão',p:712,tw:300,th:200},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 4 mm',t:'200x100 cm',c:'Padrão',p:400,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 4 mm',t:'200x100 cm',c:'Colorido',p:720,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 4 mm',t:'220x120 cm',c:'Padrão',p:550,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 5 mm',t:'200x100 cm',c:'Padrão',p:550,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 5 mm',t:'200x100 cm',c:'Colorido',p:900,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 5 mm',t:'220x120 cm',c:'Padrão',p:750,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 6 mm',t:'200x100 cm',c:'Padrão',p:580,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 6 mm',t:'200x100 cm',c:'Colorido',p:620,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 6 mm',t:'200x100 cm',c:'Especial',p:750,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 6 mm',t:'220x120 cm',c:'Padrão',p:600,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 6 mm',t:'220x120 cm',c:'Colorido',p:700,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 8 mm',t:'200x100 cm',c:'Padrão',p:870,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 8 mm',t:'220x120 cm',c:'Padrão',p:1320,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 10 mm',t:'200x100 cm',c:'Padrão',p:980,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 10 mm',t:'220x120 cm',c:'Padrão',p:1250,tw:220,th:120},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 12 mm',t:'200x100 cm',c:'Padrão',p:1590,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 15 mm',t:'200x100 cm',c:'Padrão',p:1900,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 18 mm',t:'200x100 cm',c:'Padrão',p:1950,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 20 mm',t:'200x100 cm',c:'Padrão',p:2200,tw:200,th:100},
+  {f:'Chapa',m:'Acrílico',e:'Acrílico 24 mm',t:'200x100 cm',c:'Padrão',p:2310,tw:200,th:100},
+  // === CHAPAS GALVANIZADO ===
+  {f:'Chapa',m:'Galvanizado',e:'Chapa 16 (1,5 mm)',t:'300x120 cm',c:'Padrão',p:400,tw:300,th:120},
+  {f:'Chapa',m:'Galvanizado',e:'Chapa 24 (0,6 mm)',t:'300x120 cm',c:'Padrão',p:430,tw:300,th:120},
+  {f:'Chapa',m:'Galvanizado',e:'Chapa 26 (0,5 mm)',t:'300x120 cm',c:'Padrão',p:350,tw:300,th:120},
+  {f:'Chapa',m:'Galvanizado',e:'Chapa 28 (0,4 mm)',t:'300x120 cm',c:'Padrão',p:160,tw:300,th:120},
+  // === CHAPAS INOX ESCOVADO ===
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 14 (2 mm)',t:'200x120 cm',c:'Padrão',p:1450,tw:200,th:120},
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 14 (2 mm)',t:'300x120 cm',c:'Padrão',p:2230,tw:300,th:120},
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 20 (1,0 mm)',t:'200x120 cm',c:'Padrão',p:580,tw:200,th:120},
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 20 (1,0 mm)',t:'300x120 cm',c:'Padrão',p:880,tw:300,th:120},
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 22 (0,8 mm)',t:'200x120 cm',c:'Padrão',p:380,tw:200,th:120},
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 24 (0,6 mm)',t:'200x120 cm',c:'Padrão',p:280,tw:200,th:120},
+  {f:'Chapa',m:'Inox Escovado',e:'Chapa 26 (0,5 mm)',t:'200x120 cm',c:'Padrão',p:300,tw:200,th:120},
+  // === CHAPAS INOX POLIDO ===
+  {f:'Chapa',m:'Inox Polido',e:'Chapa 14 (2 mm)',t:'200x120 cm',c:'Padrão',p:3390,tw:200,th:120},
+  {f:'Chapa',m:'Inox Polido',e:'Chapa 20 (1,0 mm)',t:'200x120 cm',c:'Padrão',p:500,tw:200,th:120},
+  {f:'Chapa',m:'Inox Polido',e:'Chapa 22 (0,8 mm)',t:'200x120 cm',c:'Padrão',p:380,tw:200,th:120},
+  {f:'Chapa',m:'Inox Polido',e:'Chapa 24 (0,6 mm)',t:'200x120 cm',c:'Padrão',p:280,tw:200,th:120},
+  {f:'Chapa',m:'Inox Polido',e:'Chapa 26 (0,5 mm)',t:'200x120 cm',c:'Padrão',p:300,tw:200,th:120},
+  // === LATÃO DOURADO ===
+  {f:'Chapa',m:'Latão Dourado',e:'Chapa 20 (1,07 mm)',t:'120x60 cm',c:'Padrão',p:790,tw:120,th:60},
+  {f:'Chapa',m:'Latão Dourado',e:'Chapa 22 (0,81 mm)',t:'120x60 cm',c:'Padrão',p:600,tw:120,th:60},
+  {f:'Chapa',m:'Latão Dourado',e:'Chapa 24 (0,64 mm)',t:'120x60 cm',c:'Padrão',p:490,tw:120,th:60},
+  {f:'Chapa',m:'Latão Dourado',e:'Chapa 26 (0,56 mm)',t:'120x60 cm',c:'Padrão',p:430,tw:120,th:60},
+  // === MDF ===
+  {f:'Chapa',m:'MDF',e:'MDF 3 mm',t:'183x275 cm',c:'Padrão',p:3930,tw:183,th:275},
+  {f:'Chapa',m:'MDF',e:'MDF 5 mm',t:'183x275 cm',c:'Padrão',p:4020,tw:183,th:275},
+  {f:'Chapa',m:'MDF',e:'MDF 9 mm',t:'183x275 cm',c:'Padrão',p:170,tw:183,th:275},
+  {f:'Chapa',m:'MDF',e:'MDF 15 mm',t:'183x275 cm',c:'Padrão',p:4200,tw:183,th:275},
+  {f:'Chapa',m:'MDF',e:'MDF 20 mm',t:'183x275 cm',c:'Padrão',p:4290,tw:183,th:275},
+  {f:'Chapa',m:'MDF',e:'MDF 30 mm',t:'183x275 cm',c:'Padrão',p:4380,tw:183,th:275},
+  // === PVC ===
+  {f:'Chapa',m:'PVC',e:'PVC 3 mm',t:'220x120 cm',c:'Padrão',p:130,tw:220,th:120},
+  {f:'Chapa',m:'PVC',e:'PVC 5 mm',t:'220x120 cm',c:'Padrão',p:170,tw:220,th:120},
+  {f:'Chapa',m:'PVC',e:'PVC 10 mm',t:'220x120 cm',c:'Padrão',p:350,tw:220,th:120},
+  {f:'Chapa',m:'PVC',e:'PVC 20 mm',t:'220x120 cm',c:'Padrão',p:500,tw:220,th:120},
+  // === PS ===
+  {f:'Chapa',m:'PS',e:'PS 2 mm',t:'200x100 cm',c:'Padrão',p:70,tw:200,th:100},
+  {f:'Chapa',m:'PS',e:'PS 2 mm',t:'200x100 cm',c:'Colorido',p:100,tw:200,th:100},
+  // === VINIL ===
+  {f:'Vinil',m:'Adesivo',e:'Automotivo IJ30',t:'4500x137 cm',c:'Branco',p:1750,tw:4500,th:137},
+];
+
+// Corte prices per metro (by corte type, then material-specific overrides)
+const CORTE_TIPOS = [
+  {v:'Nenhum',pm:0},
+  {v:'Adesivo',pm:15},
+  {v:'Router',pm:35},
+  {v:'Laser',pm:45},
+  {v:'Plasma',pm:60},
+  {v:'Laser Fibra',pm:150},
+];
+// Laser prices per meter by acrílico thickness
+const LASER_ACRILICO = {
+  'Acrílico 1 mm':20,'Acrílico 2 mm':30,'Acrílico 3 mm':40,'Acrílico 4 mm':50,
+  'Acrílico 5 mm':60,'Acrílico 6 mm':70,'Acrílico 8 mm':85,'Acrílico 10 mm':100,
+  'Acrílico 12 mm':130,'Acrílico 15 mm':180,'Acrílico 18 mm':210,
+  'Acrílico 20 mm':250,'Acrílico 24 mm':300
+};
+
+const IMPRESSAO_TIPOS = [
+  {v:'Nenhum',pm2:0},{v:'Digital',pm2:30},{v:'Pintura Automotiva',pm2:40},
+  {v:'UV Adesivo',pm2:75},{v:'UV',pm2:120},{v:'UV com Branco',pm2:150},
+];
+const INSTALACAO_TIPOS = [
+  {v:'Nenhum',pm2:0},{v:'Comum',pm2:30},{v:'Escada',pm2:100},
+  {v:'Andaime',pm2:250},{v:'Rapel',pm2:550},
+];
+const DISTANCIA_TIPOS = [
+  {v:'Mínimo (até 4 km)',p:15},{v:'5-15 km',p:30},{v:'16-20 km',p:50},
+  {v:'21-30 km',p:80},{v:'31-50 km',p:100},{v:'Sem deslocamento',p:0},
+];
+
+// --- STATE -------------------------------------------------------------------
+let S = {
+  clientes:[],
+  orcamentos:[],
+  crm:[],
+  financeiro:[],
+  tarefas:[],
+  nextId:1
+};
+
+// ── FIREBASE ──
+const firebaseConfig={
+  apiKey:"AIzaSyD-bHKCY6nu4P34Zj5bYuWorsOW8og4BzA",
+  authDomain:"design-visual-crm.firebaseapp.com",
+  projectId:"design-visual-crm",
+  storageBucket:"design-visual-crm.firebasestorage.app",
+  messagingSenderId:"453769480226",
+  appId:"1:453769480226:web:1bb9cd96506f94abaaa27b"
+};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.firestore();
+
+let _saveTimer=null;
+function saveState(){
+  // Salva local imediatamente (cache offline)
+  localStorage.setItem('sinalapp_v1',JSON.stringify(S));
+  // Envia ao Firebase com debounce de 600ms
+  clearTimeout(_saveTimer);
+  _saveTimer=setTimeout(()=>{
+    db.collection('crm').doc('dados').set(JSON.parse(JSON.stringify(S)))
+      .catch(e=>console.error('Firebase save:',e));
+  },600);
+}
+
+let _rtUnsubscribe=null; // real-time listener handle
+
+function loadState(){
+  // 1. Carrega cache local imediatamente (offline-first)
+  try{
+    const local=localStorage.getItem('sinalapp_v1');
+    if(local){Object.assign(S,JSON.parse(local));}
+  }catch(e){}
+  // 2. Retorna Promise que só resolve APÓS o primeiro snapshot do Firebase
+  //    Isso garante que a migração/inicialização roda com dados reais, não vazios.
+  return new Promise(resolve=>{
+    let _firstFired=false;
+    if(_rtUnsubscribe) _rtUnsubscribe();
+    _rtUnsubscribe=db.collection('crm').doc('dados').onSnapshot(
+      doc=>{
+        if(doc.exists){
+          if(!_firstFired){
+            // Primeira resposta do Firebase: sempre aplicar (inicialização segura)
+            _firstFired=true;
+            Object.assign(S,doc.data());
+            localStorage.setItem('sinalapp_v1',JSON.stringify(S));
+            resolve();
+          } else {
+            // Atualizações em tempo real: só aplica se não estiver editando
+            const inForm=orcTab==='novo'||orcTab==='editar';
+            const hasModal=!!document.querySelector('.modal-bg');
+            if(inForm||hasModal||currentTab==='calcular') return;
+            Object.assign(S,doc.data());
+            localStorage.setItem('sinalapp_v1',JSON.stringify(S));
+            const _sy=window.scrollY;
+            render();
+            requestAnimationFrame(()=>window.scrollTo(0,_sy));
+          }
+        } else {
+          // Documento não existe: migra localStorage → Firebase (primeira vez)
+          if(!_firstFired){
+            _firstFired=true;
+            const local=localStorage.getItem('sinalapp_v1');
+            if(local){
+              db.collection('crm').doc('dados').set(JSON.parse(JSON.stringify(S)))
+                .then(()=>{console.log('✓ Dados migrados para o Firebase');resolve();})
+                .catch(e=>{console.error('Firebase migrate:',e);resolve();});
+            } else {
+              resolve(); // banco vazio e localStorage vazio: começa do zero
+            }
+          }
+        }
+      },
+      e=>{
+        // Offline: usa o que tem no cache local e resolve assim mesmo
+        console.warn('Firebase offline — usando cache local:',e.message);
+        if(!_firstFired){_firstFired=true;resolve();}
+      }
+    );
+  });
+}
+function genId(){return 'id'+(S.nextId++)+'_'+Date.now();}
+
+// --- HELPERS -----------------------------------------------------------------
+const BRL=v=>v==null?'—':'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const today=()=>new Date().toISOString().slice(0,10);
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  const el=document.createElement('div');
+  el.className='toast-item '+type;
+  el.textContent=msg;
+  t.appendChild(el);
+  setTimeout(()=>el.remove(),3000);
+}
+function confirm2(msg){return window.confirm(msg);}
+
+// Get unique values from DB
+function dbFormas(){return [...new Set(MATERIAIS_DB.map(x=>x.f))];}
+function dbMateriais(forma){return [...new Set(MATERIAIS_DB.filter(x=>x.f===forma).map(x=>x.m))];}
+function dbEspessuras(forma,mat){return [...new Set(MATERIAIS_DB.filter(x=>x.f===forma&&x.m===mat).map(x=>x.e))];}
+function dbTamanhos(forma,mat,esp){return [...new Set(MATERIAIS_DB.filter(x=>x.f===forma&&x.m===mat&&x.e===esp).map(x=>x.t))];}
+function dbCores(forma,mat,esp,tam){return [...new Set(MATERIAIS_DB.filter(x=>x.f===forma&&x.m===mat&&x.e===esp&&x.t===tam).map(x=>x.c))];}
+function dbPreco(forma,mat,esp,tam,cor){
+  const r=MATERIAIS_DB.find(x=>x.f===forma&&x.m===mat&&x.e===esp&&x.t===tam&&x.c===cor);
+  return r||null;
+}
+
+// --- CALCULADORA -------------------------------------------------------------
+// Override helper: if ov is not null/empty, use it; otherwise use auto value
+function ov(override,auto){
+  if(override===null||override===''||override===undefined) return auto;
+  const n=Number(override);
+  return isNaN(n)?auto:n;
+}
+function calcItem(it){
+  const r=dbPreco(it.forma,it.material,it.espessura,it.tamanho,it.cor);
+  let custo_material=0,info_material={chapas:0,utilizacao:0,preco_chapa_auto:0};
+  const preco_chapa_auto=r?r.p:0;
+  const preco_chapa=ov(it.ov_chapa,preco_chapa_auto);
+  if(r&&it.largura>0&&it.altura>0&&it.unidades>0){
+    const tw=r.tw,th=r.th;
+    if(it.forma==='Barra'||it.forma==='Cantoneira'||it.forma==='Tubo'){
+      const metros_chapa=tw/100;
+      const pecas_chapa=Math.floor(metros_chapa/((it.largura||100)/100))||1;
+      const chapas=Math.ceil(it.unidades/pecas_chapa);
+      const util=(it.unidades*(it.largura||100))/(chapas*tw);
+      custo_material=util*chapas*preco_chapa;
+      info_material={chapas,utilizacao:util,preco_chapa_auto};
+    } else {
+      const area_item=it.largura*it.altura;
+      const area_chapa=tw*th;
+      const px=Math.floor(tw/it.largura)||1;
+      const py=Math.floor(th/it.altura)||1;
+      const ppc=px*py;
+      const chapas=Math.max(1,Math.ceil(it.unidades/ppc));
+      const util=(it.unidades*area_item)/(chapas*area_chapa);
+      custo_material=util*chapas*preco_chapa;
+      info_material={chapas,utilizacao:util,px,py,ppc,preco_chapa_auto};
+    }
+    custo_material=Math.round(custo_material*100)/100;
+  }
+  const custo_material_auto=custo_material;
+  custo_material=ov(it.ov_material,custo_material_auto);
+  let ppm_corte=0;
+  if(it.corte_tipo&&it.corte_tipo!=='Nenhum'){
+    const ct=CORTE_TIPOS.find(x=>x.v===it.corte_tipo);
+    ppm_corte=ct?ct.pm:0;
+    if(it.corte_tipo==='Laser'&&it.material==='Acrílico'&&it.espessura){
+      const la=LASER_ACRILICO[it.espessura];
+      if(la) ppm_corte=la;
+    }
+  }
+  // Auto-calc quantities from item dimensions when not overridden
+  // Dimensões da peça (largura/altura) — usadas para corte, impressão, instalação
+  const w=it.largura||0;
+  const h=it.altura||0;
+  const qty=it.unidades||1;
+  // Preço cheio: arredonda pra cima (teto); desligado: valor exato
+  const applyPrecoCheio=raw=>it.preco_cheio?Math.ceil(raw):Math.round(raw*100)/100;
+  // Aproveitamento de chapa: peças que cabem em 1m² (100x100cm)
+  const S=100;
+  const ppa=w>0&&h>0?Math.max(Math.floor(S/w)*Math.floor(S/h),1):1;
+  const raw_metro=w>0&&h>0?qty/ppa:0;
+  const raw_corte=raw_metro||(it.corte_metros||0);
+  const raw_imp=raw_metro||(it.impressao_m2||0);
+  const raw_inst=raw_metro||(it.instalacao_m2||0);
+  const auto_corte_m=ov(it.ov_corte_metros, applyPrecoCheio(raw_corte));
+  const auto_imp_m2=ov(it.ov_impressao_m2,  applyPrecoCheio(raw_imp));
+  const auto_inst_m2=ov(it.ov_instalacao_m2,applyPrecoCheio(raw_inst));
+  const custo_corte_auto=Math.round((ppm_corte*auto_corte_m)*100)/100;
+  const custo_corte=ov(it.ov_corte,custo_corte_auto);
+  const imp=IMPRESSAO_TIPOS.find(x=>x.v===it.impressao_tipo);
+  const custo_impressao_auto=imp?Math.round((imp.pm2*auto_imp_m2)*100)/100:0;
+  const custo_impressao=ov(it.ov_impressao,custo_impressao_auto);
+  const inst=INSTALACAO_TIPOS.find(x=>x.v===it.instalacao_tipo);
+  const custo_instalacao_auto=inst?Math.round((inst.pm2*auto_inst_m2)*100)/100:0;
+  const custo_instalacao=ov(it.ov_instalacao,custo_instalacao_auto);
+  const dist=DISTANCIA_TIPOS.find(x=>x.v===it.distancia);
+  const custo_distancia_auto=dist?dist.p:15;
+  const custo_distancia=ov(it.ov_distancia,custo_distancia_auto);
+  const custo_montagem=ov(it.ov_montagem,Number(it.montagem)||0);
+  const custo_fixacao=ov(it.ov_fixacao,Number(it.fixacao)||0);
+  const custo_ad1=ov(it.ov_adicional1,Number(it.adicional1)||0);
+  const custo_ad2=ov(it.ov_adicional2,Number(it.adicional2)||0);
+  const custo_ad3=ov(it.ov_adicional3,Number(it.adicional3)||0);
+  const auto={material:custo_material_auto,corte:custo_corte_auto,impressao:custo_impressao_auto,
+              instalacao:custo_instalacao_auto,distancia:custo_distancia_auto,ppm_corte,
+              corte_m:auto_corte_m,imp_m2:auto_imp_m2,inst_m2:auto_inst_m2};
+  const subtotal=custo_material+custo_corte+custo_impressao+custo_instalacao+
+                 custo_distancia+custo_montagem+custo_fixacao+custo_ad1+custo_ad2+custo_ad3;
+  return {
+    custo_material,info_material,custo_corte,custo_impressao,custo_instalacao,
+    custo_distancia,custo_montagem,custo_fixacao,custo_ad1,custo_ad2,custo_ad3,
+    subtotal,auto,ppm_corte
+  };
+}
+function migrateServico(sv){
+  if(sv.itens) return sv;
+  const it={
+    nome_interno:sv.item||'',forma:sv.forma||'Chapa',material:sv.material||'Acrílico',
+    espessura:sv.espessura||'Acrílico 6 mm',tamanho:sv.tamanho||'200x100 cm',
+    cor:sv.cor||'Padrão',largura:sv.largura||0,altura:sv.altura||0,unidades:sv.unidades||1,
+    corte_tipo:sv.corte_tipo||'Nenhum',corte_metros:sv.corte_metros||0,
+    impressao_tipo:sv.impressao_tipo||'Nenhum',impressao_m2:sv.impressao_m2||0,
+    instalacao_tipo:sv.instalacao_tipo||'Nenhum',instalacao_m2:sv.instalacao_m2||0,
+    distancia:sv.distancia||'Mínimo (até 4 km)',
+    montagem:sv.montagem||0,fixacao:sv.fixacao||0,
+    adicional1:sv.adicional1||0,adicional2:sv.adicional2||0,adicional3:sv.adicional3||0,
+    desc_ad1:sv.desc_ad1||'',desc_ad2:sv.desc_ad2||'',desc_ad3:sv.desc_ad3||'',
+    ov_chapa:sv.ov_chapa||null,ov_material:sv.ov_material||null,
+    ov_corte:sv.ov_corte||null,ov_impressao:sv.ov_impressao||null,
+    ov_instalacao:sv.ov_instalacao||null,ov_distancia:sv.ov_distancia||null,
+    ov_montagem:sv.ov_montagem||null,ov_fixacao:sv.ov_fixacao||null,
+    ov_adicional1:sv.ov_adicional1||null,ov_adicional2:sv.ov_adicional2||null,
+    preco_item:null
+  };
+  return {
+    item:sv.item||'',descricao:sv.descricao||'',
+    operacional_pct:sv.operacional_pct||30,comissao_pct:sv.comissao_pct||100,
+    imposto_pct:sv.imposto_pct||10,juros_pct:sv.juros_pct||10,
+    preco_final:sv.preco_final||null,itens:[it]
+  };
+}
+function calcServico(sv){
+  sv=migrateServico(sv);
+  const itens_calc=sv.itens.map(it=>calcItem(it));
+  const subtotal=itens_calc.reduce((a,c)=>a+c.subtotal,0);
+  const op_pct=(Number(sv.operacional_pct)||30)/100;
+  const cm_pct=(Number(sv.comissao_pct)||100)/100;
+  const im_pct=(Number(sv.imposto_pct)||10)/100;
+  const jr_pct=(Number(sv.juros_pct)||10)/100;
+  const custo_operacional=Math.round(subtotal*op_pct*100)/100;
+  const custo_comissao=Math.round(custo_operacional*cm_pct*100)/100;
+  const pre_imposto=subtotal+custo_operacional+custo_comissao;
+  const custo_imposto=Math.round(pre_imposto*im_pct*100)/100;
+  const total_vista=Math.round((pre_imposto+custo_imposto)*100)/100;
+  const total_prazo=Math.round(total_vista*(1+jr_pct)*100)/100;
+  const result_total_prazo=sv.preco_final!=null?Number(sv.preco_final):total_prazo;
+  const result_total_vista=sv.preco_final!=null?Math.round(Number(sv.preco_final)/1.10*100)/100:total_vista;
+  return {
+    itens_calc,subtotal,custo_operacional,custo_comissao,custo_imposto,
+    total_prazo:result_total_prazo,total_vista:result_total_vista
+  };
+}
+
+// --- NAVIGATION --------------------------------------------------------------
+let currentTab=localStorage.getItem('sinalapp_tab')||'dashboard';
+function goTab(t){
+  currentTab=t;
+  localStorage.setItem('sinalapp_tab',t);
+  document.querySelectorAll('.nav-btn').forEach((b,i)=>{
+    b.classList.toggle('active',['dashboard','orcamentos','crm','financeiro','relatorios','tarefas'][i]===t);
+  });
+  render();
+}
+function render(){
+  const app=document.getElementById('app');
+  // Atualiza botão ativo na nav
+  document.querySelectorAll('.nav-btn').forEach(b=>{
+    b.classList.toggle('active', b.getAttribute('onclick')===`goTab('${currentTab}')`);
+  });
+  if(currentTab==='dashboard') app.innerHTML=renderDashboard();
+  else if(currentTab==='orcamentos') app.innerHTML=renderOrcamentos();
+  else if(currentTab==='crm') app.innerHTML=renderCRM();
+  else if(currentTab==='financeiro') app.innerHTML=renderFinanceiro();
+  else if(currentTab==='relatorios') app.innerHTML=renderRelatorios();
+  else if(currentTab==='tarefas') app.innerHTML=renderTarefas();
+  else if(currentTab==='calcular'){ app.innerHTML=renderCalculadora(); setTimeout(calcUpdate,50); }
+  attachHandlers();
+}
+
+// --- DASHBOARD ---------------------------------------------------------------
+function renderDashboard(){
+  const now=new Date();
+  const mesAtual=now.toISOString().slice(0,7);
+  const orcsMes=S.orcamentos.filter(o=>o.data&&o.data.startsWith(mesAtual));
+  const totalMes=orcsMes.reduce((a,o)=>a+(o.total_prazo||0),0);
+  const fechados=S.orcamentos.filter(o=>o.status==='Fechado');
+  const taxa=S.orcamentos.length?Math.round(fechados.length/S.orcamentos.length*100):0;
+  const recMes=S.financeiro.filter(f=>f.tipo==='receita'&&f.data&&f.data.startsWith(mesAtual))
+                           .reduce((a,f)=>a+(f.valor||0),0);
+  const despMes=S.financeiro.filter(f=>f.tipo==='despesa'&&f.data&&f.data.startsWith(mesAtual))
+                            .reduce((a,f)=>a+(f.valor||0),0);
+
+  // Últimos 6 meses para chart
+  const meses=[];
+  for(let i=5;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.toISOString().slice(0,7);
+    const lbl=d.toLocaleDateString('pt-BR',{month:'short'});
+    const val=S.orcamentos.filter(o=>o.data&&o.data.startsWith(key)).reduce((a,o)=>a+(o.total_prazo||0),0);
+    meses.push({key,lbl,val});
+  }
+  const maxVal=Math.max(...meses.map(x=>x.val),1);
+
+  const etapasCounts=ETAPAS.map((e,i)=>({e,i,n:S.crm.filter(c=>c.etapa===i).length}));
+
+  return `
+  <div class="grid g4" style="margin-bottom:20px">
+    <div class="card">
+      <div class="stat-lbl">Orçamentos este mês</div>
+      <div class="stat-val">${orcsMes.length}</div>
+      <div class="stat-delta" style="color:var(--text2)">${BRL(totalMes)} em volume</div>
+    </div>
+    <div class="card">
+      <div class="stat-lbl">Receita este mês</div>
+      <div class="stat-val" style="color:var(--green)">${BRL(recMes)}</div>
+      <div class="stat-delta" style="color:var(--red)">Despesas: ${BRL(despMes)}</div>
+    </div>
+    <div class="card">
+      <div class="stat-lbl">Taxa de conversão</div>
+      <div class="stat-val">${taxa}%</div>
+      <div class="stat-delta" style="color:var(--text2)">${fechados.length} de ${S.orcamentos.length} fechados</div>
+    </div>
+    <div class="card">
+      <div class="stat-lbl">Cards no funil</div>
+      <div class="stat-val">${S.crm.length}</div>
+      <div class="stat-delta" style="color:var(--text2)">${S.crm.filter(c=>c.etapa<7).length} em andamento</div>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-bottom:20px">
+    <div class="card">
+      <h3 style="margin-bottom:16px">Volume de Orçamentos (6 meses)</h3>
+      <div class="chart-bars">
+        ${meses.map(m=>`
+          <div class="chart-bar-wrap">
+            <div class="chart-bar-val">${m.val>0?BRL(m.val).replace('R$ ',''):''}</div>
+            <div class="chart-bar" style="height:${Math.round(m.val/maxVal*100)}px"></div>
+            <div class="chart-bar-lbl">${m.lbl}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:16px">Funil de Vendas</h3>
+      ${etapasCounts.map(({e,i,n})=>`
+        <div style="margin-bottom:10px">
+          <div class="flex" style="justify-content:space-between;margin-bottom:4px">
+            <span class="etapa-${i}" style="font-size:12px;font-weight:600">${e}</span>
+            <span style="font-size:12px;color:var(--text2)">${n}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill etapa-bg-${i}" style="width:${n?Math.min(100,n*20):0}%"></div></div>
+        </div>`).join('')}
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-header">
+      <h3>Últimos Orçamentos</h3>
+      <button class="btn btn-primary btn-sm" onclick="openNovoOrcamento()">+ Novo Orçamento</button>
+    </div>
+    ${S.orcamentos.length===0?`<div class="empty">Nenhum orçamento ainda.<br><button class="btn btn-primary" style="margin-top:12px" onclick="openNovoOrcamento()">Criar primeiro orçamento</button></div>`:
+    `<table><thead><tr><th>Nº</th><th>Cliente</th><th>Descrição</th><th>Data</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>
+    ${S.orcamentos.slice(-8).reverse().map(o=>`
+      <tr>
+        <td style="color:var(--text2)">#${o.numero}</td>
+        <td>${o.cliente||'—'}</td>
+        <td style="color:var(--text2)">${(o.descricao||'').slice(0,50)}</td>
+        <td style="color:var(--text2)">${o.data||'—'}</td>
+        <td style="font-weight:700;color:var(--green)">${BRL(o.total_prazo)}</td>
+        <td>${statusSelectOrc(o.id,o.status)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn-icon" onclick="viewOrcamento('${o.id}')" title="Ver">👁</button>
+          <button class="btn-icon" onclick="generateDocx('${o.id}')" title="Gerar PDF" style="margin-left:4px">📎</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>`}
+  </div>`;
+}
+
+function statusBadge(s){
+  const m={'Aberto':'badge-blue','Fechado':'badge-green','Perdido':'badge-red','Em negociação':'badge-yellow'};
+  return `<span class="badge ${m[s]||'badge-gray'}">${s||'Aberto'}</span>`;
+}
+function statusSelectOrc(id,s){
+  const cls={'Aberto':'ss-blue','Fechado':'ss-green','Perdido':'ss-red','Em negociação':'ss-yellow'};
+  const cur=s||'Aberto';
+  const opts=['Aberto','Em negociação','Fechado','Perdido']
+    .map(v=>`<option value="${v}" ${cur===v?'selected':''}>${v}</option>`).join('');
+  return `<select class="status-sel ${cls[cur]||'ss-gray'}" title="Alterar status"
+    onchange="changeStatusOrc('${id}',this.value,this)"
+    onclick="event.stopPropagation()">${opts}</select>`;
+}
+function changeStatusOrc(id,newStatus,sel){
+  const o=S.orcamentos.find(x=>x.id===id);
+  if(!o)return;
+  if(newStatus==='Fechado'&&!o.valor_fechado){
+    // Recalcula totais e abre modal de fechamento
+    const calcs=(o.calcs||o.servicos.map(sv=>calcServico(sv)));
+    const total_prazo=calcs.reduce((a,c)=>a+(c.total_prazo||0),0);
+    const total_vista=calcs.reduce((a,c)=>a+(c.total_vista||0),0);
+    const obj={...o,status:newStatus,calcs,total_prazo,total_vista};
+    abrirFechamento(obj,total_prazo,total_vista);
+    // Reverte o select visualmente até confirmar
+    if(sel){sel.value=o.status||'Aberto';}
+    return;
+  }
+  o.status=newStatus;
+  // Atualiza cor do select imediatamente
+  if(sel){
+    const cls={'Aberto':'ss-blue','Fechado':'ss-green','Perdido':'ss-red','Em negociação':'ss-yellow'};
+    sel.className='status-sel '+(cls[newStatus]||'ss-gray');
+  }
+  // Sync CRM card: valores e etapa
+  const _card=S.crm.find(c=>c.orcamentoId===id);
+  if(_card){
+    _card.valor=o.total_prazo;
+    _card.valor_vista=o.total_vista;
+    _card.valor_fechado=o.valor_fechado||null;
+    if(STATUS_ETAPA[newStatus]!==undefined) _card.etapa=STATUS_ETAPA[newStatus];
+  }
+  saveState();render();
+  toast('Status atualizado!');
+}
+
+// --- ORÇAMENTOS ---------------------------------------------------------------
+let orcTab='lista';
+function renderOrcamentos(){
+  if(orcTab==='novo'||orcTab==='editar') return renderFormOrcamento();
+  const list=S.orcamentos.slice().reverse();
+  const allIds=list.map(o=>o.id);
+  const allSel=allIds.length>0&&allIds.every(id=>selectedOrcs.has(id));
+  const nSel=selectedOrcs.size;
+  return `
+  <div class="section-header">
+    <h2>Orçamentos</h2>
+    <button class="btn btn-primary" onclick="openNovoOrcamento()">+ Novo Orçamento</button>
+  </div>
+  ${nSel>0?`<div style="display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;margin-bottom:10px">
+    <span style="font-weight:600;color:var(--text)">${nSel} selecionado(s)</span>
+    <button class="btn btn-sm" onclick="bulkPDF()" title="Gerar PDF dos selecionados" style="background:var(--blue);color:#fff">📎 Gerar PDFs</button>
+    <button class="btn btn-sm btn-danger" onclick="bulkDelete()" style="background:var(--red);color:#fff">🗑 Excluir</button>
+    <button class="btn btn-sm" onclick="selectedOrcs.clear();render()" style="margin-left:auto">✕ Limpar seleção</button>
+  </div>`:''}
+  ${S.orcamentos.length===0?`<div class="card"><div class="empty">Nenhum orçamento cadastrado.</div></div>`:`
+  <div class="card">
+    <table><thead><tr>
+      <th style="width:32px"><input type="checkbox" ${allSel?'checked':''} onchange="toggleSelectAll(this.checked,[${allIds.map(id=>`'${id}'`).join(',')}])" title="Selecionar todos"></th>
+      <th>Nº</th><th>Cliente</th><th>Serviços</th><th>Data</th><th>Prazo</th><th>À Vista</th><th>Status</th><th></th>
+    </tr></thead><tbody>
+    ${list.map(o=>`
+      <tr style="${selectedOrcs.has(o.id)?'background:var(--bg2)':''}">
+        <td><input type="checkbox" ${selectedOrcs.has(o.id)?'checked':''} onchange="toggleOrcSelect('${o.id}',this.checked)"></td>
+        <td>#${o.numero}</td>
+        <td><strong>${o.cliente||'—'}</strong><br><span style="color:var(--text2);font-size:11px">${o.empresa||''}</span></td>
+        <td style="color:var(--text2)">${(o.servicos||[]).length} serviço(s)</td>
+        <td style="color:var(--text2)">${o.data||'—'}</td>
+        <td style="font-weight:700;color:var(--green)">${BRL(o.total_prazo)}</td>
+        <td style="color:var(--text2)">${BRL(o.total_vista)}</td>
+        <td>${statusSelectOrc(o.id,o.status)}</td>
+        <td style="white-space:nowrap">
+          <button class="btn-icon" onclick="viewOrcamento('${o.id}')" title="Ver">👁</button>
+          <button class="btn-icon" onclick="generateDocx('${o.id}')" title="Gerar PDF" style="margin-left:4px">📎</button>
+          <button class="btn-icon" onclick="editOrcamento('${o.id}')" title="Editar">✏️</button>
+          <button class="btn-icon" onclick="duplicateOrcamento('${o.id}')" title="Duplicar">🗐</button>
+          <button class="btn-icon" onclick="deleteOrcamento('${o.id}')" title="Excluir">🗑</button>
+        </td>
+      </tr>`).join('')}
+    </tbody></table>
+  </div>`}`;
+}
+function toggleOrcSelect(id,checked){
+  if(checked) selectedOrcs.add(id); else selectedOrcs.delete(id);
+  render();
+}
+function toggleSelectAll(checked,ids){
+  if(checked) ids.forEach(id=>selectedOrcs.add(id)); else ids.forEach(id=>selectedOrcs.delete(id));
+  render();
+}
+function bulkPDF(){
+  [...selectedOrcs].forEach(id=>generateDocx(id));
+}
+function bulkDelete(){
+  const n=selectedOrcs.size;
+  if(!confirm(`Excluir ${n} orçamento(s) selecionado(s)?`))return;
+  selectedOrcs.forEach(id=>{
+    S.orcamentos=S.orcamentos.filter(o=>o.id!==id);
+    S.crm=S.crm.filter(c=>c.orcamentoId!==id);
+  });
+  selectedOrcs.clear();
+  saveState();render();toast(`${n} orçamento(s) excluído(s)`);
+}
+
+// Form state
+let selectedOrcs=new Set();
+let formOrc={id:null,numero:'',cliente:'',empresa:'',telefone:'',email:'',data:today(),prazo_entrega:7,status:'Aberto',descricao:'',servicos:[newServico()],responsavel:'Marcelo'};
+let formCalcs=[];
+
+function newItem(){
+  return {
+    nome_interno:'',preco_cheio:true,
+    forma:'Chapa',material:'Acrílico',espessura:'Acrílico 6 mm',
+    tamanho:'200x100 cm',cor:'Padrão',largura:0,altura:0,unidades:1,
+    corte_tipo:'Nenhum',corte_metros:0,
+    impressao_tipo:'Nenhum',impressao_m2:0,
+    instalacao_tipo:'Nenhum',instalacao_m2:0,
+    distancia:'Mínimo (até 4 km)',
+    montagem:0,fixacao:0,adicional1:0,adicional2:0,adicional3:0,
+    desc_ad1:'',desc_ad2:'',desc_ad3:'',
+    ov_adicional3:null,
+    ov_chapa:null,ov_material:null,ov_corte:null,ov_impressao:null,
+    ov_instalacao:null,ov_distancia:null,
+    ov_montagem:null,ov_fixacao:null,ov_adicional1:null,ov_adicional2:null,ov_adicional3:null,
+    ov_corte_metros:null,ov_impressao_m2:null,ov_instalacao_m2:null,
+    preco_item:null
+  };
+}
+function newServico(){
+  return {
+    item:'',descricao:'',unidades:1,
+    operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,
+    preco_final:null,
+    itens:[newItem()]
+  };
+}
+
+function cancelForm(){orcTab='lista';render();}
+function gerarCodigo(){
+  const d=new Date();
+  const aa=String(d.getFullYear()).slice(2);
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  const dd=String(d.getDate()).padStart(2,'0');
+  const prefixo=aa+mm+dd;
+  // Conta orçamentos do mesmo dia (mesmo prefixo)
+  const seq=S.orcamentos.filter(o=>String(o.numero).startsWith(prefixo)).length+1;
+  return prefixo+String(seq).padStart(2,'0');
+}
+function openNovoOrcamento(){
+  formOrc={id:null,numero:gerarCodigo(),cliente:'',empresa:'',telefone:'',email:'',
+           data:today(),prazo_entrega:7,status:'Aberto',descricao:'',
+           servicos:[newServico()],responsavel:'Marcelo'};
+  formCalcs=[];
+  orcTab='novo';
+  goTab('orcamentos');
+}
+function editOrcamento(id){
+  const o=S.orcamentos.find(x=>x.id===id);
+  if(!o)return;
+  formOrc=JSON.parse(JSON.stringify(o));
+  formCalcs=[];
+  orcTab='editar';
+  goTab('orcamentos');
+}
+
+function renderFormOrcamento(){
+  // Pre-compute calcs
+  formCalcs=formOrc.servicos.map(sv=>calcServico(sv));
+  const totalPrazo=formCalcs.reduce((a,c)=>a+c.total_prazo,0);
+  const totalVista=formCalcs.reduce((a,c)=>a+c.total_vista,0);
+
+  const formas=dbFormas();
+
+  return `
+  <div class="section-header">
+    <h2>${formOrc.id?'Editar Orçamento #'+formOrc.numero:'Novo Orçamento'}</h2>
+    <div class="flex">
+      <button class="btn btn-secondary" onclick="cancelForm()">Cancelar</button>
+      <button class="btn" style="background:var(--bg3);border:1px solid var(--border);color:#fff" onclick="openModelosOrcamento()">📋 Modelos</button>
+      ${formOrc.id?`<button class="btn btn-primary" style="background:var(--accent);border:none" onclick="generateDocx('${formOrc.id}')">📎 Formalizar Orçamento</button>`:''}
+      <button class="btn btn-primary" onclick="salvarOrcamento()">💾 Salvar Orçamento</button>
+    </div>
+  </div>
+  <div class="grid g2" style="margin-bottom:16px">
+    <div class="card">
+      <h3 style="margin-bottom:12px">Dados do Cliente</h3>
+      <div class="form-grid">
+        <div class="form-row"><label>Nº do Orçamento</label><input type="number" value="${formOrc.numero}" onchange="formOrc.numero=+this.value"></div>
+        <div class="form-row"><label>Data</label><input type="date" value="${formOrc.data}" onchange="formOrc.data=this.value"></div>
+        <div class="form-row"><label>Empresa</label><input value="${formOrc.empresa}" oninput="formOrc.empresa=this.value" placeholder="Empresa"></div>
+        <div class="form-row"><label>Cliente *</label><input value="${formOrc.cliente}" oninput="formOrc.cliente=this.value" placeholder="Nome do cliente"></div>
+        <div class="form-row"><label>Telefone</label><input value="${formOrc.telefone}" oninput="formOrc.telefone=this.value" placeholder="(11) 99999-9999"></div>
+        <div class="form-row"><label>E-mail</label><input value="${formOrc.email}" oninput="formOrc.email=this.value" placeholder="email@..."></div>
+        <div class="form-row"><label>Prazo de Entrega (dias)</label><input type="number" value="${formOrc.prazo_entrega}" onchange="formOrc.prazo_entrega=+this.value"></div>
+        <div class="form-row"><label>Status</label>
+          <select onchange="formOrc.status=this.value">
+            ${['Aberto','Em negociação','Fechado','Perdido'].map(s=>`<option ${formOrc.status===s?'selected':''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-row form-full"><label>Responsável</label><input value="${formOrc.responsavel}" oninput="formOrc.responsavel=this.value" placeholder="Vendedor responsável"></div>
+        <div class="form-row form-full"><label>Observações</label><textarea rows="2" oninput="formOrc.descricao=this.value" placeholder="Notas internas...">${formOrc.descricao}</textarea></div>
+      </div>
+    </div>
+    <div class="card" style="display:flex;flex-direction:column;gap:12px">
+      <h3>Resumo do Orçamento</h3>
+      ${formCalcs.map((c,i)=>{
+        const sv=migrateServico(formOrc.servicos[i]);
+        const totalItens=c.itens_calc.reduce((a,x)=>a+x.subtotal,0);
+        return `
+        <div style="background:var(--bg3);border-radius:6px;padding:12px">
+          <div style="font-weight:600;margin-bottom:8px;color:var(--text2)">Serviço ${i+1}: ${sv.item||'(sem nome)'}</div>
+          ${c.itens_calc.map((ic,j)=>`
+            <div style="font-size:11px;color:var(--text3);margin-bottom:2px;padding-left:8px;border-left:2px solid var(--border)">
+              <span style="color:var(--text2)">${sv.itens[j].nome_interno||'Item '+(j+1)}</span>
+              — Material: ${BRL(ic.custo_material)}
+              ${ic.custo_corte>0?' · Corte: '+BRL(ic.custo_corte):''}
+              ${ic.custo_impressao>0?' · Impressão: '+BRL(ic.custo_impressao):''}
+              ${ic.custo_instalacao>0?' · Instal.: '+BRL(ic.custo_instalacao):''}
+              ${(ic.custo_montagem||ic.custo_fixacao||ic.custo_ad1||ic.custo_ad2||ic.custo_ad3)?'<br>':''}
+              ${ic.custo_montagem>0?' · Montagem: '+BRL(ic.custo_montagem):''}
+              ${ic.custo_fixacao>0?' · Fixação: '+BRL(ic.custo_fixacao):''}
+              ${ic.custo_ad1>0?' · '+(sv.itens[j].desc_ad1||'Adicional 1')+': '+BRL(ic.custo_ad1):''}
+              ${ic.custo_ad2>0?' · '+(sv.itens[j].desc_ad2||'Adicional 2')+': '+BRL(ic.custo_ad2):''}
+              ${ic.custo_ad3>0?' · '+(sv.itens[j].desc_ad3||'Adicional 3')+': '+BRL(ic.custo_ad3):''}
+              <span style="float:right;color:var(--text);font-weight:600">= ${BRL(ic.subtotal)}</span>
+            </div>`).join('')}
+          <hr class="divider" style="margin:8px 0">
+          <div class="flex" style="justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Subtotal itens:</span><span>${BRL(totalItens)}</span></div>
+          <div class="flex" style="justify-content:space-between;font-size:12px;margin-bottom:4px"><span>Operacional + Comissão:</span><span>${BRL(c.custo_operacional+c.custo_comissao)}</span></div>
+          <div class="flex" style="justify-content:space-between;font-size:12px"><span>Imposto (${sv.imposto_pct||10}%):</span><span>${BRL(c.custo_imposto)}</span></div>
+          <div class="flex" style="justify-content:space-between;font-weight:700;margin-top:8px"><span>Total à Prazo:</span><span style="color:var(--green)">${BRL(c.total_prazo)}</span></div>
+          <div class="flex" style="justify-content:space-between;font-size:12px;color:var(--text2)"><span>Total à Vista (50/50):</span><span>${BRL(c.total_vista)}</span></div>
+        </div>`;}).join('')}
+      <div style="background:var(--bg3);border:1px solid var(--accent);border-radius:6px;padding:14px">
+        <div class="flex" style="justify-content:space-between;font-size:18px;font-weight:800">
+          <span>TOTAL À PRAZO</span><span style="color:var(--accent)">${BRL(totalPrazo)}</span>
+        </div>
+        <div class="flex" style="justify-content:space-between;color:var(--text2);margin-top:4px">
+          <span>Total à Vista</span><span>${BRL(totalVista)}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  ${formOrc.servicos.map((sv,i)=>renderServicoForm(sv,i,formas)).join('')}
+
+  <div style="margin-top:12px">
+    <button class="btn btn-secondary" onclick="addServico()">+ Adicionar Serviço</button>
+  </div>`;
+}
+
+function ovFieldItem(i,j,key,label,autoVal,ovVal,hint){
+  const isOv=ovVal!==null&&ovVal!==undefined&&ovVal!=='';
+  const displayVal=isOv?Number(ovVal).toFixed(2):(autoVal||0).toFixed(2);
+  return `
+  <div class="form-row">
+    <label>${label} ${hint?`<span style="color:var(--text3);font-size:10px">${hint}</span>`:''}</label>
+    <div class="override-row">
+      <input type="number" min="0" step="0.01"
+        class="${isOv?'price-override':'price-auto'}"
+        value="${displayVal}"
+        onchange="setOvItem(${i},${j},'ov_${key}',this.value,${(autoVal||0).toFixed(4)});recalc()">
+      ${isOv?`<button class="reset-btn" onclick="updItem(${i},${j},'ov_${key}',null);recalc()">↺ Auto</button>`:''}
+    </div>
+  </div>`;
+}
+function setOvItem(i,j,key,val,autoVal){
+  const n=Number(val);
+  if(Math.abs(n-autoVal)<0.005) formOrc.servicos[i].itens[j][key]=null;
+  else formOrc.servicos[i].itens[j][key]=n;
+}
+function updItem(i,j,k,v){formOrc.servicos[i].itens[j][k]=v;}
+function updItemCascade(i,j,k,v){
+  const sv=migrateServico(formOrc.servicos[i]);
+  formOrc.servicos[i]=sv;
+  const it=sv.itens[j];
+  it[k]=v;
+  if(k==='forma'){
+    const mats=dbMateriais(v);it.material=mats[0]||'';
+    const esps=dbEspessuras(v,it.material);it.espessura=esps[0]||'';
+    const tams=dbTamanhos(v,it.material,it.espessura);it.tamanho=tams[0]||'';
+    const cors=dbCores(v,it.material,it.espessura,it.tamanho);it.cor=cors[0]||'';
+  } else if(k==='material'){
+    const esps=dbEspessuras(it.forma,v);it.espessura=esps[0]||'';
+    const tams=dbTamanhos(it.forma,v,it.espessura);it.tamanho=tams[0]||'';
+    const cors=dbCores(it.forma,v,it.espessura,it.tamanho);it.cor=cors[0]||'';
+  } else if(k==='espessura'){
+    const tams=dbTamanhos(it.forma,it.material,v);it.tamanho=tams[0]||'';
+    const cors=dbCores(it.forma,it.material,v,it.tamanho);it.cor=cors[0]||'';
+  } else if(k==='tamanho'){
+    const cors=dbCores(it.forma,it.material,it.espessura,v);it.cor=cors[0]||'';
+  }
+  recalc();
+}
+function addItem(i){
+  migrateServico(formOrc.servicos[i]);
+  const sv=migrateServico(formOrc.servicos[i]);
+  formOrc.servicos[i]=sv;
+  sv.itens.push(newItem());
+  recalc();
+}
+function removeItem(i,j){
+  const sv=migrateServico(formOrc.servicos[i]);
+  formOrc.servicos[i]=sv;
+  if(sv.itens.length>1){sv.itens.splice(j,1);recalc();}
+}
+
+function inlineOv(i,j,key,autoVal,ovVal){
+  const isOv=ovVal!==null&&ovVal!==undefined&&ovVal!=='';
+  const dv=isOv?Number(ovVal).toFixed(2):(autoVal||0).toFixed(2);
+  return `<div style="display:flex;align-items:center;gap:3px;flex-shrink:0"><span style="font-size:10px;color:var(--text3);white-space:nowrap">R$</span><input type="number" min="0" step="0.01" style="width:110px" class="${isOv?'price-override':'price-auto'}" value="${dv}" onchange="setOvItem(${i},${j},'ov_${key}',this.value,${(autoVal||0).toFixed(4)});recalc()" title="${isOv?'Valor personalizado':'Valor autom\u00e1tico'}">${isOv?`<button class="reset-btn" onclick="updItem(${i},${j},'ov_${key}',null);recalc()" title="Restaurar autom\u00e1tico">&#8635;</button>`:''}</div>`;
+}
+function renderItemForm(sv,i,it,j,ic,formas){
+  const mats=dbMateriais(it.forma);
+  const esps=dbEspessuras(it.forma,it.material);
+  const tams=dbTamanhos(it.forma,it.material,it.espessura);
+  const cors=dbCores(it.forma,it.material,it.espessura,it.tamanho);
+  const mat_row=dbPreco(it.forma,it.material,it.espessura,it.tamanho,it.cor);
+  return `
+  <div style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:14px;margin-bottom:12px">
+    <div class="section-header" style="margin-bottom:12px">
+      <div class="flex" style="gap:8px;align-items:center">
+        <span style="background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px">Item ${j+1}</span>
+        <input value="${it.nome_interno||''}" oninput="updItem(${i},${j},'nome_interno',this.value)"
+          placeholder="Nome interno (organização)" style="width:220px;font-size:12px;padding:4px 8px">
+      </div>
+      <div class="flex" style="gap:6px;align-items:center">
+        <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text2);cursor:pointer;user-select:none">
+          <input type="checkbox" ${it.preco_cheio!==false?'checked':''} onchange="updItem(${i},${j},'preco_cheio',this.checked);recalc()" style="cursor:pointer">
+          <span>Preço cheio (m² da chapa)</span>
+        </label>
+        ${sv.itens.length>1?`<button class="btn btn-danger btn-sm" onclick="removeItem(${i},${j})">Remover Item</button>`:''}
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Forma</label>
+        <select onchange="updItemCascade(${i},${j},'forma',this.value)">
+          ${formas.map(f=>`<option ${it.forma===f?'selected':''}>${f}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Material</label>
+        <select onchange="updItemCascade(${i},${j},'material',this.value)">
+          ${mats.map(m=>`<option ${it.material===m?'selected':''}>${m}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Espessura</label>
+        <select onchange="updItemCascade(${i},${j},'espessura',this.value)">
+          ${esps.map(e=>`<option ${it.espessura===e?'selected':''}>${e}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Tamanho da Chapa</label>
+        <select onchange="updItemCascade(${i},${j},'tamanho',this.value)">
+          ${tams.map(t=>`<option ${it.tamanho===t?'selected':''}>${t}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Cor</label>
+        <select onchange="updItem(${i},${j},'cor',this.value);recalc()">
+          ${cors.map(c=>`<option ${it.cor===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row"><label>Preço da Chapa</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input readonly value="${mat_row?BRL(mat_row.p)+' ('+mat_row.tw+'x'+mat_row.th+' cm)':'Não encontrado'}" style="flex:1;color:${mat_row?'var(--green)':'var(--red)'}">
+          ${inlineOv(i,j,'chapa',ic.info_material.preco_chapa_auto||0,it.ov_chapa)}
+        </div>
+      </div>
+      <div class="form-row"><label>Largura do item (cm)</label><input type="number" min="0" value="${it.largura}" onchange="updItem(${i},${j},'largura',+this.value);recalc()"></div>
+      <div class="form-row"><label>Altura do item (cm)</label><input type="number" min="0" value="${it.altura}" onchange="updItem(${i},${j},'altura',+this.value);recalc()"></div>
+      <div class="form-row"><label>Unidades</label><input type="number" min="1" value="${it.unidades}" onchange="updItem(${i},${j},'unidades',+this.value);recalc()"></div>
+      ${mat_row&&it.largura>0&&it.altura>0?`
+      <div class="form-row" style="align-self:end">
+        <div style="background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px;font-size:12px">
+          ${(ic.info_material&&ic.info_material.px)?`<span style="color:var(--text2)">${ic.info_material.px}×${ic.info_material.py} pçs/chapa · ${ic.info_material.chapas} chapa(s) · ${Math.round((ic.info_material.utilizacao||0)*100)}% uso</span>`:''}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+            <span style="color:var(--text3);font-size:11px">Custo material:</span>
+            <span style="color:var(--green);font-size:11px;font-weight:600">${BRL(ic.custo_material_auto||ic.custo_material)}</span>
+            ${inlineOv(i,j,'material',ic.custo_material_auto||ic.custo_material,it.ov_material)}
+          </div>
+        </div>
+      </div>`:'<div></div>'}
+      <div class="form-row"><label>Corte</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select style="flex:1" onchange="updItem(${i},${j},'corte_tipo',this.value);recalc()">
+            ${CORTE_TIPOS.map(ct=>`<option ${it.corte_tipo===ct.v?'selected':''}>${ct.v}</option>`).join('')}
+          </select>
+          ${inlineOv(i,j,'corte',ic.custo_corte,it.ov_corte)}
+        </div>
+      </div>
+      <div class="form-row"><label>Metros de corte ${it.corte_tipo!=='Nenhum'?`(R$${(ic.auto||{}).ppm_corte||0}/m)`:''}
+        <span style="font-size:10px;color:var(--text3)">auto: ${((ic.auto||{}).corte_m||0).toFixed(2)}m</span></label>
+        <div class="override-row">
+          <input type="number" min="0" step="0.01"
+            class="${(it.ov_corte_metros!==null&&it.ov_corte_metros!==undefined)?'price-override':''}"
+            value="${(it.ov_corte_metros!==null&&it.ov_corte_metros!==undefined)?it.ov_corte_metros:((ic.auto||{}).corte_m||0).toFixed(2)}"
+            onchange="updItem(${i},${j},'ov_corte_metros',this.value===''?null:+this.value);recalc()">
+          ${(it.ov_corte_metros!==null&&it.ov_corte_metros!==undefined)?`<button class="reset-btn" onclick="updItem(${i},${j},'ov_corte_metros',null);recalc()">↺ Auto</button>`:''}
+        </div>
+      </div>
+      <div class="form-row"><label>Impressão</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select style="flex:1" onchange="updItem(${i},${j},'impressao_tipo',this.value);recalc()">
+            ${IMPRESSAO_TIPOS.map(t=>`<option ${it.impressao_tipo===t.v?'selected':''}>${t.v}</option>`).join('')}
+          </select>
+          ${inlineOv(i,j,'impressao',ic.custo_impressao,it.ov_impressao)}
+        </div>
+      </div>
+      <div class="form-row"><label>Área de impressão (m²)
+        <span style="font-size:10px;color:var(--text3)">auto: ${((ic.auto||{}).imp_m2||0).toFixed(2)}m²</span></label>
+        <div class="override-row">
+          <input type="number" min="0" step="0.01"
+            class="${(it.ov_impressao_m2!==null&&it.ov_impressao_m2!==undefined)?'price-override':''}"
+            value="${(it.ov_impressao_m2!==null&&it.ov_impressao_m2!==undefined)?it.ov_impressao_m2:((ic.auto||{}).imp_m2||0).toFixed(2)}"
+            onchange="updItem(${i},${j},'ov_impressao_m2',this.value===''?null:+this.value);recalc()">
+          ${(it.ov_impressao_m2!==null&&it.ov_impressao_m2!==undefined)?`<button class="reset-btn" onclick="updItem(${i},${j},'ov_impressao_m2',null);recalc()">↺ Auto</button>`:''}
+        </div>
+      </div>
+      <div class="form-row"><label>Instalação</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select style="flex:1" onchange="updItem(${i},${j},'instalacao_tipo',this.value);recalc()">
+            ${INSTALACAO_TIPOS.map(t=>`<option ${it.instalacao_tipo===t.v?'selected':''}>${t.v}</option>`).join('')}
+          </select>
+          ${inlineOv(i,j,'instalacao',ic.custo_instalacao,it.ov_instalacao)}
+        </div>
+      </div>
+      <div class="form-row"><label>Área de instalação (m²)
+        <span style="font-size:10px;color:var(--text3)">auto: ${((ic.auto||{}).inst_m2||0).toFixed(2)}m²</span></label>
+        <div class="override-row">
+          <input type="number" min="0" step="0.01"
+            class="${(it.ov_instalacao_m2!==null&&it.ov_instalacao_m2!==undefined)?'price-override':''}"
+            value="${(it.ov_instalacao_m2!==null&&it.ov_instalacao_m2!==undefined)?it.ov_instalacao_m2:((ic.auto||{}).inst_m2||0).toFixed(2)}"
+            onchange="updItem(${i},${j},'ov_instalacao_m2',this.value===''?null:+this.value);recalc()">
+          ${(it.ov_instalacao_m2!==null&&it.ov_instalacao_m2!==undefined)?`<button class="reset-btn" onclick="updItem(${i},${j},'ov_instalacao_m2',null);recalc()">↺ Auto</button>`:''}
+        </div>
+      </div>
+      <div class="form-row"><label>Distância</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <select style="flex:1" onchange="updItem(${i},${j},'distancia',this.value);recalc()">
+            ${DISTANCIA_TIPOS.map(d=>`<option ${it.distancia===d.v?'selected':''}>${d.v}</option>`).join('')}
+          </select>
+          ${inlineOv(i,j,'distancia',ic.custo_distancia,it.ov_distancia)}
+        </div>
+      </div>
+      <div class="form-row"><label>Montagem (R$)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" min="0" style="flex:1" value="${it.montagem}" onchange="updItem(${i},${j},'montagem',+this.value);recalc()">
+          ${inlineOv(i,j,'montagem',ic.custo_montagem,it.ov_montagem)}
+        </div>
+      </div>
+      <div class="form-row"><label>Fixação (R$)</label>
+        <div style="display:flex;gap:6px;align-items:center">
+          <input type="number" min="0" style="flex:1" value="${it.fixacao}" onchange="updItem(${i},${j},'fixacao',+this.value);recalc()">
+          ${inlineOv(i,j,'fixacao',ic.custo_fixacao,it.ov_fixacao)}
+        </div>
+      </div>
+      <div class="form-row"><label>Adicional 1 — <input style="width:110px;display:inline-block;padding:2px 6px" value="${it.desc_ad1}" oninput="updItem(${i},${j},'desc_ad1',this.value)" placeholder="descrição"> (R$)</label>
+        <input type="number" min="0" value="${it.adicional1}" onchange="updItem(${i},${j},'adicional1',+this.value);recalc()">
+      </div>
+      <div class="form-row"><label>Adicional 2 — <input style="width:110px;display:inline-block;padding:2px 6px" value="${it.desc_ad2}" oninput="updItem(${i},${j},'desc_ad2',this.value)" placeholder="descrição"> (R$)</label>
+        <input type="number" min="0" value="${it.adicional2}" onchange="updItem(${i},${j},'adicional2',+this.value);recalc()">
+      </div>
+      <div class="form-row"><label>Adicional 3 — <input style="width:110px;display:inline-block;padding:2px 6px" value="${it.desc_ad3}" oninput="updItem(${i},${j},'desc_ad3',this.value)" placeholder="descrição"> (R$)</label>
+        <input type="number" min="0" value="${it.adicional3||0}" onchange="updItem(${i},${j},'adicional3',+this.value);recalc()">
+      </div>
+    </div>
+
+    <div class="flex" style="justify-content:flex-end;margin-top:8px;font-size:13px;font-weight:700">
+      Subtotal do Item: <span style="color:var(--accent);margin-left:8px">${BRL(ic.subtotal)}</span>
+    </div>
+  </div>`;
+}
+function renderServicoForm(sv,i,formas){
+  sv=migrateServico(sv);
+  formOrc.servicos[i]=sv;
+  const c=formCalcs[i]||{itens_calc:[]};
+  return `
+  <div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent)">
+    <div class="section-header" style="margin-bottom:16px">
+      <h3>Serviço ${i+1}</h3>
+      <div class="flex">
+        ${formOrc.servicos.length>1?`<button class="btn btn-danger btn-sm" onclick="removeServico(${i})">Remover Serviço</button>`:''}
+      </div>
+    </div>
+    <div class="form-grid" style="margin-bottom:16px">
+      <div class="form-row"><label>Nome do Serviço</label><input value="${sv.item}" oninput="updSv(${i},'item',this.value)" placeholder="Ex: Fachada Letreiro Acrílico"></div>
+      <div class="form-row"><label>Descrição do Serviço</label><input class="svc-desc" value="${sv.descricao}" oninput="updSv(${i},'descricao',this.value)" placeholder="Descrição para o orçamento"></div>
+      <div class="form-row"><label>Unidades do Serviço</label><input type="number" min="1" value="${sv.unidades||1}" onchange="updSv(${i},'unidades',+this.value)" placeholder="Qtd. de unidades"></div>
+    </div>
+    <h3 style="margin-bottom:12px">Itens do Serviço</h3>
+    ${sv.itens.map((it,j)=>renderItemForm(sv,i,it,j,(c.itens_calc||[])[j]||{custo_material:0,info_material:{chapas:0,utilizacao:0,preco_chapa_auto:0},custo_corte:0,custo_impressao:0,custo_instalacao:0,custo_distancia:0,custo_montagem:0,custo_fixacao:0,custo_ad1:0,subtotal:0,auto:{ppm_corte:0}},formas)).join('')}
+    <button class="btn btn-secondary btn-sm" onclick="addItem(${i})" style="margin-bottom:16px">+ Adicionar Item ao Serviço</button>
+    <hr class="divider">
+    <div class="form-grid" style="align-items:start">
+      <div>
+        <h3 style="margin-bottom:12px">Margens do Serviço (%)</h3>
+        <div class="form-grid">
+          <div class="form-row"><label>Operacional (%)</label><input type="number" value="${sv.operacional_pct}" onchange="updSv(${i},'operacional_pct',+this.value);recalc()"></div>
+          <div class="form-row"><label>Comissão (%)</label><input type="number" value="${sv.comissao_pct}" onchange="updSv(${i},'comissao_pct',+this.value);recalc()"></div>
+          <div class="form-row"><label>Imposto (%)</label><input type="number" value="${sv.imposto_pct}" onchange="updSv(${i},'imposto_pct',+this.value);recalc()"></div>
+          <div class="form-row"><label>Juros/Prazo (%)</label><input type="number" value="${sv.juros_pct}" onchange="updSv(${i},'juros_pct',+this.value);recalc()"></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px">💲 Preço do Serviço</h3>
+        <div style="background:var(--bg2);border-radius:8px;padding:12px;display:grid;gap:10px">
+
+          <div class="form-row">
+            <label style="color:var(--text2);font-size:11px">AUTO-CALCULADO</label>
+            <div style="display:flex;gap:8px">
+              <div style="flex:1;text-align:center;background:var(--bg3);border-radius:6px;padding:8px">
+                <div style="font-size:10px;color:var(--text2);margin-bottom:2px">À VISTA</div>
+                <div style="font-size:16px;font-weight:700;color:var(--primary)">${BRL(c.total_vista)}</div>
+              </div>
+              <div style="flex:1;text-align:center;background:var(--bg3);border-radius:6px;padding:8px">
+                <div style="font-size:10px;color:var(--text2);margin-bottom:2px">À PRAZO</div>
+                <div style="font-size:16px;font-weight:700;color:var(--accent)">${BRL(c.total_prazo)}</div>
+              </div>
+              <div style="flex:1;text-align:center;background:#22c55e18;border:1px solid #22c55e40;border-radius:6px;padding:8px">
+                <div style="font-size:10px;color:#22c55e;margin-bottom:2px">LUCRO</div>
+                <div style="font-size:16px;font-weight:700;color:#22c55e">${BRL(c.total_prazo - (formCalcs[i]||{subtotal:0}).subtotal)}</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>Sobrescrever À Prazo (R$) <span style="font-size:10px;color:var(--text3)">— deixe vazio para usar calculado</span></label>
+            <div class="override-row">
+              <input type="number" min="0" step="0.01"
+                class="svc-fat ${sv.preco_final!=null?'price-override':''}"
+                placeholder="${c.total_prazo.toFixed(2)}"
+                value="${sv.preco_final!=null?sv.preco_final:''}"
+                oninput="updSv(${i},'preco_final',this.value===''?null:+this.value);recalc()"
+                onchange="updSv(${i},'preco_final',this.value===''?null:+this.value);recalc()">
+              ${sv.preco_final!=null?`<button class="reset-btn" onclick="updSv(${i},'preco_final',null);recalc()">↺ Auto</button>`:''}
+            </div>
+          </div>
+
+          <input type="hidden" class="svc-vista" value="${c.total_vista.toFixed(2)}">
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function updSv(i,k,v){
+  const sv=migrateServico(formOrc.servicos[i]);
+  formOrc.servicos[i]=sv;
+  sv[k]=v;
+}
+function updSvCascade(i,k,v){updSv(i,k,v);}
+function recalc(){
+  formOrc.servicos=formOrc.servicos.map(sv=>migrateServico(sv));
+  formCalcs=formOrc.servicos.map(sv=>calcServico(sv));
+  render();
+}
+function addServico(){formOrc.servicos.push(newServico());recalc();}
+function removeServico(i){if(formOrc.servicos.length>1){formOrc.servicos.splice(i,1);recalc();}}
+
+function salvarOrcamento(){
+  if(!formOrc.cliente){toast('Informe o nome do cliente','error');return;}
+  const calcs=formOrc.servicos.map(sv=>calcServico(sv));
+  const total_prazo=calcs.reduce((a,c)=>a+c.total_prazo,0);
+  const total_vista=calcs.reduce((a,c)=>a+c.total_vista,0);
+  const obj={
+    ...formOrc,
+    total_prazo,total_vista,
+    calcs,
+    id:formOrc.id||genId(),
+    updatedAt:new Date().toISOString()
+  };
+  // Intercept: se fechando e ainda não tem valor_fechado, abrir modal de fechamento
+  if(obj.status==='Fechado' && !obj.valor_fechado){
+    abrirFechamento(obj,total_prazo,total_vista);
+    return;
+  }
+  _finalizarSalvarOrcamento(obj);
+}
+
+function abrirFechamento(obj,total_prazo,total_vista){
+  const modal=document.createElement('div');
+  modal.className='modal-bg';
+  const fmtBRL=v=>v.toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const updateFinal=()=>{
+    const v=+document.getElementById('fc_valor').value||0;
+    const d=+document.getElementById('fc_desc').value||0;
+    document.getElementById('fc_final').textContent='R$ '+fmtBRL(Math.max(0,v-d));
+  };
+  modal.innerHTML=`
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2>💰 Fechamento do Serviço</h2>
+      <button class="btn-icon" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-row form-full"><label>Condição de Pagamento</label>
+        <select id="fc_cond">
+          <option value="prazo">Faturado (boleto/15 dias)</option>
+          <option value="vista">50/50 (entrada + entrega)</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Valor da Condição (R$)</label>
+        <input id="fc_valor" type="number" step="0.01" value="${total_prazo.toFixed(2)}">
+      </div>
+      <div class="form-row"><label>Desconto (R$)</label>
+        <input id="fc_desc" type="number" step="0.01" value="0" min="0">
+      </div>
+      <div class="form-row form-full" style="background:var(--bg2);padding:10px 12px;border-radius:6px;margin-top:4px">
+        <label style="font-size:12px;color:var(--text3)">Valor Final Fechado</label>
+        <div id="fc_final" style="font-size:20px;font-weight:700;color:var(--green)">R$ ${fmtBRL(total_prazo)}</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
+      <button class="btn btn-primary" id="fc_confirm_btn">Confirmar Fechamento</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  // Eventos após inserir no DOM
+  modal.querySelector('#fc_cond').addEventListener('change',function(){
+    modal.querySelector('#fc_valor').value=(this.value==='vista'?total_vista:total_prazo).toFixed(2);
+    modal.querySelector('#fc_desc').value='0';
+    updateFinal();
+  });
+  modal.querySelector('#fc_valor').addEventListener('input',updateFinal);
+  modal.querySelector('#fc_desc').addEventListener('input',updateFinal);
+  modal.querySelector('#fc_confirm_btn').addEventListener('click',function(){
+    const cond=modal.querySelector('#fc_cond').value;
+    const valor=+modal.querySelector('#fc_valor').value||0;
+    const desc=+modal.querySelector('#fc_desc').value||0;
+    const vf=Math.max(0,valor-desc);
+    if(vf<=0){toast('Valor final inválido','error');return;}
+    obj.condicao_pag=cond;
+    obj.valor_fechado=vf;
+    modal.remove();
+    _finalizarSalvarOrcamento(obj);
+  });
+}
+
+function _finalizarSalvarOrcamento(obj){
+  if(obj.id && S.orcamentos.find(x=>x.id===obj.id)){
+    const idx=S.orcamentos.findIndex(x=>x.id===obj.id);
+    if(idx>=0) S.orcamentos[idx]=obj;
+  } else {
+    S.orcamentos.push(obj);
+    // Auto-create CRM card na etapa Orçamento/Arte
+    S.crm.push({
+      id:genId(),orcamentoId:obj.id,
+      titulo:obj.cliente+(obj.empresa?' — '+obj.empresa:''),
+      cliente:obj.cliente,empresa:obj.empresa,
+      valor:obj.total_prazo,valor_vista:obj.total_vista,etapa:E_ORC_ARTE,
+      data:obj.data,notas:'',responsavel:obj.responsavel
+    });
+  }
+  // Sync CRM card sempre (sem restrição de etapa)
+  const _card=S.crm.find(c=>c.orcamentoId===obj.id);
+  if(_card){
+    _card.titulo=obj.cliente+(obj.empresa?' — '+obj.empresa:'');
+    _card.cliente=obj.cliente;
+    _card.empresa=obj.empresa;
+    _card.valor=obj.total_prazo;
+    _card.valor_vista=obj.total_vista;
+    _card.valor_fechado=obj.valor_fechado||null;
+    _card.data=obj.data;
+    _card.responsavel=obj.responsavel;
+    // Sincroniza etapa com o status do orçamento
+    if(STATUS_ETAPA[obj.status]!==undefined) _card.etapa=STATUS_ETAPA[obj.status];
+  }
+  saveState();
+  orcTab='lista';
+  toast('Orçamento salvo com sucesso!');
+  render();
+}
+
+function duplicateOrcamento(id){
+  const orig=S.orcamentos.find(x=>x.id===id);
+  if(!orig)return;
+  const novo={...JSON.parse(JSON.stringify(orig)),
+    id:genId(),
+    numero:gerarCodigo(),
+    data:today(),
+    status:'Aberto',
+    updatedAt:new Date().toISOString()
+  };
+  S.orcamentos.push(novo);
+  // Cria novo card CRM em Orçamento/Arte
+  S.crm.push({
+    id:genId(),orcamentoId:novo.id,
+    titulo:novo.cliente+(novo.empresa?' — '+novo.empresa:''),
+    cliente:novo.cliente,empresa:novo.empresa,
+    valor:novo.total_prazo,valor_vista:novo.total_vista,etapa:E_ORC_ARTE,
+    data:novo.data,notas:'',responsavel:novo.responsavel
+  });
+  saveState();render();toast('Orçamento duplicado como #'+novo.numero);
+}
+function deleteOrcamento(id){
+  if(!confirm2('Excluir este orçamento?'))return;
+  S.orcamentos=S.orcamentos.filter(x=>x.id!==id);
+  S.crm=S.crm.filter(x=>x.orcamentoId!==id);
+  saveState();toast('Excluído');render();
+}
+
+function viewOrcamento(id){
+  const o=S.orcamentos.find(x=>x.id===id);
+  if(!o)return;
+  // Show modal with print view
+  const modal=document.createElement('div');
+  modal.className='modal-bg';
+  modal.innerHTML=`
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <h2>Orçamento #${o.numero} — ${o.cliente}</h2>
+      <button class="btn-icon" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <div style="margin-bottom:16px">
+      <div class="flex-wrap" style="gap:16px;font-size:13px;color:var(--text2)">
+        ${o.empresa?`<span>🏢 ${o.empresa}</span>`:''}
+        ${o.telefone?`<span>📱 ${o.telefone}</span>`:''}
+        ${o.email?`<span>📧 ${o.email}</span>`:''}
+        <span>📅 ${o.data}</span>
+        <span>⏱ Prazo: ${o.prazo_entrega} dias</span>
+      </div>
+    </div>
+    ${(o.servicos||[]).map((sv,i)=>{
+      const c=(o.calcs||[])[i]||calcServico(sv);
+      return `
+      <div style="background:var(--bg3);border-radius:8px;padding:14px;margin-bottom:12px">
+        <div style="font-weight:700;margin-bottom:8px">${sv.item||'Serviço '+(i+1)}</div>
+        <div style="font-size:12px;color:var(--text2);margin-bottom:8px">${sv.descricao||''}</div>
+        <table style="font-size:12px"><tbody>
+          <tr><td style="color:var(--text2);padding:2px 8px 2px 0">Material (${sv.espessura}, ${sv.largura}×${sv.altura}cm, ${sv.unidades} un.)</td><td>${BRL(c.custo_material)}</td></tr>
+          ${c.custo_corte>0?`<tr><td style="color:var(--text2);padding:2px 8px 2px 0">Corte ${sv.corte_tipo} (${sv.corte_metros}m)</td><td>${BRL(c.custo_corte)}</td></tr>`:''}
+          ${c.custo_impressao>0?`<tr><td style="color:var(--text2);padding:2px 8px 2px 0">Impressão ${sv.impressao_tipo}</td><td>${BRL(c.custo_impressao)}</td></tr>`:''}
+          ${c.custo_instalacao>0?`<tr><td style="color:var(--text2);padding:2px 8px 2px 0">Instalação ${sv.instalacao_tipo}</td><td>${BRL(c.custo_instalacao)}</td></tr>`:''}
+          <tr><td style="color:var(--text2);padding:2px 8px 2px 0">Deslocamento (${sv.distancia})</td><td>${BRL(c.custo_distancia)}</td></tr>
+          ${c.custo_montagem>0?`<tr><td style="color:var(--text2);padding:2px 8px 2px 0">Montagem</td><td>${BRL(c.custo_montagem)}</td></tr>`:''}
+          ${c.custo_fixacao>0?`<tr><td style="color:var(--text2);padding:2px 8px 2px 0">Fixação</td><td>${BRL(c.custo_fixacao)}</td></tr>`:''}
+        </tbody></table>
+        <div style="display:flex;justify-content:space-between;font-weight:700;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">
+          <span>Total à Prazo</span><span style="color:var(--green)">${BRL(c.total_prazo)}</span>
+        </div>
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text2)">
+          <span>Total à Vista (50/50)</span><span>${BRL(c.total_vista)}</span>
+        </div>
+      </div>`}).join('')}
+    <div style="background:var(--bg);border:2px solid var(--accent);border-radius:8px;padding:16px;margin-top:8px">
+      <div style="display:flex;justify-content:space-between;font-size:20px;font-weight:800">
+        <span>TOTAL GERAL À PRAZO</span><span style="color:var(--accent)">${BRL(o.total_prazo)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;color:var(--text2);margin-top:4px">
+        <span>Total à Vista / 50-50</span><span>${BRL(o.total_vista)}</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" style="background:#1e3a5f;color:#93c5fd;border-color:#1e3a5f" onclick="generateDocx('${o.id}')">📎 Gerar PDF</button>
+      <button class="btn btn-primary" onclick="editOrcamento('${o.id}');this.closest('.modal-bg').remove()">✏️ Editar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+
+// --- CRM ---------------------------------------------------------------------
+function renderCRM(){
+  return `
+  <div class="section-header">
+    <h2>Funil de Vendas</h2>
+    <button class="btn btn-primary" onclick="openNovoCRMCard()">+ Novo Card</button>
+  </div>
+  <div class="kanban">
+    ${ETAPAS.map((etapa,i)=>{
+      const cards=S.crm.filter(c=>c.etapa===i);
+      const total=cards.reduce((a,c)=>a+(c.valor||0),0);
+      return `
+      <div class="kanban-col" ondragover="crmDragOver(event,${i})" ondrop="crmDrop(event,${i})" ondragleave="crmDragLeave(event)">
+        <div class="kanban-col-header">
+          <span class="kanban-col-title etapa-${i}">${etapa}</span>
+          <span class="kanban-count">${cards.length}</span>
+        </div>
+        ${total>0?`<div style="padding:6px 12px;font-size:11px;color:var(--text3);border-bottom:1px solid var(--border)">${BRL(total)}</div>`:''}
+        <div class="kanban-cards">
+          ${cards.map(card=>renderKanbanCard(card)).join('')}
+        </div>
+      </div>`}).join('')}
+  </div>`;
+}
+
+function renderKanbanCard(card){
+  // Sync em tempo real: lê valores do orçamento vinculado
+  const orc=S.orcamentos.find(o=>o.id===card.orcamentoId);
+  const vFechado=orc?.valor_fechado||card.valor_fechado;
+  const vPrazo=orc?.total_prazo||card.valor;
+  const vVista=orc?.total_vista||card.valor_vista;
+  // Pagamentos registrados para este orçamento
+  const pgtos=card.orcamentoId
+    ?S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='receita')
+    :[];
+  const pgEntrada=pgtos.find(f=>f.tipo_pagamento==='entrada');
+  const pgEntrega=pgtos.find(f=>f.tipo_pagamento==='entrega');
+  return `<div class="kanban-card" draggable="true" ondragstart="crmDragStart(event,'${card.id}')" ondragend="crmDragEnd(event)" onclick="openCRMCard('${card.id}')">
+    <div class="kanban-card-title">${card.empresa||card.titulo||'—'}</div>
+    ${card.cliente?`<div class="kanban-card-sub">${card.cliente}</div>`:''}
+    ${card.responsavel?`<div class="kanban-card-sub">👤 ${card.responsavel}</div>`:''}
+    ${card.data?`<div class="kanban-card-sub">📅 ${card.data}</div>`:''}
+    ${vFechado
+      ?`<div style="margin-top:6px"><div class="kanban-card-val" style="color:var(--green)" title="Valor fechado">✓ ${BRL(vFechado)}</div></div>`
+      :(vPrazo||vVista)?`<div style="display:flex;justify-content:space-between;margin-top:6px">
+        ${vPrazo?`<div class="kanban-card-val" title="À prazo">⏱ ${BRL(vPrazo)}</div>`:''}
+        ${vVista?`<div class="kanban-card-val" style="color:var(--accent)" title="À vista">💰 ${BRL(vVista)}</div>`:''}
+      </div>`:''}
+    ${pgEntrada?`<div class="kanban-card-sub" style="margin-top:4px">💵 Entrada: ${BRL(pgEntrada.valor)} · ${pgEntrada.data||'—'}</div>`:''}
+    ${pgEntrega?`<div class="kanban-card-sub" style="margin-top:2px">📦 Entrega: ${BRL(pgEntrega.valor)} · ${pgEntrega.data||'—'}</div>`:''}
+    ${card.data_instalacao?`<div class="kanban-card-sub" style="margin-top:4px">🔧 Instalação: ${card.data_instalacao}</div>`:''}
+    ${card.avaliacao_solicitada?`<div class="kanban-card-sub" style="margin-top:2px;color:var(--accent)">⭐ Avaliação solicitada</div>`:''}
+  </div>`;
+}
+
+let _crmDragId=null;
+function crmDragStart(e,id){
+  _crmDragId=id;
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>e.target.classList.add('dragging'),0);
+}
+function crmDragEnd(e){
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.kanban-col').forEach(c=>c.classList.remove('drag-over'));
+}
+function crmDragOver(e,etapaIdx){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  e.currentTarget.classList.add('drag-over');
+}
+function crmDragLeave(e){
+  if(!e.currentTarget.contains(e.relatedTarget))
+    e.currentTarget.classList.remove('drag-over');
+}
+function crmDrop(e,etapaIdx){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(!_crmDragId)return;
+  const card=S.crm.find(c=>c.id===_crmDragId);
+  if(card && card.etapa!==etapaIdx){
+    card.etapa=etapaIdx;
+    // Reverse-sync orçamento status
+    const ETAPA_STATUS={1:'Aberto',2:'Em negociação',3:'Fechado',9:'Perdido'};
+    if(card.orcamentoId && ETAPA_STATUS[etapaIdx]!==undefined){
+      const orc=S.orcamentos.find(o=>o.id===card.orcamentoId);
+      if(orc) orc.status=ETAPA_STATUS[etapaIdx];
+    }
+    saveState();render();
+    toast('Card movido para '+ETAPAS[etapaIdx]);
+  }
+  _crmDragId=null;
+}
+
+const MODELOS_ORC=[
+  {nome:'Letra Caixa Inox',icon:'🔡',desc:'Letra Caixa em Aço Inox Escovado com LED',servicos:[{item:'Letra Caixa Inox',descricao:'Letra Caixa em Aço Inox Escovado com iluminação LED',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Fabricação e instalação de letra caixa inox',tipo:'fabrico',horas:8,custo_hora:80}]}]},
+  {nome:'Adesivo Vinil',icon:'🖼️',desc:'Impressão e aplicação de adesivo vinílico',servicos:[{item:'Adesivo Vinil',descricao:'Impressão digital em vinil adesivo com aplicação',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Impressão e aplicação de vinil',tipo:'fabrico',horas:2,custo_hora:60}]}]},
+  {nome:'Placa ACM',icon:'🪟',desc:'Placa em ACM com impressão digital',servicos:[{item:'Placa ACM',descricao:'Placa em ACM com impressão digital e acabamento',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Placa ACM com impressão digital',tipo:'fabrico',horas:4,custo_hora:70}]}]},
+  {nome:'Fachada Completa',icon:'🏢',desc:'Projeto e execução de fachada completa',servicos:[{item:'Fachada',descricao:'Projeto e execução de fachada completa com identidade visual',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Projeto, fabricação e instalação de fachada',tipo:'fabrico',horas:20,custo_hora:100}]}]},
+  {nome:'Luminoso LED',icon:'💡',desc:'Painel luminoso com tecnologia LED',servicos:[{item:'Luminoso LED',descricao:'Painel luminoso com módulos LED e estrutura metálica',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Luminoso LED com estrutura',tipo:'fabrico',horas:6,custo_hora:90}]}]},
+  {nome:'Totem',icon:'🗼',desc:'Totem de sinalização em ACM ou MDF',servicos:[{item:'Totem',descricao:'Totem de sinalização com impressão e estrutura',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Fabricação de totem de sinalização',tipo:'fabrico',horas:12,custo_hora:85}]}]},
+];
+
+function openModelosOrcamento(){
+  const html=`<div id="modelos-overlay" onclick="if(event.target===this)this.remove()" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;display:flex;align-items:center;justify-content:center">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;width:540px;max-width:95vw;max-height:85vh;overflow-y:auto">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+        <h3 style="margin:0">📋 Modelos de Orçamento</h3>
+        <button class="btn btn-secondary" style="padding:4px 12px" onclick="document.getElementById('modelos-overlay').remove()">✕</button>
+      </div>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Selecione um modelo para pré-preencher o orçamento. Você poderá ajustar os campos depois.</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        ${MODELOS_ORC.map((m,i)=>`<div onclick="aplicarModeloOrc(${i})" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 12px;cursor:pointer;transition:border-color .15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+          <div style="font-size:22px;margin-bottom:6px">${m.icon}</div>
+          <div style="font-weight:600;font-size:13px">${m.nome}</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:3px">${m.desc}</div>
+        </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+function aplicarModeloOrc(idx){
+  const m=MODELOS_ORC[idx];
+  formOrc.servicos=JSON.parse(JSON.stringify(m.servicos));
+  document.getElementById('modelos-overlay').remove();
+  render();
+  toast('Modelo "'+m.nome+'" aplicado! Ajuste os campos conforme necessário.');
+}
+
+function openNovoCRMCard(){
+  const card={id:null,titulo:'',cliente:'',empresa:'',telefone:'',email:'',
+              valor:0,etapa:0,data:today(),notas:'',responsavel:'',orcamentoId:'',
+              data_instalacao:'',avaliacao_solicitada:false};
+  showCRMModal(card,true);
+}
+function openCRMCard(id){
+  const card=S.crm.find(x=>x.id===id);
+  if(card) showCRMModal(JSON.parse(JSON.stringify(card)),false);
+}
+function showCRMModal(card,isNew){
+  const modal=document.createElement('div');
+  modal.className='modal-bg';
+  modal.innerHTML=`
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h2>${isNew?'Novo Card':'Editar Card'}</h2>
+      <button class="btn-icon" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <input type="hidden" id="cm_orcId" value="${card.orcamentoId||''}">
+    <input type="hidden" id="cm_vfechado" value="${card.valor_fechado||''}">
+    <input type="hidden" id="cm_condpag" value="${card.condicao_pag||''}">
+    <div class="form-grid">
+      <div class="form-row form-full"><label>Título</label><input id="cm_titulo" value="${card.titulo}"></div>
+      <div class="form-row"><label>Empresa</label><input id="cm_empresa" value="${card.empresa}"></div>
+      <div class="form-row"><label>Cliente</label><input id="cm_cliente" value="${card.cliente}"></div>
+      <div class="form-row"><label>Telefone</label><input id="cm_tel" value="${card.telefone||''}"></div>
+      <div class="form-row"><label>E-mail</label><input id="cm_email" value="${card.email||''}"></div>
+      <div class="form-row"><label>Valor (R$)</label><input id="cm_valor" type="number" value="${card.valor||0}"></div>
+      <div class="form-row"><label>Data</label><input id="cm_data" type="date" value="${card.data||today()}"></div>
+      <div class="form-row"><label>Responsável</label><input id="cm_resp" value="${card.responsavel||''}"></div>
+      <div class="form-row"><label>Data de Instalação</label>
+        <input id="cm_instalacao" type="date" value="${card.data_instalacao||''}">
+      </div>
+      <div class="form-row form-full"><label>Etapa</label>
+        <select id="cm_etapa">
+          ${ETAPAS.map((e,i)=>`<option value="${i}" ${card.etapa===i?'selected':''}>${e}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row form-full" style="align-items:center;display:flex;gap:10px">
+        <input id="cm_aval" type="checkbox" style="width:18px;height:18px;cursor:pointer" ${card.avaliacao_solicitada?'checked':''}>
+        <label for="cm_aval" style="margin:0;cursor:pointer;font-weight:normal">Avaliação solicitada / pedido de avaliação enviado</label>
+      </div>
+      <div class="form-row form-full"><label>Notas</label>
+        <textarea id="cm_notas" rows="3">${card.notas||''}</textarea>
+      </div>
+    </div>
+    ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return`<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">${lt.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:${TASK_STATUS_COLOR[t.status]||'var(--text2)'};flex-shrink:0;display:inline-block"></span><span style="flex:1;font-size:12px">${t.titulo}</span>${t.modulo?`<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">${t.modulo}</span>`:''} ${(t.checklist||[]).length?`<span style="font-size:10px;color:var(--text2)">${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>`:''}</div>`).join('')}</div></div>`;})()}
+    <div class="modal-footer">
+      ${!isNew?`<button class="btn btn-danger" onclick="deleteCRMCard('${card.id}',this)">Excluir</button>`:''}
+      <button class="btn" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e40" onclick="openNovaTarefaFromCard('${card.id}','${card.orcamentoId||''}')">+ Tarefa</button>
+      ${card.orcamentoId?`<button class="btn" style="background:var(--blue);color:#fff;border:1px solid var(--blue)" onclick="this.closest('.modal-bg').remove();editOrcamento('${card.orcamentoId}')">📋 Ver Orçamento</button>`:''}
+      <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveCRMCard('${card.id||''}',${isNew},this)">Salvar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+function saveCRMCard(id,isNew,btn){
+  const m=btn.closest('.modal');
+  const g=sel=>m.querySelector(sel).value;
+  const obj={
+    id:id||genId(),
+    titulo:g('#cm_titulo'),cliente:g('#cm_cliente'),empresa:g('#cm_empresa'),
+    telefone:g('#cm_tel'),email:g('#cm_email'),
+    valor:+g('#cm_valor'),data:g('#cm_data'),
+    responsavel:g('#cm_resp'),etapa:+g('#cm_etapa'),
+    notas:g('#cm_notas'),
+    orcamentoId:g('#cm_orcId')||'',
+    valor_fechado:+g('#cm_vfechado')||null,
+    condicao_pag:g('#cm_condpag')||null,
+    data_instalacao:g('#cm_instalacao')||'',
+    avaliacao_solicitada:m.querySelector('#cm_aval').checked
+  };
+  if(isNew){
+    // Auto-create a draft orçamento linked to this card
+    const orcId=genId();
+    const orcDraft={
+      id:orcId,numero:gerarCodigo(),
+      cliente:obj.cliente,empresa:obj.empresa,
+      telefone:obj.telefone,email:obj.email,
+      data:obj.data,prazo_entrega:7,status:'Aberto',
+      descricao:'',servicos:[newServico()],
+      responsavel:obj.responsavel||'Marcelo',
+      total_prazo:0,total_vista:0,calcs:[],
+      updatedAt:new Date().toISOString()
+    };
+    obj.orcamentoId=orcId;
+    if(!obj.titulo) obj.titulo=obj.empresa||obj.cliente||'Novo';
+    S.orcamentos.push(orcDraft);
+    S.crm.push(obj);
+  } else{
+    const idx=S.crm.findIndex(x=>x.id===id);
+    if(idx>=0)S.crm[idx]=obj;
+  }
+  saveState();btn.closest('.modal-bg').remove();render();
+  toast(isNew?'Card criado com orçamento rascunho vinculado!':'Card salvo!');
+}
+function deleteCRMCard(id,btn){
+  if(!confirm2('Excluir este card?'))return;
+  S.crm=S.crm.filter(x=>x.id!==id);
+  saveState();btn.closest('.modal-bg').remove();render();toast('Card excluído');
+}
+
+// --- FINANCEIRO ---------------------------------------------------------------
+let finTab='lancamentos';
+function renderFinanceiro(){
+  const mesAtual=new Date().toISOString().slice(0,7);
+  const rec=S.financeiro.filter(f=>f.tipo==='receita');
+  const desp=S.financeiro.filter(f=>f.tipo==='despesa');
+  const totalRec=rec.reduce((a,f)=>a+(f.valor||0),0);
+  const totalDesp=desp.reduce((a,f)=>a+(f.valor||0),0);
+  const saldo=totalRec-totalDesp;
+  const recMes=rec.filter(f=>f.data&&f.data.startsWith(mesAtual)).reduce((a,f)=>a+(f.valor||0),0);
+  const despMes=desp.filter(f=>f.data&&f.data.startsWith(mesAtual)).reduce((a,f)=>a+(f.valor||0),0);
+
+  return `
+  <div class="section-header"><h2>Controle Financeiro</h2>
+    <button class="btn btn-primary" onclick="openLancamento()">+ Lançamento</button>
+  </div>
+  <div class="grid g4" style="margin-bottom:20px">
+    <div class="card"><div class="stat-lbl">Receita Total</div><div class="stat-val" style="color:var(--green)">${BRL(totalRec)}</div></div>
+    <div class="card"><div class="stat-lbl">Despesas Total</div><div class="stat-val" style="color:var(--red)">${BRL(totalDesp)}</div></div>
+    <div class="card"><div class="stat-lbl">Saldo</div><div class="stat-val" style="color:${saldo>=0?'var(--green)':'var(--red)'}">${BRL(saldo)}</div></div>
+    <div class="card">
+      <div class="stat-lbl">Este mês</div>
+      <div class="stat-val" style="color:var(--green)">${BRL(recMes)}</div>
+      <div class="stat-delta" style="color:var(--red)">Desp: ${BRL(despMes)}</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="section-header" style="margin-bottom:16px">
+      <div class="flex-wrap">
+        <button class="page-tab ${finTab==='lancamentos'?'active':''}" onclick="finTab='lancamentos';render()">Lançamentos</button>
+        <button class="page-tab ${finTab==='pagamentos'?'active':''}" onclick="finTab='pagamentos';render()">Pagamentos de Orçamentos</button>
+      </div>
+    </div>
+    ${finTab==='lancamentos'?renderLancamentos():renderPagamentos()}
+  </div>`;
+}
+
+function renderLancamentos(){
+  const rows=S.financeiro.slice().reverse();
+  if(!rows.length) return `<div class="empty">Nenhum lançamento ainda.</div>`;
+  return `<table><thead><tr><th>Data</th><th>Tipo</th><th>Categoria</th><th>Descrição</th><th>Valor</th><th></th></tr></thead><tbody>
+  ${rows.map(f=>`<tr>
+    <td>${f.data||'—'}</td>
+    <td><span class="badge ${f.tipo==='receita'?'badge-green':'badge-red'}">${f.tipo}</span></td>
+    <td style="color:var(--text2)">${f.categoria||'—'}</td>
+    <td>${f.descricao||'—'}</td>
+    <td style="font-weight:700;color:${f.tipo==='receita'?'var(--green)':'var(--red)'}">${BRL(f.valor)}</td>
+    <td><button class="btn-icon" onclick="deleteLancamento('${f.id}')">🗑</button></td>
+  </tr>`).join('')}
+  </tbody></table>`;
+}
+
+function renderPagamentos(){
+  const orcs=S.orcamentos.filter(o=>o.status==='Fechado'||o.total_prazo>0);
+  if(!orcs.length) return `<div class="empty">Nenhum orçamento fechado ainda.</div>`;
+  return `<table><thead><tr><th>Nº</th><th>Cliente</th><th>Condição</th><th>Total</th><th>Pago</th><th>Saldo</th><th>Status Pgto</th><th></th></tr></thead><tbody>
+  ${orcs.slice().reverse().map(o=>{
+    const totalCond=o.valor_fechado||(o.condicao_pag==='vista'?(o.total_vista||0):(o.total_prazo||0));
+    const condLabel=o.valor_fechado?(o.condicao_pag==='vista'?'50/50':'Faturado'):'—';
+    const pago=S.financeiro.filter(f=>f.orcamentoId===o.id&&f.tipo==='receita').reduce((a,f)=>a+(f.valor||0),0);
+    const saldo=totalCond-pago;
+    const pgStatus=pago<=0?'Não pago':saldo<=0?'Pago':saldo<totalCond?'Parcial':'Não pago';
+    const pgBadge={'Pago':'badge-green','Parcial':'badge-yellow','Não pago':'badge-red'}[pgStatus]||'badge-gray';
+    return `<tr>
+      <td>#${o.numero}</td>
+      <td>${o.cliente}</td>
+      <td><span style="font-size:12px;color:var(--text2)">${condLabel}</span></td>
+      <td>${BRL(totalCond)}</td>
+      <td style="color:var(--green)">${BRL(pago)}</td>
+      <td style="color:${saldo>0?'var(--red)':'var(--green)'}">${BRL(Math.max(0,saldo))}</td>
+      <td><span class="badge ${pgBadge}">${pgStatus}</span></td>
+      <td><button class="btn btn-primary btn-sm" onclick="openPagamento('${o.id}','${o.cliente}',${saldo},${totalCond})">+ Pgto</button></td>
+    </tr>`;}).join('')}
+  </tbody></table>`;
+}
+
+function openLancamento(){
+  const modal=document.createElement('div');
+  modal.className='modal-bg';
+  modal.innerHTML=`
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2>Novo Lançamento</h2>
+      <button class="btn-icon" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-row form-full"><label>Tipo</label>
+        <select id="l_tipo"><option value="receita">Receita</option><option value="despesa">Despesa</option></select>
+      </div>
+      <div class="form-row"><label>Data</label><input id="l_data" type="date" value="${today()}"></div>
+      <div class="form-row"><label>Valor (R$)</label><input id="l_valor" type="number" min="0" step="0.01" placeholder="0,00"></div>
+      <div class="form-row"><label>Categoria</label><input id="l_cat" placeholder="Ex: Material, Aluguel..."></div>
+      <div class="form-row form-full"><label>Descrição</label><input id="l_desc" placeholder="Descrição do lançamento"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarLancamento(this)">Salvar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+}
+function salvarLancamento(btn){
+  const m=btn.closest('.modal');
+  const g=sel=>m.querySelector(sel).value;
+  if(!g('#l_valor')){toast('Informe o valor','error');return;}
+  S.financeiro.push({id:genId(),tipo:g('#l_tipo'),data:g('#l_data'),
+    valor:+g('#l_valor'),categoria:g('#l_cat'),descricao:g('#l_desc'),orcamentoId:''});
+  saveState();btn.closest('.modal-bg').remove();render();toast('Lançamento salvo!');
+}
+function openPagamento(orcId,cliente,saldo,total){
+  const modal=document.createElement('div');
+  modal.className='modal-bg';
+  const saldoPos=Math.max(0,saldo);
+  modal.innerHTML=`
+  <div class="modal" style="max-width:380px">
+    <div class="modal-header"><h2>Registrar Pagamento</h2>
+      <button class="btn-icon" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <p style="margin-bottom:4px;color:var(--text2)">Cliente: <strong>${cliente}</strong></p>
+    <p style="margin-bottom:12px;color:var(--text2)">Total: <strong>${BRL(total!=null?total:saldo)}</strong> — Saldo: <strong style="color:var(--red)">${BRL(saldoPos)}</strong></p>
+    <div class="form-grid">
+      <div class="form-row form-full"><label>Tipo do Pagamento</label>
+        <select id="pg_tipo">
+          <option value="entrada">💵 Entrada (1ª parcela / contratação)</option>
+          <option value="entrega">📦 Entrega (parcela final)</option>
+          <option value="outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Data</label><input id="pg_data" type="date" value="${today()}"></div>
+      <div class="form-row"><label>Valor Recebido (R$)</label><input id="pg_valor" type="number" min="0" step="0.01" value="${total>0?((total/2).toFixed(2)):(saldoPos>0?saldoPos.toFixed(2):'')}" placeholder="0,00"></div>
+      <div class="form-row form-full"><label>Observação</label><input id="pg_obs" placeholder="Forma de pagamento..."></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPagamento('${orcId}',this)">Confirmar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  // Auto-fill: entrada/entrega → metade do total; outro → saldo
+  modal.querySelector('#pg_tipo').addEventListener('change',function(){
+    const half=(total||0)/2;
+    modal.querySelector('#pg_valor').value=
+      (this.value==='outro')?(saldoPos>0?saldoPos.toFixed(2):''):(half>0?half.toFixed(2):'');
+  });
+}
+function salvarPagamento(orcId,btn){
+  const m=btn.closest('.modal');
+  const valor=+m.querySelector('#pg_valor').value;
+  if(!valor){toast('Informe o valor','error');return;}
+  S.financeiro.push({id:genId(),tipo:'receita',
+    data:m.querySelector('#pg_data').value,valor,
+    tipo_pagamento:m.querySelector('#pg_tipo').value,
+    categoria:'Pagamento de Orçamento',
+    descricao:m.querySelector('#pg_obs').value,orcamentoId:orcId});
+  // Update orcamento status
+  const o=S.orcamentos.find(x=>x.id===orcId);
+  if(o) o.status='Fechado';
+  saveState();btn.closest('.modal-bg').remove();render();toast('Pagamento registrado!');
+}
+function deleteLancamento(id){
+  if(!confirm2('Excluir lançamento?'))return;
+  S.financeiro=S.financeiro.filter(x=>x.id!==id);
+  saveState();render();toast('Excluído');
+}
+
+// --- RELATÓRIOS ---------------------------------------------------------------
+function renderRelatorios(){
+  const now=new Date();
+  const mesAtual=now.toISOString().slice(0,7);
+
+  // Last 12 months
+  const meses=[];
+  for(let i=11;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const key=d.toISOString().slice(0,7);
+    const lbl=d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'});
+    const rec=S.financeiro.filter(f=>f.tipo==='receita'&&f.data&&f.data.startsWith(key)).reduce((a,f)=>a+(f.valor||0),0);
+    const desp=S.financeiro.filter(f=>f.tipo==='despesa'&&f.data&&f.data.startsWith(key)).reduce((a,f)=>a+(f.valor||0),0);
+    const orcs=S.orcamentos.filter(o=>o.data&&o.data.startsWith(key));
+    meses.push({key,lbl,rec,desp,saldo:rec-desp,orcs:orcs.length,vol:orcs.reduce((a,o)=>a+(o.total_prazo||0),0)});
+  }
+  // Top clientes
+  const clMap={};
+  S.orcamentos.forEach(o=>{
+    if(!o.cliente)return;
+    if(!clMap[o.cliente])clMap[o.cliente]={n:0,total:0};
+    clMap[o.cliente].n++;
+    clMap[o.cliente].total+=(o.total_prazo||0);
+  });
+  const topClientes=Object.entries(clMap).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
+
+  // Despesas por categoria
+  const catMap={};
+  S.financeiro.filter(f=>f.tipo==='despesa').forEach(f=>{
+    const cat=f.categoria||'Outros';
+    if(!catMap[cat])catMap[cat]=0;
+    catMap[cat]+=f.valor||0;
+  });
+  const topCats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+
+  const totalRec12=meses.reduce((a,m)=>a+m.rec,0);
+  const totalDesp12=meses.reduce((a,m)=>a+m.desp,0);
+  const fechados=S.orcamentos.filter(o=>o.status==='Fechado').length;
+  const taxa=S.orcamentos.length?Math.round(fechados/S.orcamentos.length*100):0;
+
+  return `
+  <div class="section-header"><h2>Relatórios</h2></div>
+  <div class="grid g4" style="margin-bottom:20px">
+    <div class="card"><div class="stat-lbl">Receita (12 meses)</div><div class="stat-val" style="color:var(--green)">${BRL(totalRec12)}</div></div>
+    <div class="card"><div class="stat-lbl">Despesas (12 meses)</div><div class="stat-val" style="color:var(--red)">${BRL(totalDesp12)}</div></div>
+    <div class="card"><div class="stat-lbl">Lucro Líquido</div><div class="stat-val" style="color:${totalRec12-totalDesp12>=0?'var(--green)':'var(--red)'}">${BRL(totalRec12-totalDesp12)}</div></div>
+    <div class="card"><div class="stat-lbl">Taxa de Conversão</div><div class="stat-val">${taxa}%</div><div class="stat-delta" style="color:var(--text2)">${fechados}/${S.orcamentos.length} orçamentos</div></div>
+  </div>
+  <div class="grid g2" style="margin-bottom:20px">
+    <div class="card">
+      <h3 style="margin-bottom:12px">Fluxo Mensal (12 meses)</h3>
+      <table><thead><tr><th>Mês</th><th>Receita</th><th>Despesa</th><th>Saldo</th><th>Orçamentos</th></tr></thead><tbody>
+      ${meses.map(m=>`<tr>
+        <td>${m.lbl}</td>
+        <td style="color:var(--green)">${m.rec>0?BRL(m.rec):'—'}</td>
+        <td style="color:var(--red)">${m.desp>0?BRL(m.desp):'—'}</td>
+        <td style="color:${m.saldo>=0?'var(--green)':'var(--red)'};font-weight:600">${BRL(m.saldo)}</td>
+        <td>${m.orcs}</td>
+      </tr>`).join('')}
+      </tbody></table>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Top 5 Clientes</h3>
+      ${topClientes.length===0?`<div class="empty" style="padding:24px">Sem dados ainda.</div>`:`
+      <table><thead><tr><th>Cliente</th><th>Orçamentos</th><th>Volume</th></tr></thead><tbody>
+      ${topClientes.map(([nome,d])=>`<tr>
+        <td>${nome}</td>
+        <td>${d.n}</td>
+        <td style="font-weight:700;color:var(--green)">${BRL(d.total)}</td>
+      </tr>`).join('')}
+      </tbody></table>`}
+      <hr class="divider">
+      <h3 style="margin-bottom:12px">Despesas por Categoria</h3>
+      ${topCats.length===0?`<div style="color:var(--text3);text-align:center;padding:16px">Sem despesas</div>`:`
+      ${topCats.map(([cat,val])=>`
+        <div style="margin-bottom:8px">
+          <div class="flex" style="justify-content:space-between;margin-bottom:4px;font-size:12px">
+            <span>${cat}</span><span style="color:var(--red)">${BRL(val)}</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="background:var(--red);width:${Math.round(val/Math.max(...topCats.map(x=>x[1]))*100)}%"></div></div>
+        </div>`).join('')}`}
+    </div>
+  </div>`;
+}
+
+// --- OVERRIDE FIELD HELPER ---------------------------------------------------
+function ovField(i, key, label, autoVal, ovVal, hint){
+  const isOv = ovVal!==null && ovVal!==undefined && ovVal!=='';
+  const displayVal = isOv ? Number(ovVal).toFixed(2) : (autoVal||0).toFixed(2);
+  return `
+  <div class="form-row">
+    <label>${label} ${hint?`<span style="color:var(--text3);font-size:10px">${hint}</span>`:''}</label>
+    <div class="override-row">
+      <input type="number" min="0" step="0.01"
+        class="${isOv?'price-override':'price-auto'}"
+        value="${displayVal}"
+        onchange="setOv(${i},'ov_${key}',this.value,${(autoVal||0).toFixed(4)});recalc()">
+      ${isOv?`<button class="reset-btn" onclick="updSv(${i},'ov_${key}',null);recalc()">↺ Auto</button>`:''}
+    </div>
+  </div>`;
+}
+function setOv(i,key,val,autoVal){
+  const n=Number(val);
+  if(Math.abs(n-autoVal)<0.005) formOrc.servicos[i][key]=null;
+  else formOrc.servicos[i][key]=n;
+}
+
+// --- DOCX EXPORT -------------------------------------------------------------
+// __BUILD_ORC_HTML_START__
+function _buildOrcHTML(d){
+  // d = {numero, empresa, cliente, telefone, email, data (dd/mm/yyyy),
+  //       responsavel, serviceRows, total_prazo, total_vista,
+  //       descricao, prazo_texto, validade_texto}
+  const R=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>${d.numero} - ${d.empresa||d.cliente||"Cliente"} - Orçamento Design Visual</title>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans+SC:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  @page{size:A4 portrait;margin:0}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#1a1a1a;background:#fff;-webkit-print-color-adjust:exact;print-color-adjust:exact;padding:1.8cm 1.5cm 1.5cm 1.5cm}
+  .header-info{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18pt;padding-bottom:10pt;border-bottom:2px solid #5889c6;gap:20pt}
+  .header-left{flex:1;min-width:0}
+  .orc-label{font-size:8.5pt;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:1pt}
+  .orc-num{font-size:24pt;font-weight:bold;color:#5889c6;line-height:1;margin-bottom:10pt}
+  .client-info{display:flex;justify-content:space-between;align-items:flex-start;gap:8pt}
+  .ci-left table,.ci-right table{border-collapse:collapse}
+  .ci-left td,.ci-right td{padding:1.5pt 0;font-size:10pt;vertical-align:middle;white-space:nowrap}
+  .ci-left .lbl,.ci-right .rlbl{font-weight:bold;color:#35597f;padding-right:7pt}
+  .ci-left .val{color:#1a1a1a}
+  .ci-right{text-align:right;flex-shrink:0}
+  .ci-right table{margin-left:auto}
+  .ci-right .rval{text-align:left;color:#1a1a1a}
+  .header-right{flex-shrink:0;text-align:center;padding-left:8pt}
+  .brand-name{font-family:"Alegreya Sans SC",Arial,sans-serif;font-size:14pt;font-weight:700;color:#35597f;letter-spacing:.04em;line-height:1.1;margin-top:5pt}
+  .brand-tagline{font-family:"Alegreya Sans SC",Arial,sans-serif;font-size:8pt;color:#5889c6;margin-top:2pt;letter-spacing:.03em}
+  .services-table{width:100%;border-collapse:collapse;margin-bottom:14pt}
+  .services-table thead tr{background:#5889c6}
+  .services-table thead td{color:#fff;font-size:11pt;padding:7pt 10pt;font-weight:normal}
+  .col-num{width:28pt;text-align:center}
+  .col-desc{text-align:left}
+  .col-units{width:36pt;text-align:center}
+  .col-price{width:78pt;text-align:right}
+  .col-vista{background:#5889c6 !important}
+  .services-table tbody tr td{padding:6pt 10pt;border-bottom:1px solid #e8eef5;vertical-align:top;line-height:1.4}
+  .services-table tbody tr:last-child td{border-bottom:none}
+  .services-table tbody .col-price{font-weight:bold;font-size:10.5pt;background:#7ec1b8;color:#fff;vertical-align:middle}
+  .services-table tbody .col-units{text-align:center;color:#555;vertical-align:middle}
+  .services-table tbody .col-num{text-align:center;color:#5889c6;font-weight:bold;vertical-align:middle}
+  .totals-block{margin-bottom:14pt}
+  .total-row{display:flex;justify-content:space-between;align-items:center;padding:7pt 12pt;border-radius:3pt;margin-bottom:4pt}
+  .total-row .tl{font-weight:bold;font-size:10.5pt}
+  .total-row .tv{font-weight:bold;font-size:12pt;white-space:nowrap;margin-left:12pt}
+  .total-row.main{background:#5889c6}
+  .total-row.main .tl,.total-row.main .tv{color:#fff}
+  .total-row.alt{background:#e8f1fa}
+  .total-row.alt .tl,.total-row.alt .tv{color:#35597f}
+  .footer-box{display:flex;gap:12pt;margin-bottom:20pt}
+  .footer-box .fbox{flex:1;background:#f0f5fb;border:1px solid #c8d8ea;border-radius:4pt;padding:9pt 12pt}
+  .footer-box .fbox h4{font-size:9.5pt;font-weight:bold;color:#35597f;margin-bottom:5pt;text-transform:uppercase;letter-spacing:.04em}
+  .footer-box .fbox p{font-size:9pt;color:#444;line-height:1.5}
+  .company-footer{border-top:1px solid #c8d8ea;padding-top:10pt;display:flex;align-items:center;gap:14pt}
+  .company-footer .logo-wrap{flex-shrink:0;background:#5889c6;border-radius:6pt;padding:6pt 8pt;display:flex;align-items:center;justify-content:center}
+  .company-footer .co-info{font-size:8.5pt;color:#666;line-height:1.6}
+  .company-footer .co-info strong{color:#35597f;font-size:9.5pt;display:block;margin-bottom:2pt}
+  .no-print{text-align:center;margin-bottom:14pt}
+  @media print{.no-print{display:none}}
+</style>
+</head>
+<body>
+
+<div class="no-print">
+  <button onclick="window.print()" style="background:#5889c6;color:#fff;border:none;padding:10px 24px;font-size:13px;border-radius:4px;cursor:pointer">🖨️ Imprimir / Salvar como PDF</button>
+  <span style="margin-left:12px;font-size:11px;color:#888">Chrome → Ctrl+P → Salvar como PDF → Layout A4</span>
+</div>
+
+<div class="header-info">
+  <div class="header-left">
+    <div class="orc-label">Orçamento</div>
+    <div class="orc-num">#${d.numero||'—'}</div>
+    <div class="client-info">
+      <div class="ci-left">
+        <table><tbody>
+          ${d.empresa?`<tr><td class="lbl">Empresa:</td><td class="val">${d.empresa}</td></tr>`:''}
+          <tr><td class="lbl">Cliente:</td><td class="val">${d.cliente||'—'}</td></tr>
+          ${d.telefone?`<tr><td class="lbl">Telefone:</td><td class="val">${d.telefone}</td></tr>`:''}
+          ${d.email?`<tr><td class="lbl">E-mail:</td><td class="val">${d.email}</td></tr>`:''}
+        </tbody></table>
+      </div>
+      <div class="ci-right">
+        <table><tbody>
+          <tr><td class="rlbl">Data:</td><td class="rval">${d.data||'—'}</td></tr>
+          ${d.responsavel?`<tr><td class="rlbl">Responsável:</td><td class="rval">${d.responsavel}</td></tr>`:''}
+        </tbody></table>
+      </div>
+    </div>
+  </div>
+  <div class="header-right">
+    <svg viewBox="72 430 240 274" width="60" height="69" xmlns="http://www.w3.org/2000/svg"><path fill="#5889c6" d="M301.95,503.39l-109.91-63.45-110.03,63.49v126.95l109.98,63.54,110-63.51-.05-127.02ZM120.96,641.06l1.39.16c31.43,2.99,60.88-6.17,85.28-27.12,15.24-13.78,18.4-30.38,11.28-46.5-3.81-8.28-8.78-13.37-20.27-14.98,8.35,4.76,11.75,11.14,11.06,18.86-1.57,10.52-8.23,19.83-20.49,27.81-8.97,5.43-19.77,6.71-32.41,3.8-13.62-3.7-25.87-9.4-37.13-19.34-7.76-6.38-20.03-23.89-26.46-40.11-.02-.04-.54-1.26-.97-2.16v-32.13l69.78-40.26-.02.03c-18.05,25.9-24.55,56.05-18.29,87.6,4.51,20.04,17.42,30.95,34.95,32.67,9.08.76,15.96-1.07,23.01-10.29-8.25,4.93-15.47,4.75-21.86.36-8.39-6.54-13.22-16.91-14.15-31.51-.32-10.48,3.88-20.52,12.62-30.09,9.91-10.05,20.9-17.91,35.1-22.83,9.34-3.61,30.53-5.69,47.79-3.35l30.54,17.63.03,80.33-.02-.04c-13.27-28.65-36.03-49.46-66.43-59.96-19.58-6.21-35.51-.56-45.84,13.71-5.23,7.46-7.12,14.32-2.71,25.06-.1-9.61,3.7-15.76,10.71-19.06,9.87-3.95,21.27-2.89,34.34,3.67,9.22,5.01,15.76,13.69,19.62,26.07,3.68,13.63,4.93,27.07,2.02,41.82-1.6,9.92-10.53,29.34-21.29,43.08-.02.02-.44.59-.88,1.21l-29.27,16.9-71.03-41.03Z"/></svg>
+    <div class="brand-name">Design Visual</div>
+    <div class="brand-tagline">A identidade do seu negócio</div>
+  </div>
+</div>
+
+<table class="services-table">
+  <thead>
+    <tr>
+      <td class="col-num" rowspan="2">Item</td>
+      <td class="col-desc" rowspan="2">Descrição</td>
+      <td class="col-units" rowspan="2" style="text-align:center">Unid.</td>
+      <td colspan="3" style="text-align:center;border-bottom:1px solid rgba(255,255,255,0.3)">Preço</td>
+    </tr>
+    <tr>
+      <td class="col-price" style="font-size:9.5pt">Unitário</td>
+      <td class="col-price" style="font-size:9.5pt">Faturado</td>
+      <td class="col-price col-vista" style="font-size:9.5pt">50/50</td>
+    </tr>
+  </thead>
+  <tbody>${d.serviceRows}</tbody>
+</table>
+
+<div class="totals-block">
+  <div class="total-row main">
+    <span class="tl">Total faturado para 15 dias no boleto (ou em 3x no cartão de crédito):</span>
+    <span class="tv">${R(d.total_prazo)}</span>
+  </div>
+  <div class="total-row alt" style="align-items:flex-start">
+    <span class="tl">Total com 50% na contratação e 50% na entrega:</span>
+    <span class="tv" style="text-align:right;white-space:normal">${R(d.total_vista)}<br>
+      <span style="font-size:9pt;font-weight:normal;color:#35597f;opacity:0.8">(${R(d.total_vista/2)} + ${R(d.total_vista/2)})</span>
+    </span>
+  </div>
+</div>
+
+<div class="footer-box">
+  <div class="fbox"><h4>Formas de Pagamento</h4>
+    <p>Dinheiro, PIX, boleto, depósito e transferência bancária, cartões de crédito e débito.</p>
+  </div>
+  <div class="fbox"><h4>Prazo de Entrega</h4>
+    <p>${d.prazo_texto||'Em até 7 dias úteis, após a aprovação das artes e definição do pagamento.'} Validade do orçamento: ${d.validade_texto||'60 dias.'}</p>
+  </div>
+</div>
+${d.descricao?`<p style="font-size:9.5pt;color:#555;margin-bottom:14pt"><strong>Observações:</strong> ${d.descricao}</p>`:''}
+
+<div class="company-footer">
+  <div class="logo-wrap"><svg viewBox="72 430 240 274" width="32" height="37" xmlns="http://www.w3.org/2000/svg"><path fill="white" d="M301.95,503.39l-109.91-63.45-110.03,63.49v126.95l109.98,63.54,110-63.51-.05-127.02ZM120.96,641.06l1.39.16c31.43,2.99,60.88-6.17,85.28-27.12,15.24-13.78,18.4-30.38,11.28-46.5-3.81-8.28-8.78-13.37-20.27-14.98,8.35,4.76,11.75,11.14,11.06,18.86-1.57,10.52-8.23,19.83-20.49,27.81-8.97,5.43-19.77,6.71-32.41,3.8-13.62-3.7-25.87-9.4-37.13-19.34-7.76-6.38-20.03-23.89-26.46-40.11-.02-.04-.54-1.26-.97-2.16v-32.13l69.78-40.26-.02.03c-18.05,25.9-24.55,56.05-18.29,87.6,4.51,20.04,17.42,30.95,34.95,32.67,9.08.76,15.96-1.07,23.01-10.29-8.25,4.93-15.47,4.75-21.86.36-8.39-6.54-13.22-16.91-14.15-31.51-.32-10.48,3.88-20.52,12.62-30.09,9.91-10.05,20.9-17.91,35.1-22.83,9.34-3.61,30.53-5.69,47.79-3.35l30.54,17.63.03,80.33-.02-.04c-13.27-28.65-36.03-49.46-66.43-59.96-19.58-6.21-35.51-.56-45.84,13.71-5.23,7.46-7.12,14.32-2.71,25.06-.1-9.61,3.7-15.76,10.71-19.06,9.87-3.95,21.27-2.89,34.34,3.67,9.22,5.01,15.76,13.69,19.62,26.07,3.68,13.63,4.93,27.07,2.02,41.82-1.6,9.92-10.53,29.34-21.29,43.08-.02.02-.44.59-.88,1.21l-29.27,16.9-71.03-41.03Z"/></svg></div>
+  <div class="co-info">
+    <strong>M R Design Visual Serviço de Marketing Digital LTDA</strong>
+    CNPJ: 39.236.733/0001-65 &nbsp;·&nbsp; atendimento@dsvisual.com.br &nbsp;·&nbsp; www.dsvisual.com.br<br>
+    Tel: (61) 9 9911-5657
+  </div>
+</div>
+</body></html>`;
+}
+// __BUILD_ORC_HTML_END__
+
+async function generateDocx(orcId){
+  const o=S.orcamentos.find(x=>x.id===orcId);
+  if(!o){toast('Salve o orçamento primeiro!','error');return;}
+  const calcs=(o.calcs||[]).map((c,idx)=>c||calcServico(o.servicos[idx]));
+  const total_prazo=calcs.reduce((a,c)=>a+(c.total_prazo||0),0);
+  const total_vista=calcs.reduce((a,c)=>a+(c.total_vista||0),0);
+  const R=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const fmtDate=dt=>{if(!dt)return'';const[y,mo,dd]=dt.split('-');return dd+'/'+mo+'/'+y;};
+  const serviceRows=o.servicos.map((sv,idx)=>{
+    const c=calcs[idx];const units=Number(sv.unidades)||1;
+    return `<tr>
+      <td class="col-num">${idx+1}</td>
+      <td class="col-desc">${sv.descricao||sv.item||('Serviço '+(idx+1))}</td>
+      <td class="col-units">${units}</td>
+      <td class="col-price">${R(c.total_prazo/units)}</td>
+      <td class="col-price">${R(c.total_prazo)}</td>
+      <td class="col-price col-vista">${R(c.total_vista)}</td>
+    </tr>`;}).join('');
+  const html=_buildOrcHTML({
+    numero:o.numero,empresa:o.empresa,cliente:o.cliente,
+    telefone:o.telefone,email:o.email,
+    data:fmtDate(o.data),responsavel:o.responsavel,
+    serviceRows,total_prazo,total_vista,
+    descricao:o.descricao
+  });
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const blobUrl=URL.createObjectURL(blob);
+  const _pdfTitle=`${o.numero} - ${o.empresa||o.cliente||'Cliente'} - Orçamento Design Visual`;
+  const w=window.open(blobUrl,'_blank','width=900,height=700');
+  if(!w){URL.revokeObjectURL(blobUrl);toast('Permita pop-ups para gerar o PDF','error');return;}
+  w.addEventListener('load',()=>{try{w.document.title=_pdfTitle;}catch(e){}});
+  setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);
+  const _oi=S.orcamentos.findIndex(x=>x.id===orcId);
+  if(_oi>=0 && S.orcamentos[_oi].status==='Aberto') S.orcamentos[_oi].status='Em Negociação';
+  const _cc=S.crm.find(c=>c.orcamentoId===orcId);
+  if(_cc && _cc.etapa===E_ORC_ARTE) _cc.etapa=E_ACOMPANHAMENTO;
+  saveState();render();
+  toast('Abrindo prévia para salvar como PDF... ✓');
+}
+
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TAREFAS
+// ─────────────────────────────────────────────────────────────────────────────
+const TASK_STATUS=['Pendente','Em Andamento','Concluída','Bloqueada'];
+const TASK_STATUS_COLOR={Pendente:'var(--text2)','Em Andamento':'var(--accent)','Concluída':'var(--green)',Bloqueada:'var(--red)'};
+const TASK_MODULOS=['','Arte/Design','Corte a Laser','Impressão Adesivo','Impressão UV','Montagem','Instalação','Outros'];
+const CHECKLIST_TPL={
+  producao:['Arte aprovada pelo cliente','Material adquirido/separado','Corte / usinagem realizado','Acabamento e limpeza','Controle de qualidade','Embalado para entrega'],
+  instalacao:['Agendamento confirmado com cliente','Ferramentas e equipamentos separados','Material carregado no veículo','Fotos antes da instalação','Instalação realizada','Fotos após a instalação','Limpeza do local','Avaliação solicitada ao cliente']
+};
+function applyChecklistTemplate(tipo){
+  if((formTarefa.checklist||[]).length>0&&!confirm('Substituir checklist existente?'))return;
+  formTarefa.checklist=CHECKLIST_TPL[tipo].map(texto=>({id:genId(),texto,done:false}));
+  render();
+}
+function addChecklistItem(){
+  const input=document.getElementById('new-checklist-item');
+  const txt=(input?.value||'').trim();
+  if(!txt)return;
+  formTarefa.checklist=[...(formTarefa.checklist||[]),{id:genId(),texto:txt,done:false}];
+  render();
+}
+function toggleChecklistDone(id){
+  const item=(formTarefa.checklist||[]).find(x=>x.id===id);
+  if(item)item.done=!item.done;
+}
+function removeChecklistItem(id){
+  formTarefa.checklist=(formTarefa.checklist||[]).filter(x=>x.id!==id);
+  render();
+}
+function openNovaTarefaFromCard(cardId,orcId){
+  document.querySelector('.modal-bg')?.remove();
+  goTab('tarefas');
+  openNovaTarefa({crmCardId:cardId||'',orcamentoId:orcId||''});
+}
+
+function newTarefa(opts={}){
+  return {
+    id:genId(),
+    titulo:'',
+    descricao:'',
+    tipo:'individual',   // 'individual' | 'sprint'
+    sprint:'',           // nome do sprint (quando tipo==='sprint')
+    orcamentoId:'',
+    status:'Pendente',
+    prazo:'',
+    responsavel:'Marcelo',
+    checklist:[],
+    modulo:'',
+    crmCardId:'',
+    createdAt:new Date().toISOString(),
+    ...opts
+  };
+}
+
+let tarefaTab='lista'; // 'lista' | 'nova'
+let formTarefa=newTarefa();
+
+function renderTarefas(){
+  const sprints=[...new Set(S.tarefas.filter(t=>t.sprint).map(t=>t.sprint))];
+  const individuais=S.tarefas.filter(t=>t.tipo==='individual'||!t.sprint);
+  const sprintGroups=sprints.map(sp=>({nome:sp,tarefas:S.tarefas.filter(t=>t.sprint===sp)}));
+
+  const taskRow=(t,showSprint=false)=>`
+    <tr style="opacity:${t.status==='Concluída'?0.6:1}">
+      <td style="max-width:220px">
+        <div style="font-weight:600;font-size:13px">${t.titulo||'—'}</div>
+        ${t.descricao?`<div style="font-size:11px;color:var(--text2)">${t.descricao}</div>`:''}
+        ${(showSprint&&t.sprint)||t.modulo?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
+          ${showSprint&&t.sprint?`<span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:99px;font-size:10px">${t.sprint}</span>`:''}
+          ${t.modulo?`<span style="background:var(--bg3);color:var(--text2);padding:1px 6px;border-radius:99px;font-size:10px;border:1px solid var(--border)">${t.modulo}</span>`:''}
+        </div>`:''}
+        ${(t.checklist||[]).length?`<div style="margin-top:4px">
+          <span style="font-size:10px;color:${t.checklist.filter(x=>x.done).length===t.checklist.length?'var(--green)':'var(--text2)'}">☑ ${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>
+          <div style="margin-top:2px;background:var(--border);border-radius:99px;height:3px;width:72px;display:inline-block;vertical-align:middle;margin-left:4px"><div style="background:var(--green);height:3px;border-radius:99px;width:${Math.round((t.checklist||[]).filter(x=>x.done).length/((t.checklist||[]).length||1)*100)}%"></div></div>
+        </div>`:''}
+      </td>
+      <td>${t.orcamentoId?(S.orcamentos.find(o=>o.id===t.orcamentoId)||{}).numero||'—':'—'}</td>
+      <td><span style="font-size:11px;color:${TASK_STATUS_COLOR[t.status]||'var(--text2)'};font-weight:600">${t.status}</span></td>
+      <td style="color:var(--text2);font-size:12px">${t.prazo?fmtDateBR(t.prazo):'—'}</td>
+      <td style="color:var(--text2);font-size:12px">${t.responsavel||'—'}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-icon" onclick="editTarefa('${t.id}')" title="Editar">✏️</button>
+        <select style="font-size:11px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text)" onchange="setTarefaStatus('${t.id}',this.value)">
+          ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''} >${s}</option>`).join('')}
+        </select>
+        <button class="btn-icon" onclick="deleteTarefa('${t.id}')" title="Excluir">🗑</button>
+      </td>
+    </tr>`;
+
+  const tableHeader=`<thead><tr>
+    <th>Tarefa</th><th>Orçamento</th><th>Status</th><th>Prazo</th><th>Responsável</th><th></th>
+  </tr></thead>`;
+
+  if(tarefaTab==='nova'||tarefaTab==='editar') return renderFormTarefa();
+
+  return `
+  <div class="section-header">
+    <h2>Tarefas</h2>
+    <button class="btn btn-primary" onclick="openNovaTarefa()">+ Nova Tarefa</button>
+  </div>
+
+  ${S.tarefas.length===0?`<div class="card"><div class="empty">Nenhuma tarefa cadastrada.</div></div>`:`
+
+  ${individuais.length>0?`
+  <div class="card" style="margin-bottom:12px">
+    <h3 style="margin-bottom:10px;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Tarefas Individuais</h3>
+    <table style="width:100%;border-collapse:collapse">${tableHeader}<tbody>
+      ${individuais.map(t=>taskRow(t)).join('')}
+    </tbody></table>
+  </div>`:''}
+
+  ${sprintGroups.map(sg=>`
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <h3 style="font-size:14px;color:var(--accent);display:flex;align-items:center;gap:8px">
+        🏃 Sprint: <strong>${sg.nome}</strong>
+        <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${sg.tarefas.length} tarefas · ${sg.tarefas.filter(t=>t.status==='Concluída').length} concluídas</span>
+      </h3>
+    </div>
+    <table style="width:100%;border-collapse:collapse">${tableHeader}<tbody>
+      ${sg.tarefas.map(t=>taskRow(t,false)).join('')}
+    </tbody></table>
+  </div>`).join('')}
+
+  `}`;
+}
+
+function fmtDateBR(d){if(!d)return'';const[y,m,dd]=d.split('-');return dd+'/'+m+'/'+y;}
+
+function renderFormTarefa(){
+  const t=formTarefa;
+  return `
+  <div class="section-header">
+    <h2>${t.id&&tarefaTab==='editar'?'Editar Tarefa':'Nova Tarefa'}</h2>
+    <button class="btn" onclick="tarefaTab='lista';render()">← Voltar</button>
+  </div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-row form-full"><label>Título *</label><input value="${t.titulo}" oninput="formTarefa.titulo=this.value" placeholder="Descrição da tarefa"></div>
+      <div class="form-row form-full"><label>Descrição</label><input value="${t.descricao}" oninput="formTarefa.descricao=this.value" placeholder="Detalhes..."></div>
+
+      <div class="form-row"><label>Tipo</label>
+        <select onchange="formTarefa.tipo=this.value;render()">
+          <option value="individual" ${t.tipo==='individual'?'selected':''}>Individual</option>
+          <option value="sprint" ${t.tipo==='sprint'?'selected':''}>Sprint</option>
+        </select>
+      </div>
+
+      ${t.tipo==='sprint'?`<div class="form-row"><label>Nome do Sprint</label><input value="${t.sprint}" oninput="formTarefa.sprint=this.value" placeholder="Ex: Produção Semana 24" list="sprint-list">
+        <datalist id="sprint-list">${[...new Set(S.tarefas.filter(x=>x.sprint).map(x=>x.sprint))].map(s=>`<option value="${s}">`).join('')}</datalist>
+      </div>`:''}
+
+      <div class="form-row"><label>Orçamento vinculado</label>
+        <select onchange="formTarefa.orcamentoId=this.value">
+          <option value="">— Nenhum —</option>
+          ${S.orcamentos.slice().reverse().map(o=>`<option value="${o.id}" ${t.orcamentoId===o.id?'selected':''}>
+            #${o.numero} ${o.empresa||o.cliente||''}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="form-row"><label>Status</label>
+        <select onchange="formTarefa.status=this.value">
+          ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''} >${s}</option>`).join('')}
+        </select>
+      </div>
+
+      <div class="form-row"><label>Prazo</label><input type="date" value="${t.prazo}" onchange="formTarefa.prazo=this.value"></div>
+      <div class="form-row"><label>Responsável</label><input value="${t.responsavel}" oninput="formTarefa.responsavel=this.value"></div>
+      <div class="form-row"><label>Módulo</label>
+        <select onchange="formTarefa.modulo=this.value">
+          ${TASK_MODULOS.map(m=>`<option value="${m}" ${t.modulo===m?'selected':''}>${m||'— Sem módulo —'}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <label>Checklist</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('producao')">📋 Template Produção</button>
+          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('instalacao')">🔧 Template Instalação</button>
+        </div>
+        ${(t.checklist||[]).length>0?`
+        <div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;display:flex;flex-direction:column;gap:2px">
+          ${(t.checklist||[]).map(item=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20">
+            <input type="checkbox" ${item.done?'checked':''} style="width:15px;height:15px;cursor:pointer;flex-shrink:0" onchange="toggleChecklistDone('${item.id}')">
+            <span style="flex:1;font-size:12px;${item.done?'text-decoration:line-through;opacity:0.5':''}">${item.texto}</span>
+            <button class="btn-icon" style="font-size:10px;color:var(--red)" type="button" onclick="removeChecklistItem('${item.id}')">✕</button>
+          </div>`).join('')}
+        </div>
+        <div style="font-size:11px;color:var(--text2)">${(t.checklist||[]).filter(x=>x.done).length}/${(t.checklist||[]).length} concluídos</div>
+        `:''}
+        <div style="display:flex;gap:6px;width:100%">
+          <input id="new-checklist-item" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px" placeholder="Adicionar item ao checklist..." onkeydown="if(event.key==='Enter'){addChecklistItem();event.preventDefault()}">
+          <button class="btn btn-secondary" style="font-size:12px;white-space:nowrap" type="button" onclick="addChecklistItem()">+ Add</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="salvarTarefa()">💾 Salvar</button>
+      <button class="btn" onclick="tarefaTab='lista';render()">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+function openNovaTarefa(opts={}){
+  formTarefa=newTarefa(opts);
+  tarefaTab='nova';
+  render();
+}
+function editTarefa(id){
+  const t=S.tarefas.find(x=>x.id===id);
+  if(!t)return;
+  formTarefa={...t};
+  tarefaTab='editar';
+  render();
+}
+function salvarTarefa(){
+  if(!formTarefa.titulo){toast('Informe o título da tarefa','error');return;}
+  const obj={...formTarefa,updatedAt:new Date().toISOString()};
+  if(tarefaTab==='editar'){
+    const idx=S.tarefas.findIndex(x=>x.id===obj.id);
+    if(idx>=0) S.tarefas[idx]=obj;
+  } else {
+    S.tarefas.push(obj);
+  }
+  saveState();tarefaTab='lista';toast('Tarefa salva!');render();
+}
+function setTarefaStatus(id,status){
+  const t=S.tarefas.find(x=>x.id===id);
+  if(t){t.status=status;saveState();render();}
+}
+function deleteTarefa(id){
+  if(!confirm2('Excluir esta tarefa?'))return;
+  S.tarefas=S.tarefas.filter(x=>x.id!==id);
+  saveState();render();toast('Tarefa excluída');
+}
+// --- ATTACH HANDLERS ---
+function attachHandlers(){}
+
+// --- INIT ---
+// ── PENDING IMPORT ── (Claude writes data here; app merges on next refresh)
+async function processPendingImport(){
+  const el=document.getElementById('sinalapp-import');
+  if(!el)return;
+  const importId=el.getAttribute('data-import-id');
+  if(!importId)return;
+  const processed=JSON.parse(localStorage.getItem('sinalapp_processed_imports')||'[]');
+  if(processed.includes(importId))return;
+  try{
+    const data=JSON.parse(el.textContent||'{}');
+    if(data.orcamentos) data.orcamentos.forEach(o=>{if(!S.orcamentos.find(x=>x.id===o.id))S.orcamentos.push(o);});
+    if(data.crm) data.crm.forEach(c=>{if(!S.crm.find(x=>x.id===c.id))S.crm.push(c);});
+    processed.push(importId);
+    localStorage.setItem('sinalapp_processed_imports',JSON.stringify(processed));
+    await saveState();
+    console.log('✓ Import aplicado:',importId);
+  }catch(e){console.error('Import error:',e);}
+}
+
+
+// ── IMPORT MODAL ──
+function openImportModal(){
+  const bg=document.createElement('div');
+  bg.className='modal-bg';
+  bg.innerHTML=`
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <span style="font-size:18px;font-weight:700">📥 Importar Orçamento</span>
+      <button class="btn" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="color:var(--text2);font-size:13px;margin-bottom:12px">Cole abaixo o código gerado pelo Claude:</p>
+      <textarea id="import-code-area" style="width:100%;height:120px;background:var(--bg1);border:1px solid var(--border);border-radius:8px;color:var(--text1);padding:10px;font-family:monospace;font-size:12px;resize:vertical" placeholder='{"v":1,"orc":{...},"crm":{...}}'></textarea>
+      <div id="import-status" style="margin-top:10px;font-size:13px;min-height:20px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="executeImport()">Importar</button>
+    </div>
+  </div>`;
+  document.body.appendChild(bg);
+  setTimeout(()=>document.getElementById('import-code-area')?.focus(),100);
+}
+
+async function executeImport(){
+  const raw=(document.getElementById('import-code-area')?.value||'').trim();
+  const statusEl=document.getElementById('import-status');
+  if(!raw){statusEl.innerHTML='<span style="color:#f87171">Cole o código primeiro.</span>';return;}
+  let data;
+  try{data=JSON.parse(raw);}catch(e){statusEl.innerHTML='<span style="color:#f87171">❌ Código inválido. Copie exatamente o texto fornecido pelo Claude.</span>';return;}
+  if(!data.v||!data.orc||!data.crm){statusEl.innerHTML='<span style="color:#f87171">❌ Formato não reconhecido.</span>';return;}
+  statusEl.innerHTML='<span style="color:#60a5fa">⏳ Importando...</span>';
+  const orc=data.orc;
+  const card=data.crm;
+  // Defaults
+  if(!orc.servicos) orc.servicos=[{item:orc.descricao||'Serviço',descricao:'',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:orc.total_prazo||0,itens:[]}];
+  if(!orc.calcs) orc.calcs=[];
+  if(!orc.updatedAt) orc.updatedAt=new Date().toISOString();
+  if(!card.updatedAt) card.updatedAt=new Date().toISOString();
+  if(S.orcamentos.find(o=>o.id===orc.id)){statusEl.innerHTML='<span style="color:#4ade80">✅ Orçamento já existe no CRM.</span>';return;}
+  S.orcamentos.push(orc);
+  S.crm.push(card);
+  await saveState();
+  statusEl.innerHTML='<span style="color:#4ade80">✅ Importado! Orçamento e card CRM adicionados.</span>';
+  setTimeout(()=>{document.querySelector('.modal-bg')?.remove();render();toast('Orçamento importado com sucesso!');},1200);
+}
+
+loadState().then(async()=>{
+  await processPendingImport();
+  // Migrate CRM etapa indexes if still on old schema
+  if(!S.etapas_v2){
+    const MAP={0:1,1:2,2:3,3:4,4:5,5:6,6:7,7:8};
+    S.crm.forEach(c=>{if(MAP[c.etapa]!==undefined)c.etapa=MAP[c.etapa];});
+    S.etapas_v2=true;
+    saveState();
+  }
+  render();
+});
+
+// ── LIVE RELOAD ── substituído por onSnapshot em loadState() (tempo real sem reload)
+
+// ── SELECT-ON-FOCUS: seleciona todo o conteúdo ao clicar em inputs/textareas ──
+document.addEventListener('focusin', function(e){
+  const el = e.target;
+  if((el.tagName==='INPUT' && el.type!=='checkbox' && el.type!=='radio') || el.tagName==='TEXTAREA'){
+    el._focusVal = el.value;
+    el.select();
+  }
+});
+document.addEventListener('focusout', function(e){
+  const el = e.target;
+  if(el._focusVal !== undefined){
+    if(el.value === '' && el._focusVal !== '') el.value = el._focusVal;
+    delete el._focusVal;
+  }
+});
+</script>
+<!-- SINALAPP-IMPORT: Claude adiciona dados aqui para importação automática -->
+<script id="sinalapp-import" data-import-id="joao-carnes-v2-2026-06-20" type="application/json">{"v": 1, "orc": {"id": "3aa7dc44-a8ff-4a52-80b1-fcec1db088f0", "numero": "26062001", "cliente": "Mateus", "empresa": "João Carnes", "telefone": "61998989797", "email": "", "data": "2026-06-20", "prazo_entrega": 7, "status": "Aberto", "descricao": "", "responsavel": "Marcelo", "servicos": [{"item": "Faixa em Adesivo 77×20 cm", "descricao": "Fornecimento e instalação de 5 faixas em Adesivo Vinil Jateado com Recorte Eletrônico, 77 × 20 cm. Deslocamento incluso (5–15 km).", "unidades": 5, "operacional_pct": 30, "comissao_pct": 100, "imposto_pct": 10, "juros_pct": 10, "preco_final": 484.0, "itens": []}, {"item": "Adesivo Leitoso Branco 120×30 cm", "descricao": "Fornecimento de 10 unidades de adesivo vinil branco leitoso, 120 × 30 cm. Somente impressão (sem instalação). Produzido em Orientação C: 3 faixas/fileira × 4 fileiras × 1,5m de bobina = 6m total.", "unidades": 10, "operacional_pct": 30, "comissao_pct": 100, "imposto_pct": 10, "juros_pct": 10, "preco_final": 580.8, "itens": []}], "total_prazo": 1064.8, "total_vista": 968.0, "calcs": [], "updatedAt": "2026-06-20T16:58:02.312725Z"}, "crm": {"id": "01c47846-2edd-47c2-a3a3-7a49d7a43599", "nome": "Mateus", "empresa": "João Carnes", "telefone": "61998989797", "email": "", "etapa": 2, "valor": 1064.8, "valor_vista": 968.0, "orc_id": "3aa7dc44-a8ff-4a52-80b1-fcec1db088f0", "orc_numero": "26062001", "notas": "", "updatedAt": "2026-06-20T16:58:02.312725Z"}}</script>
+<script>
+// ═══════════════════════════════════════════════════════════════
+// CALCULADORA DE ORÇAMENTOS
+// ═══════════════════════════════════════════════════════════════
+function renderCalculadora(){
+  return `
+<div style="max-width:960px;margin:0 auto;padding:24px 16px">
+  <h2 style="margin:0 0 4px;font-size:22px;font-weight:700">🧮 Calculadora</h2>
+  <p style="color:var(--text2);margin:0 0 24px;font-size:14px">Calcule o preço de cada serviço com breakdown completo</p>
+
+  <!-- Seletor de Serviço -->
+  <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
+    <button onclick="calcSelectService('faixa_adesivo')" id="btn-faixa_adesivo"
+      style="padding:10px 20px;border-radius:8px;border:2px solid #22c55e;background:#22c55e20;color:#22c55e;font-weight:700;cursor:pointer;font-size:14px">
+      🏷️ Faixa em Adesivo
+    </button>
+    <button onclick="calcSelectService('porta_adesivo')" id="btn-porta_adesivo"
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
+      🚪 Adesivo de Porta
+    </button>
+    <button onclick="calcSelectService('letreiro_acrilico')" id="btn-letreiro_acrilico"
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;opacity:0.5" disabled>
+      🔤 Letreiro Acrílico <span style="font-size:11px">(em breve)</span>
+    </button>
+    <button onclick="calcSelectService('placa_inox')" id="btn-placa_inox"
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;opacity:0.5" disabled>
+      🪞 Placa Inox <span style="font-size:11px">(em breve)</span>
+    </button>
+  </div>
+
+  <!-- Formulário Faixa em Adesivo -->
+  <div id="calc-form-faixa_adesivo" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+    <!-- COLUNA ESQUERDA: Inputs -->
+    <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🏷️ Faixa em Adesivo Vinil</h3>
+
+      <div style="display:grid;gap:14px">
+
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">TIPO DE ADESIVO</label>
+          <select id="c_tipo" onchange="calcTipoChange()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="vinil">Vinil Branco — R$ 35,00/m</option>
+            <option value="jateado">Vinil Jateado — R$ 40,00/m</option>
+            <option value="microperfurado">Vinil Microperfurado — R$ 50,00/m²</option>
+          </select>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Nº DE FAIXAS</label>
+            <input id="c_qtd" type="number" min="1" value="1" onchange="calcUpdate()" oninput="calcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:16px;font-weight:700;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label>
+            <input id="c_larg" type="number" min="1" max="120" value="85" onchange="calcUpdate()" oninput="calcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label>
+            <input id="c_alt" type="number" min="1" max="100" value="20" onchange="calcUpdate()" oninput="calcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DESLOCAMENTO</label>
+          <select id="c_desloc" onchange="calcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="15">Mínimo — R$ 15,00</option>
+            <option value="30" selected>5–15 km — R$ 30,00</option>
+            <option value="50">16–20 km — R$ 50,00</option>
+            <option value="80">21–30 km — R$ 80,00</option>
+            <option value="100">31–50 km — R$ 100,00</option>
+          </select>
+        </div>
+
+        <div style="border-top:1px solid var(--border);padding-top:14px">
+          <label id="c_pmat_label" style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">CUSTOS EDITÁVEIS (R$/m)</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+            <div>
+              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:2px">Material <span id="c_pmat_unit" style="color:#22c55e;font-size:10px">(banco/m)</span></label>
+              <input id="c_pmat" type="number" value="35" step="0.5" onchange="calcUpdate()" oninput="calcUpdate()"
+                style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:13px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:2px">Instalação/m</label>
+              <input id="c_pinst" type="number" value="30" step="0.5" onchange="calcUpdate()" oninput="calcUpdate()"
+                style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:13px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:2px">Corte/m</label>
+              <input id="c_pcorte" type="number" value="15" step="0.5" onchange="calcUpdate()" oninput="calcUpdate()"
+                style="width:100%;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:13px;box-sizing:border-box">
+            </div>
+          </div>
+        </div>
+
+        <!-- Recorte Eletrônico -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;margin-top:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:var(--text1)">
+              <input type="checkbox" id="c_recorte" onchange="calcUpdate()"
+                style="width:16px;height:16px;accent-color:var(--primary);cursor:pointer">
+              ✂️ Recorte Eletrônico
+              <span style="font-size:11px;color:var(--text2);font-weight:400">(lettering / artístico)</span>
+            </label>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:12px;color:var(--text2)">+R$/m</span>
+              <input id="c_precorte_esp" type="number" value="15" step="0.5"
+                onchange="calcUpdate()" oninput="calcUpdate()"
+                style="width:70px;padding:6px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:13px">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--text2);margin-top:5px">
+            Inclui transfer, posicionamento e limpeza pós-recorte
+          </div>
+        </div>
+
+        <!-- Preview da Descrição -->
+        <div style="border-top:1px solid var(--border);padding-top:12px">
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">📝 DESCRIÇÃO DO ITEM</label>
+          <div id="calc-desc-preview" style="font-size:13px;color:var(--text1);line-height:1.5;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:6px;min-height:48px;font-style:italic;color:var(--text2)">
+            Preencha os campos acima...
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA: Resultado -->
+    <div id="calc-resultado" style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <p style="color:var(--text2);font-size:13px">Preencha os dados ao lado para ver o cálculo.</p>
+    </div>
+
+  </div>
+
+  <!-- Formulário Adesivo de Porta -->
+  <div id="calc-form-porta_adesivo" style="display:none;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+    <!-- COLUNA ESQUERDA: Inputs -->
+    <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🚪 Adesivo de Porta</h3>
+
+      <div style="display:grid;gap:14px">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label>
+            <input id="p_larg" type="number" value="80" min="1" max="500" oninput="portaCalcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label>
+            <input id="p_alt" type="number" value="210" min="1" max="500" oninput="portaCalcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">QTD PORTAS</label>
+            <input id="p_qtd" type="number" value="1" min="1" max="99" oninput="portaCalcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <!-- Camadas dinâmicas -->
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <label style="font-size:12px;font-weight:600;color:var(--text2)">CAMADAS DE ADESIVO</label>
+            <button onclick="portaAddCamada()" id="btn-porta-add-camada"
+              style="padding:4px 10px;border-radius:6px;border:1px solid var(--primary);background:var(--primary)18;color:var(--primary);font-weight:700;font-size:12px;cursor:pointer">
+              + Camada
+            </button>
+          </div>
+          <div id="porta-camadas" style="display:grid;gap:10px"></div>
+        </div>
+
+        <!-- Instalação -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">INSTALAÇÃO</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div>
+              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Preço/metro</label>
+              <input id="p_pinst" type="number" value="30" min="0" step="5" oninput="portaCalcUpdate()"
+                style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Preço corte/m</label>
+              <input id="p_pcorte" type="number" value="15" min="0" step="5" oninput="portaCalcUpdate()"
+                style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+            </div>
+          </div>
+        </div>
+
+        <!-- Deslocamento -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DESLOCAMENTO</label>
+          <select id="p_desloc" onchange="portaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="15">Mínimo — R$ 15,00</option>
+            <option value="30" selected>5–15 km — R$ 30,00</option>
+            <option value="50">16–20 km — R$ 50,00</option>
+            <option value="80">21–30 km — R$ 80,00</option>
+            <option value="100">31–50 km — R$ 100,00</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA: Resultado -->
+    <div id="porta-resultado" style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <p style="color:var(--text2);font-size:13px">Preencha os dados ao lado para ver o cálculo.</p>
+    </div>
+
+  </div>
+
+</div>\`;
+}
+
+function calcSelectService(svc){
+  // Esconde todos os forms, mostra só o selecionado
+  document.querySelectorAll('[id^="calc-form-"]').forEach(el => el.style.display='none');
+  const form = document.getElementById('calc-form-'+svc);
+  if(form) form.style.display='grid';
+  // Atualiza botões
+  document.querySelectorAll('[id^="btn-"]').forEach(btn => {
+    if(!btn.disabled){ btn.style.borderColor='var(--border)'; btn.style.background='transparent'; btn.style.color='var(--text2)'; }
+  });
+  const active = document.getElementById('btn-'+svc);
+  if(active){ active.style.borderColor='#22c55e'; active.style.background='#22c55e20'; active.style.color='#22c55e'; }
+  if(svc==='faixa_adesivo') calcUpdate();
+  if(svc==='porta_adesivo'){ portaInitCamadas(); portaCalcUpdate(); }
+}
+
+let _calcTimer=null;
+function calcTipoChange(){
+  const t=document.getElementById('c_tipo')?.value;
+  const pm=document.getElementById('c_pmat');
+  const unitEl=document.getElementById('c_pmat_unit');
+  if(pm){
+    if(t==='jateado') pm.value='40';
+    else if(t==='microperfurado') pm.value='50';
+    else pm.value='35';
+  }
+  if(unitEl){
+    unitEl.textContent = t==='microperfurado' ? '(banco/m²)' : '(banco/m)';
+  }
+  calcUpdate();
+}
+function calcUpdate(){
+  clearTimeout(_calcTimer);
+  _calcTimer=setTimeout(_calcRun,50);
+}
+
+function _calcRun(){
+  const qtd    = parseInt(document.getElementById('c_qtd')?.value||'1')||1;
+  const larg   = parseFloat(document.getElementById('c_larg')?.value||'85')||85;
+  const alt    = parseFloat(document.getElementById('c_alt')?.value||'20')||20;
+  const desloc = parseFloat(document.getElementById('c_desloc')?.value||'30');
+  const pMat   = parseFloat(document.getElementById('c_pmat')?.value||'35');
+  const pInst  = parseFloat(document.getElementById('c_pinst')?.value||'30');
+  const pCorte = parseFloat(document.getElementById('c_pcorte')?.value||'15');
+  const tipo   = document.getElementById('c_tipo')?.value||'vinil';
+  const hasRecorte   = document.getElementById('c_recorte')?.checked || false;
+  const pRecorteEsp  = parseFloat(document.getElementById('c_precorte_esp')?.value||'15');
+
+  // Orientação: adesivo efetivo 112cm (largura) × 92cm (comprimento), espaçamento 1cm
+  const EFF_W = 112, EFF_L = 92, SPACING = 1;
+  const fitsA = Math.floor(EFF_W / (alt + SPACING)); // faixas por metro — orient. A
+  const cabeA = larg <= EFF_L;
+  const fitsB = Math.floor(EFF_L / (alt + SPACING)); // faixas por metro — orient. B
+  const cabeB = larg <= EFF_W;
+  let faixasPorMetro, orientacao;
+  if(cabeA){ faixasPorMetro=fitsA; orientacao='A'; }
+  else if(cabeB){ faixasPorMetro=fitsB; orientacao='B'; }
+  else{ faixasPorMetro=0; orientacao='X'; }
+
+  // ── Orientação C: peça usa comprimento da bobina; emenda se alt > 112cm ──
+  let metrosRolo, orientLabel, faixasPorCamada, emendaWarning='';
+  if(faixasPorMetro===0){
+    // Largura excede 92cm ou alt não cabe em A/B — usa comprimento da bobina para larg
+    faixasPorCamada = Math.floor(EFF_W / (alt + SPACING));
+    if(faixasPorCamada===0){
+      // alt > 112cm: produzível com emenda horizontal
+      const numEmendas = Math.ceil(alt / EFF_W);
+      const metrosPorPeca = Math.ceil((larg/100) / 0.5) * 0.5;
+      metrosRolo  = qtd * numEmendas * metrosPorPeca;
+      faixasPorCamada = 1;
+      orientacao  = 'C';
+      orientLabel = `Orient. C+Emenda: ${numEmendas} tira(s) de ${metrosPorPeca}m × ${qtd} faixa(s)`;
+      faixasPorMetro = 1;
+      emendaWarning = `<div style="color:#f59e0b;padding:10px 14px;background:#f59e0b18;border:1px solid #f59e0b50;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:12px">⚠️ Altura ${alt}cm > 112cm — serão necessárias <b>${numEmendas} tiras com emenda</b> por faixa. Custo calculado com emenda.</div>`;
+    } else {
+      const metrosPorCamada = Math.ceil((larg/100) / 0.5) * 0.5;
+      const numCamadas      = Math.ceil(qtd / faixasPorCamada);
+      metrosRolo  = numCamadas * metrosPorCamada;
+      orientacao  = 'C';
+      orientLabel = `Orient. C: ${faixasPorCamada} faixas/fileira × ${numCamadas} fileira(s) × ${metrosPorCamada}m`;
+      faixasPorMetro = faixasPorCamada;
+    }
+  } else {
+    // Orientações A e B normais
+    faixasPorCamada = faixasPorMetro;
+    const metrosBrutos = qtd / faixasPorMetro;
+    metrosRolo  = Math.ceil(metrosBrutos * 2) / 2;
+    orientLabel = orientacao==='A'
+      ? `Orient. A: ${alt}cm×${faixasPorMetro} faixas nos 112cm`
+      : `Orient. B: ${alt}cm×${faixasPorMetro} faixas nos 92cm`;
+  }
+
+  // Material: microperfurado usa R$/m², demais usam R$/m de rolo
+  let custoMaterial, matLinhaDesc;
+  if(tipo==='microperfurado'){
+    const areaM2 = qtd * (larg/100) * (alt/100);
+    custoMaterial = Math.max(30, areaM2 * pMat);
+    matLinhaDesc  = `${areaM2.toFixed(2)} m² × R$${pMat.toFixed(2)}/m²`;
+  } else {
+    custoMaterial = Math.max(30, metrosRolo * pMat);
+    matLinhaDesc  = `${metrosRolo}m de rolo × ${faixasPorMetro} fx/m — ${orientLabel}`;
+  }
+
+  // Corte: metros do rolo consumido
+  const custoCorte = metrosRolo * pCorte;
+
+  // Recorte eletrônico: +R$/m de rolo
+  const custoRecorteEsp = hasRecorte ? metrosRolo * pRecorteEsp : 0;
+
+  // Instalação: por faixa, escalonada em 0,5m, mínimo 1m
+  const instMetrosPorFaixa = Math.ceil(Math.max(larg / 100, 1.0) / 0.5) * 0.5;
+  const custoInstalacao    = instMetrosPorFaixa * pInst * qtd;
+
+  const C          = custoMaterial + custoInstalacao + custoCorte + custoRecorteEsp + desloc;
+  const operacional= C * 0.30;
+  const comissao   = operacional;
+  const subtotal   = C + operacional + comissao; // C × 1,60
+  const imposto    = subtotal * 0.10;
+  const vista      = subtotal + imposto;  // C × 1,76
+  const prazo      = vista * 1.10;
+
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\d{3}),/,'.$1,');
+  const deslocLabel = {15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||'';
+  const tipoLabel   = tipo==='jateado' ? 'Vinil Jateado' : tipo==='microperfurado' ? 'Vinil Microperfurado' : 'Vinil Branco';
+
+  // ── Atualiza descrição ao vivo ──────────────────────────────────────────────
+  const descViva = `Fornecimento e instalação de ${qtd} faixa${qtd>1?'s':''} em Adesivo ${tipoLabel}${hasRecorte?' com Recorte Eletrônico':''}, ${larg} × ${alt} cm. Deslocamento incluso (${deslocLabel}).`;
+  const descEl = document.getElementById('calc-desc-preview');
+  if(descEl){ descEl.textContent = descViva; descEl.style.fontStyle='normal'; descEl.style.color='var(--text1)'; }
+
+  // ── Painel de resultado ──────────────────────────────────────────────────────
+  const porFaixa = qtd > 1 ? `<div style="background:#22c55e18;border:1px solid #22c55e40;border-radius:8px;padding:10px 12px;margin-top:12px;text-align:center">
+    <div style="font-size:11px;color:#22c55e;font-weight:700;margin-bottom:2px">POR FAIXA (média)</div>
+    <div style="font-size:22px;font-weight:800;color:#22c55e">${fmt(vista/qtd)}</div>
+    <div style="font-size:12px;color:var(--text2)">à vista &nbsp;|&nbsp; ${fmt(prazo/qtd)} a prazo</div>
+  </div>` : '';
+
+  document.getElementById('calc-resultado').innerHTML = `
+    ${emendaWarning}<h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📊 Breakdown do Cálculo</h3>
+
+    <div style="font-size:12px;line-height:1.9;font-family:monospace">
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px">
+        <span style="color:var(--text2);word-break:break-word">Material ${tipoLabel} (${matLinhaDesc})</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(custoMaterial)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px">
+        <span style="color:var(--text2)">Instalação (${qtd} fx × ${instMetrosPorFaixa.toFixed(1)}m × ${fmt(pInst)}/m)</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(custoInstalacao)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px">
+        <span style="color:var(--text2)">Corte (${metrosRolo.toFixed(1)}m × ${fmt(pCorte)}/m)</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(custoCorte)}</span>
+      </div>
+      ${custoRecorteEsp > 0 ? `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px">
+        <span style="color:var(--text2)">Recorte Eletrônico (${metrosRolo.toFixed(1)}m × ${fmt(pRecorteEsp)}/m)</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(custoRecorteEsp)}</span>
+      </div>` : ''}
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);gap:8px">
+        <span style="color:var(--text2)">Deslocamento (${deslocLabel})</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(desloc)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0 2px;gap:8px">
+        <span style="color:var(--text2)">Custo Total (C)</span>
+        <span style="font-weight:700;white-space:nowrap">${fmt(C)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px">
+        <span>Operacional (30%)</span><span>${fmt(operacional)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px">
+        <span>Comissão (100% do oper.)</span><span>${fmt(comissao)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);color:var(--text2);gap:8px">
+        <span>Imposto (10%)</span><span>${fmt(imposto)}</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <div style="background:var(--primary)18;border:1px solid var(--primary)40;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:2px">À VISTA</div>
+        <div style="font-size:24px;font-weight:800;color:var(--primary)">${fmt(vista)}</div>
+        <div style="font-size:11px;color:var(--text2)">C × 1,76</div>
+      </div>
+      <div style="background:#f59e0b18;border:1px solid #f59e0b40;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:2px">A PRAZO</div>
+        <div style="font-size:24px;font-weight:800;color:#f59e0b">${fmt(prazo)}</div>
+        <div style="font-size:11px;color:var(--text2)">À vista × 1,10</div>
+      </div>
+    </div>
+
+    ${porFaixa}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <button onclick="calcGerarOrcamento()" style="padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        📄 Criar Orçamento
+      </button>
+      <button onclick="calcMostrarExistentes()" style="padding:11px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        ➕ Adicionar a Existente
+      </button>
+    </div>
+
+    <div id="calc-existentes-panel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">SELECIONE O ORÇAMENTO:</div>
+      <div id="calc-existentes-list" style="display:grid;gap:6px;max-height:220px;overflow-y:auto"></div>
+    </div>
+  `;
+
+  // Salva dados para uso nos botões
+  window._calcDados = {
+    qtd,larg,alt,tipo,desloc,custoMaterial,custoInstalacao,custoCorte,
+    C,vista,prazo,metrosRolo,faixasPorMetro,orientLabel,instMetrosPorFaixa,
+    pMat,pInst,pCorte,deslocLabel,tipoLabel,hasRecorte,custoRecorteEsp,pRecorteEsp,
+    descViva
+  };
+}
+
+function _calcNovoServico(d){
+  // Monta o objeto de serviço já preenchido com os dados da calculadora
+  const fmt = v => v.toFixed(2).replace('.',',');
+  const obsLines = [
+    '📊 CÁLCULO — Calculadora Design Visual',
+    d.tipo==='microperfurado'
+      ? `Material: ${(d.qtd*(d.larg/100)*(d.alt/100)).toFixed(2)}m² × R$${fmt(d.pMat)}/m² = R$${fmt(d.custoMaterial)}`
+      : `Material: ${d.metrosRolo}m de rolo × ${d.faixasPorMetro} fx/m × R$${fmt(d.pMat)}/m = R$${fmt(d.custoMaterial)}`,
+    `Instalação: ${d.qtd} fx × ${d.instMetrosPorFaixa.toFixed(1)}m/fx × R$${fmt(d.pInst)}/m = R$${fmt(d.custoInstalacao)}`,
+    `Corte: ${d.metrosRolo.toFixed(1)}m × R$${fmt(d.pCorte)}/m = R$${fmt(d.custoCorte)}`,
+    ...(d.hasRecorte ? [`Recorte Eletrônico: ${d.metrosRolo.toFixed(1)}m × R$${fmt(d.pRecorteEsp)}/m = R$${fmt(d.custoRecorteEsp)}`] : []),
+    `Deslocamento (${d.deslocLabel}): R$${fmt(d.desloc)}`,
+    `C = R$${fmt(d.C)} → Vista R$${fmt(d.vista)} | Prazo R$${fmt(d.prazo)}`
+  ];
+  return {
+    item: `Faixa em Adesivo ${d.larg}×${d.alt} cm`,
+    descricao: d.descViva,
+    unidades: d.qtd,
+    operacional_pct: 30, comissao_pct: 100, imposto_pct: 10, juros_pct: 10,
+    preco_final: parseFloat(d.prazo.toFixed(2)),
+    itens: []
+  };
+}
+
+function calcGerarOrcamento(){
+  if(!window._calcDados) return;
+  const d = window._calcDados;
+  const sv = _calcNovoServico(d);
+  formOrc = {
+    id: null,
+    numero: gerarCodigo(),
+    cliente: '', empresa: '', telefone: '', email: '',
+    data: today(), prazo_entrega: 7, status: 'Aberto',
+    descricao: '',
+    servicos: [sv],
+    responsavel: 'Marcelo'
+  };
+  formCalcs = [];
+  orcTab = 'novo';
+  goTab('orcamentos');
+}
+
+function calcMostrarExistentes(){
+  const panel = document.getElementById('calc-existentes-panel');
+  const list  = document.getElementById('calc-existentes-list');
+  if(!panel || !list) return;
+  const isVisible = panel.style.display !== 'none';
+  if(isVisible){ panel.style.display='none'; return; }
+
+  const ativos = (S.orcamentos||[]).filter(o=>o.status!=='Arquivado').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  if(!ativos.length){
+    list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">Nenhum orçamento ativo encontrado.</div>';
+  } else {
+    list.innerHTML = ativos.map(o=>`
+      <button onclick="calcAdicionarExistente('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);cursor:pointer;text-align:left;gap:8px">
+        <div>
+          <div style="font-weight:700;font-size:13px">#${o.numero} — ${o.cliente||o.empresa||'(sem nome)'}</div>
+          <div style="font-size:11px;color:var(--text2)">${o.data||''} · ${o.status||''} · ${(o.servicos||[]).length} serviço(s)</div>
+        </div>
+        <span style="font-size:12px;color:var(--primary);white-space:nowrap">➕ Adicionar</span>
+      </button>`).join('');
+  }
+  panel.style.display='block';
+}
+
+function calcAdicionarExistente(orcId){
+  if(!window._calcDados) return;
+  const d = window._calcDados;
+  const orc = (S.orcamentos||[]).find(o=>o.id===orcId);
+  if(!orc){ alert('Orçamento não encontrado.'); return; }
+
+  formOrc = JSON.parse(JSON.stringify(orc));
+  formCalcs = [];
+  formOrc.servicos = formOrc.servicos || [];
+  formOrc.servicos.push(_calcNovoServico(d));
+  orcTab = 'editar';
+  goTab('orcamentos');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CALCULADORA DE ADESIVO DE PORTA
+// ═══════════════════════════════════════════════════════════════
+
+const PORTA_MATERIAIS = [
+  { id:'vinil_branco',    label:'Vinil Branco',          preco:35, unidade:'m_rolo' },
+  { id:'vinil_jateado',   label:'Vinil Jateado',         preco:40, unidade:'m_rolo' },
+  { id:'microperfurado',  label:'Vinil Microperfurado',  preco:50, unidade:'m2'     },
+  { id:'recorte_preto',   label:'Recorte Preto',         preco:35, unidade:'m_rolo' },
+];
+
+let _portaCamadas = []; // [{tipo, recorte}]
+let _portaCalcTimer = null;
+
+function portaInitCamadas(){
+  if(_portaCamadas.length === 0){
+    _portaCamadas = [{ tipo:'vinil_jateado', recorte:false }];
+    portaRenderCamadas();
+  }
+}
+
+function portaAddCamada(){
+  if(_portaCamadas.length >= 4) return;
+  _portaCamadas.push({ tipo:'vinil_branco', recorte:false });
+  portaRenderCamadas();
+  portaCalcUpdate();
+}
+
+function portaRemoveCamada(idx){
+  if(_portaCamadas.length <= 1) return;
+  _portaCamadas.splice(idx, 1);
+  portaRenderCamadas();
+  portaCalcUpdate();
+}
+
+function portaSetTipo(idx, val){
+  _portaCamadas[idx].tipo = val;
+  portaCalcUpdate();
+}
+
+function portaSetRecorte(idx, val){
+  _portaCamadas[idx].recorte = val;
+  portaCalcUpdate();
+}
+
+function portaRenderCamadas(){
+  const container = document.getElementById('porta-camadas');
+  if(!container) return;
+  const addBtn = document.getElementById('btn-porta-add-camada');
+  if(addBtn) addBtn.style.opacity = _portaCamadas.length >= 4 ? '0.4' : '1';
+  container.innerHTML = _portaCamadas.map((c, i) => {
+    const opts = PORTA_MATERIAIS.map(m =>
+      `<option value="${m.id}" ${c.tipo===m.id?'selected':''}>${m.label} — R$${m.preco.toFixed(2).replace('.',',')}/${m.unidade==='m2'?'m²':'m'}</option>`
+    ).join('');
+    const showRecorte = c.tipo !== 'microperfurado';
+    return `
+    <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--text2)">CAMADA ${i+1}</span>
+        ${_portaCamadas.length > 1 ? `<button onclick="portaRemoveCamada(${i})" style="padding:2px 8px;border-radius:4px;border:1px solid #f8717140;background:#f871711a;color:#f87171;font-size:11px;cursor:pointer;font-weight:600">✕ Remover</button>` : ''}
+      </div>
+      <select onchange="portaSetTipo(${i}, this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);font-size:13px;margin-bottom:8px">
+        ${opts}
+      </select>
+      ${showRecorte ? `<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer">
+        <input type="checkbox" ${c.recorte?'checked':''} onchange="portaSetRecorte(${i}, this.checked)"
+          style="width:14px;height:14px;cursor:pointer">
+        Recorte eletrônico (+R$15,00/m de rolo)
+      </label>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function portaCalcUpdate(){
+  clearTimeout(_portaCalcTimer);
+  _portaCalcTimer = setTimeout(_portaCalcRun, 50);
+}
+
+function _portaRoloCalc(larg, alt, qtd){
+  // Mesma lógica de orientação da Faixa
+  const EFF_W = 112, EFF_L = 92, SPACING = 1;
+  const fitsA = Math.floor(EFF_W / (alt + SPACING));
+  const cabeA = larg <= EFF_L;
+  const fitsB = Math.floor(EFF_L / (alt + SPACING));
+  const cabeB = larg <= EFF_W;
+  let faixasPorMetro, orientacao;
+  if(cabeA){ faixasPorMetro=fitsA; orientacao='A'; }
+  else if(cabeB){ faixasPorMetro=fitsB; orientacao='B'; }
+  else{ faixasPorMetro=0; orientacao='X'; }
+
+  let metrosRolo, orientLabel, emenda=false, numEmendas=1;
+  if(faixasPorMetro===0){
+    const faixasPorCamada = Math.floor(EFF_W / (alt + SPACING));
+    if(faixasPorCamada===0){
+      numEmendas = Math.ceil(alt / EFF_W);
+      const metrosPorPeca = Math.ceil((larg/100) / 0.5) * 0.5;
+      metrosRolo  = qtd * numEmendas * metrosPorPeca;
+      orientLabel = `Orient. C+Emenda: ${numEmendas} tira(s) de ${metrosPorPeca}m × ${qtd} porta(s)`;
+      emenda = true;
+    } else {
+      const metrosPorCamada = Math.ceil((larg/100) / 0.5) * 0.5;
+      const numCamadas      = Math.ceil(qtd / faixasPorCamada);
+      metrosRolo  = numCamadas * metrosPorCamada;
+      orientLabel = `Orient. C: ${faixasPorCamada} fx/fileira × ${numCamadas} fileira(s) × ${metrosPorCamada}m`;
+    }
+  } else {
+    const metrosBrutos = qtd / faixasPorMetro;
+    metrosRolo  = Math.ceil(metrosBrutos * 2) / 2;
+    orientLabel = orientacao==='A'
+      ? `Orient. A: ${alt}cm × ${faixasPorMetro} peças/m nos 112cm`
+      : `Orient. B: ${alt}cm × ${faixasPorMetro} peças/m nos 92cm`;
+  }
+  const areaM2 = qtd * (larg/100) * (alt/100);
+  return { metrosRolo, orientLabel, emenda, numEmendas, areaM2 };
+}
+
+function _portaCalcRun(){
+  const larg   = parseFloat(document.getElementById('p_larg')?.value||'80')||80;
+  const alt    = parseFloat(document.getElementById('p_alt')?.value||'210')||210;
+  const qtd    = parseInt(document.getElementById('p_qtd')?.value||'1')||1;
+  const pInst  = parseFloat(document.getElementById('p_pinst')?.value||'30');
+  const pCorte = parseFloat(document.getElementById('p_pcorte')?.value||'15');
+  const desloc = parseFloat(document.getElementById('p_desloc')?.value||'30');
+  const camadas = _portaCamadas;
+
+  const fmt = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\d{3}),/,'.$1,');
+  const deslocLabel = {15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||'';
+
+  const { metrosRolo, orientLabel, emenda, numEmendas, areaM2 } = _portaRoloCalc(larg, alt, qtd);
+
+  // Calcula custo por camada
+  let totalMaterial = 0, totalCorte = 0, totalRecorte = 0;
+  const camadasDetalhes = camadas.map((c, i) => {
+    const mat = PORTA_MATERIAIS.find(m => m.id === c.tipo) || PORTA_MATERIAIS[0];
+    let custoMat, matDesc;
+    if(mat.unidade === 'm2'){
+      custoMat = Math.max(30, areaM2 * mat.preco);
+      matDesc  = `${areaM2.toFixed(2)}m² × R$${mat.preco.toFixed(2).replace('.',',')}/m²`;
+    } else {
+      custoMat = Math.max(30, metrosRolo * mat.preco);
+      matDesc  = `${metrosRolo.toFixed(1)}m de rolo × R$${mat.preco.toFixed(2).replace('.',',')}/m`;
+    }
+    const custoCorte = mat.unidade === 'm2' ? 0 : metrosRolo * pCorte;
+    const custoRec   = c.recorte && mat.unidade !== 'm2' ? metrosRolo * 15 : 0;
+    totalMaterial += custoMat;
+    totalCorte    += custoCorte;
+    totalRecorte  += custoRec;
+    return { label:mat.label, custoMat, matDesc, custoCorte, custoRec, recorte:c.recorte && mat.unidade !== 'm2' };
+  });
+
+  // Instalação: escalonada por largura, ×qtd portas
+  const instMetros = Math.ceil(Math.max(larg/100, 1.0) / 0.5) * 0.5;
+  const custoInstalacao = instMetros * pInst * qtd;
+
+  const C         = totalMaterial + totalCorte + totalRecorte + custoInstalacao + desloc;
+  const oper      = C * 0.30;
+  const com       = oper;
+  const subtotal  = C + oper + com;
+  const imposto   = subtotal * 0.10;
+  const vista     = subtotal + imposto;
+  const prazo     = vista * 1.10;
+
+  const emendaBlock = emenda
+    ? `<div style="color:#f59e0b;padding:10px 14px;background:#f59e0b18;border:1px solid #f59e0b50;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:12px">⚠️ Altura ${alt}cm > 112cm — <b>${numEmendas} tiras com emenda</b> por porta. Custo calculado com emenda.</div>`
+    : '';
+
+  const camadasRows = camadasDetalhes.map((cd, i) => `
+    <div style="padding:4px 0 2px;border-bottom:1px solid var(--border)20">
+      <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:2px">CAMADA ${i+1} — ${cd.label}</div>
+      <div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--text2)">Material (${cd.matDesc})</span><span style="font-weight:600;white-space:nowrap">${fmt(cd.custoMat)}</span></div>
+      ${cd.custoCorte>0?`<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--text2)">Corte (${metrosRolo.toFixed(1)}m × ${fmt(pCorte)}/m)</span><span style="font-weight:600;white-space:nowrap">${fmt(cd.custoCorte)}</span></div>`:''}
+      ${cd.recorte?`<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--text2)">Recorte eletrônico (${metrosRolo.toFixed(1)}m × R$15,00/m)</span><span style="font-weight:600;white-space:nowrap">${fmt(cd.custoRec)}</span></div>`:''}
+    </div>`).join('');
+
+  const porPorta = qtd > 1 ? `<div style="background:#22c55e18;border:1px solid #22c55e40;border-radius:8px;padding:10px 12px;margin-top:12px;text-align:center">
+    <div style="font-size:11px;color:#22c55e;font-weight:700;margin-bottom:2px">POR PORTA (média)</div>
+    <div style="font-size:22px;font-weight:800;color:#22c55e">${fmt(vista/qtd)}</div>
+    <div style="font-size:12px;color:var(--text2)">à vista &nbsp;|&nbsp; ${fmt(prazo/qtd)} a prazo</div>
+  </div>` : '';
+
+  document.getElementById('porta-resultado').innerHTML = `
+    ${emendaBlock}
+    <h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📊 Breakdown do Cálculo</h3>
+    <div style="font-size:12px;line-height:1.9;font-family:monospace">
+      <div style="font-size:11px;color:var(--text2);margin-bottom:6px">${orientLabel}</div>
+      ${camadasRows}
+      <div style="display:flex;justify-content:space-between;padding:4px 0 2px;border-bottom:1px solid var(--border)20;gap:8px">
+        <span style="color:var(--text2)">Instalação (${qtd} porta(s) × ${instMetros.toFixed(1)}m × ${fmt(pInst)}/m)</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(custoInstalacao)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);gap:8px">
+        <span style="color:var(--text2)">Deslocamento (${deslocLabel})</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(desloc)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0 2px;gap:8px">
+        <span style="color:var(--text2)">Custo Total (C)</span>
+        <span style="font-weight:700;white-space:nowrap">${fmt(C)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px">
+        <span>Operacional (30%)</span><span>${fmt(oper)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px">
+        <span>Comissão (100% do oper.)</span><span>${fmt(com)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);color:var(--text2);gap:8px">
+        <span>Imposto (10%)</span><span>${fmt(imposto)}</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <div style="background:var(--primary)18;border:1px solid var(--primary)40;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:2px">À VISTA</div>
+        <div style="font-size:24px;font-weight:800;color:var(--primary)">${fmt(vista)}</div>
+        <div style="font-size:11px;color:var(--text2)">C × 1,76</div>
+      </div>
+      <div style="background:#f59e0b18;border:1px solid #f59e0b40;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:2px">A PRAZO</div>
+        <div style="font-size:24px;font-weight:800;color:#f59e0b">${fmt(prazo)}</div>
+        <div style="font-size:11px;color:var(--text2)">À vista × 1,10</div>
+      </div>
+    </div>
+
+    ${porPorta}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <button onclick="portaGerarOrcamento()" style="padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        📄 Criar Orçamento
+      </button>
+      <button onclick="portaMostrarExistentes()" style="padding:11px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        ➕ Adicionar a Existente
+      </button>
+    </div>
+
+    <div id="porta-existentes-panel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">SELECIONE O ORÇAMENTO:</div>
+      <div id="porta-existentes-list" style="display:grid;gap:6px;max-height:220px;overflow-y:auto"></div>
+    </div>
+  `;
+
+  window._portaDados = { larg, alt, qtd, pInst, pCorte, desloc, deslocLabel, camadas:JSON.parse(JSON.stringify(camadas)),
+    metrosRolo, orientLabel, emenda, numEmendas, areaM2, camadasDetalhes,
+    totalMaterial, totalCorte, totalRecorte, custoInstalacao, instMetros, C, vista, prazo };
+}
+
+function portaGerarOrcamento(){
+  if(!window._portaDados) return;
+  const d = window._portaDados;
+  const camadasDesc = d.camadasDetalhes.map((cd, i) => `Camada ${i+1}: ${cd.label}`).join(' + ');
+  const descViva = `Fornecimento e instalação de adesivo em ${d.qtd} porta(s) ${d.larg}×${d.alt}cm. ${camadasDesc}. Deslocamento incluso (${d.deslocLabel}).`;
+  formOrc = {
+    id: null, numero: gerarCodigo(), cliente: '', empresa: '', telefone: '', email: '',
+    data: today(), prazo_entrega: 7, status: 'Aberto', descricao: '',
+    servicos: [{
+      item: `Adesivo de Porta ${d.larg}×${d.alt}cm`,
+      descricao: descViva,
+      unidades: d.qtd,
+      operacional_pct: 30, comissao_pct: 100, imposto_pct: 10, juros_pct: 10,
+      preco_final: parseFloat(d.prazo.toFixed(2)),
+      itens: []
+    }],
+    responsavel: 'Marcelo'
+  };
+  formCalcs = [];
+  orcTab = 'novo';
+  goTab('orcamentos');
+}
+
+function portaMostrarExistentes(){
+  const panel = document.getElementById('porta-existentes-panel');
+  const list  = document.getElementById('porta-existentes-list');
+  if(!panel || !list) return;
+  if(panel.style.display !== 'none'){ panel.style.display='none'; return; }
+  const ativos = (S.orcamentos||[]).filter(o=>o.status!=='Arquivado').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  if(!ativos.length){
+    list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">Nenhum orçamento ativo encontrado.</div>';
+  } else {
+    list.innerHTML = ativos.map(o=>`
+      <button onclick="portaAdicionarExistente('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);cursor:pointer;text-align:left;gap:8px">
+        <div>
+          <div style="font-weight:700;font-size:13px">#${o.numero} — ${o.cliente||o.empresa||'(sem nome)'}</div>
+          <div style="font-size:11px;color:var(--text2)">${o.data||''} · ${o.status||''} · ${(o.servicos||[]).length} serviço(s)</div>
+        </div>
+        <span style="font-size:12px;color:var(--primary);white-space:nowrap">➕ Adicionar</span>
+      </button>`).join('');
+  }
+  panel.style.display='block';
+}
+
+function portaAdicionarExistente(orcId){
+  if(!window._portaDados) return;
+  const d = window._portaDados;
+  const orc = (S.orcamentos||[]).find(o=>o.id===orcId);
+  if(!orc){ alert('Orçamento não encontrado.'); return; }
+  formOrc = JSON.parse(JSON.stringify(orc));
+  formCalcs = [];
+  formOrc.servicos = formOrc.servicos || [];
+  const camadasDesc = d.camadasDetalhes.map((cd,i)=>`Camada ${i+1}: ${cd.label}`).join(' + ');
+  const descViva = `Fornecimento e instalação de adesivo em ${d.qtd} porta(s) ${d.larg}×${d.alt}cm. ${camadasDesc}. Deslocamento incluso (${d.deslocLabel}).`;
+  formOrc.servicos.push({
+    item: `Adesivo de Porta ${d.larg}×${d.alt}cm`,
+    descricao: descViva,
+    unidades: d.qtd,
+    operacional_pct: 30, comissao_pct: 100, imposto_pct: 10, juros_pct: 10,
+    preco_final: parseFloat(d.prazo.toFixed(2)),
+    itens: []
+  });
+  orcTab = 'editar';
+  goTab('orcamentos');
+}
+
+</script>
+</body>
+</html>
