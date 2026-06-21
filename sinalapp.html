@@ -2332,7 +2332,6 @@ function renderTarefas(){
         <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${sg.tarefas.length} itens</span>
       </h3>
       <div style="display:flex;gap:6px">
-        <button class="btn btn-secondary" onclick="openItinerario('${spNome}')" style="font-size:12px">🗺️ Itinerário</button>
         <button class="btn" onclick="openNovaTarefa({tipo:'sprint',sprint:'${spNome}'})">+ Novo Item</button>
       </div>
     </div>
@@ -2342,16 +2341,18 @@ function renderTarefas(){
     </div>
     <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">
       ${allMods.map(col=>{
-        const colDone=sg.tarefas.filter(t=>(t.modulosDone||[]).includes(col)).length;
-        const colTotal=sg.tarefas.length;
+        const colTasks=sg.tarefas.filter(t=>(t.modulos||[]).includes(col));
+        const colDone=colTasks.filter(t=>(t.modulosDone||[]).includes(col)).length;
+        const colTotal=colTasks.length;
         const colPct=colTotal?Math.round(colDone/colTotal*100):0;
+        const allColDone=colTotal>0&&colDone===colTotal;
         return`<div style="min-width:200px;flex-shrink:0;background:var(--bg1);border-radius:10px;border:1px solid ${colPct===100?'var(--green)40':'var(--border)'};padding:10px;display:flex;flex-direction:column;gap:6px">
           <div style="display:flex;align-items:center;justify-content:space-between">
             <span style="font-size:12px;font-weight:700;color:${colPct===100?'var(--green)':'var(--text)'}">${col}</span>
             <span style="font-size:10px;color:${colPct===100?'var(--green)':'var(--text2)'}">${colDone}/${colTotal}</span>
           </div>
           <div style="background:var(--bg3);border-radius:99px;height:3px;margin-bottom:4px"><div style="background:${colPct===100?'var(--green)':'var(--accent)'};height:3px;border-radius:99px;width:${colPct}%"></div></div>
-          ${sg.tarefas.map(t=>{
+          ${colTasks.map(t=>{
             const done=(t.modulosDone||[]).includes(col);
             const tId=t.id;
             const colE=col.replace(/'/g,"\\'");
@@ -2365,7 +2366,8 @@ function renderTarefas(){
               </button>
             </div>`;
           }).join('')}
-          ${colTotal>0&&colDone<colTotal?`<button onclick="concluirTodosModulo('${spNome}','${col.replace(/'/g,"\\'")}','${col.replace(/'/g,"\\'")}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--green)40;background:var(--green)10;color:var(--green);cursor:pointer;width:100%;margin-top:2px">✓ Concluir todos</button>`:''}
+          ${col==='Visita/Entrega/Instalação'?`<button onclick="openItinerario('${spNome}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--accent)40;background:var(--accent)10;color:var(--accent);cursor:pointer;width:100%;margin-top:2px">🗺️ Itinerário</button>`:''}
+          ${colTotal>0?`<button onclick="concluirTodosModulo('${spNome}','${col.replace(/'/g,"\\'")}','${col.replace(/'/g,"\\'")}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--green)40;background:var(--green)10;color:var(--green);cursor:pointer;width:100%;margin-top:2px">${allColDone?'↩ Reverter todos':'✓ Concluir todos'}</button>`:''}
         </div>`;
       }).join('')}
     </div>
@@ -2539,12 +2541,17 @@ function toggleModuloDone(tarefaId,modulo){
   saveState();render();
 }
 function concluirTodosModulo(sprintNome,modulo){
-  S.tarefas.forEach(t=>{
-    if(t.sprint!==sprintNome||t.tipo!=='sprint')return;
+  const tarefas=S.tarefas.filter(t=>t.sprint===sprintNome&&t.tipo==='sprint'&&(t.modulos||[]).includes(modulo));
+  const allDone=tarefas.length>0&&tarefas.every(t=>(t.modulosDone||[]).includes(modulo));
+  tarefas.forEach(t=>{
     if(!t.modulosDone)t.modulosDone=[];
-    if(!t.modulosDone.includes(modulo))t.modulosDone=[...t.modulosDone,modulo];
+    if(allDone){
+      t.modulosDone=t.modulosDone.filter(m=>m!==modulo);
+    }else{
+      if(!t.modulosDone.includes(modulo))t.modulosDone=[...t.modulosDone,modulo];
+    }
   });
-  saveState();render();toast('Módulo concluído!');
+  saveState();render();toast(allDone?'Revertido para pendente!':'Módulo concluído!');
 }
 // ── LOCAIS DO SPRINT ──
 function addLocalSprint(){
@@ -2832,6 +2839,10 @@ function renderCalculadora(){
     <button onclick="calcSelectService('placa_identificacao')" id="btn-placa_identificacao"
       style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
       🏷️ Placa — Identificação
+    </button>
+    <button onclick="calcSelectService('letreiro_pvc')" id="btn-letreiro_pvc"
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
+      🔡 Letreiro — PVC
     </button>
     <button onclick="calcSelectService('placa_inox')" id="btn-placa_inox"
       style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;opacity:0.5" disabled>
@@ -3159,6 +3170,141 @@ function renderCalculadora(){
     </div>
   </div>
 
+  <!-- Formulário Letreiro — PVC -->
+  <div id="calc-form-letreiro_pvc" style="display:none;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+
+    <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🔡 Letreiro — PVC</h3>
+      <div style="display:grid;gap:14px">
+
+        <!-- Espessura -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">ESPESSURA</label>
+          <div style="display:flex;gap:8px">
+            <button id="pvbtn-10mm" onclick="pvcSetEsp('10mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--primary);background:var(--primary);color:white;font-weight:700;font-size:13px;cursor:pointer">10 mm</button>
+            <button id="pvbtn-20mm" onclick="pvcSetEsp('20mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">20 mm</button>
+          </div>
+        </div>
+
+        <!-- Nome -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">NOME DO LETREIRO</label>
+          <input id="pv_nome" type="text" value="" placeholder="ex: EMPRESA ABC" oninput="pvcCalcUpdate()"
+            style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+        </div>
+
+        <!-- Dimensões -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label>
+            <input id="pv_larg" type="number" value="130" min="1" max="1000" oninput="pvcOnDimChange()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label>
+            <input id="pv_alt" type="number" value="65" min="1" max="1000" oninput="pvcOnDimChange()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">UNIDADES</label>
+            <input id="pv_qtd" type="number" value="1" min="1" max="99" oninput="pvcCalcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+        </div>
+
+        <!-- Material (auto) -->
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+          <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">MATERIAL (CHAPA PVC) — automático</div>
+          <div id="pv_mat_label" style="font-size:13px;font-weight:600;color:var(--text1)">calculando...</div>
+        </div>
+
+        <!-- Custos por peça -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">CUSTOS POR PEÇA (R$)</label>
+          <div style="display:grid;gap:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Corte (router)</label>
+                <input id="pv_pcorte" type="number" value="0" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Pintura automotiva</label>
+                <input id="pv_ppintura" type="number" value="0" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-bottom:3px">
+                  <input id="pv_acabamento_on" type="checkbox" checked onchange="pvcToggleAcabamento(this.checked)" style="cursor:pointer">
+                  Acabamento (R$/m linear)
+                </label>
+                <input id="pv_pacabamento" type="number" value="0" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">&nbsp;</label>
+                <div style="padding:9px 10px;font-size:11px;color:var(--text2);line-height:1.4">R$40/m × largura<br>adicional à pintura</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-bottom:3px">
+                  <input id="pv_inst_on" type="checkbox" checked onchange="pvcToggleInst(this.checked)" style="cursor:pointer">
+                  Instalação
+                </label>
+                <input id="pv_pinst" type="number" value="50" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Montagem / Gabarito</label>
+                <input id="pv_pmontag" type="number" value="20" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Fixação (material)</label>
+                <input id="pv_pfixacao" type="number" value="25" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+              <div>
+                <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Adicional (total)</label>
+                <input id="pv_padic" type="number" value="0" min="0" step="1" oninput="pvcCalcUpdate()"
+                  style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deslocamento -->
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DESLOCAMENTO</label>
+          <select id="pv_desloc" onchange="pvcCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="15">Mínimo — R$ 15,00</option>
+            <option value="30" selected>5–15 km — R$ 30,00</option>
+            <option value="50">16–20 km — R$ 50,00</option>
+            <option value="80">21–30 km — R$ 80,00</option>
+            <option value="100">31–50 km — R$ 100,00</option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">DESCRIÇÃO DO SERVIÇO (automática)</div>
+        <div id="pv_desc_preview" style="font-size:13px;color:var(--text1);line-height:1.5;min-height:36px">—</div>
+      </div>
+      <div id="pvc-resultado" style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+        <p style="color:var(--text2);font-size:13px">Preencha os dados ao lado para ver o cálculo.</p>
+      </div>
+    </div>
+
+  </div>
+
 </div>\`;
 }
 
@@ -3178,6 +3324,7 @@ function calcSelectService(svc){
   if(svc==='geral_adesivo'){ geralInitCamadas(); geralCalcUpdate(); }
   if(svc==='letreiro_acrilico'){ letreiroInit(); }
   if(svc==='placa_identificacao'){ placaInit(); }
+  if(svc==='letreiro_pvc'){ pvcInit(); }
 }
 
 let _calcTimer=null;
@@ -4028,6 +4175,255 @@ function placaAdicionarExistente(orcId){
   formOrc=JSON.parse(JSON.stringify(orc));formCalcs=[];formOrc.servicos=formOrc.servicos||[];
   formOrc.servicos.push({item:`Placa de Identificação ${d.mat.label} ${d.larg}×${d.alt}cm`,descricao:d.desc,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]});
   orcTab='editar';goTab('orcamentos');
+}
+
+// CALCULADORA LETREIRO — PVC
+// ═══════════════════════════════════════════════════════════════
+
+const PVC_CONF = {
+  '10mm': { preco_chapa: 350, taxa_corte: 35, taxa_pintura: 40, taxa_acabamento: 40, label: 'PVC 10 mm' },
+  '20mm': { preco_chapa: 500, taxa_corte: 35, taxa_pintura: 40, taxa_acabamento: 40, label: 'PVC 20 mm' },
+};
+const PVC_CHAPA_W = 220, PVC_CHAPA_H = 120;
+
+let _pvcEsp = '10mm';
+let _pvcTimer = null;
+
+function pvcInit(){
+  _pvcEsp = '10mm';
+  pvcSetEsp('10mm');
+}
+
+function pvcSetEsp(esp){
+  _pvcEsp = esp;
+  ['10mm','20mm'].forEach(e => {
+    const btn = document.getElementById('pvbtn-'+e);
+    if(!btn) return;
+    if(e === esp){ btn.style.background='var(--primary)'; btn.style.color='white'; btn.style.borderColor='var(--primary)'; btn.style.fontWeight='700'; }
+    else { btn.style.background='transparent'; btn.style.color='var(--text2)'; btn.style.borderColor='var(--border)'; btn.style.fontWeight='600'; }
+  });
+  pvcUpdateDefaults();
+  pvcCalcUpdate();
+}
+
+function pvcUpdateDefaults(){
+  const larg = parseFloat(document.getElementById('pv_larg')?.value)||130;
+  const alt  = parseFloat(document.getElementById('pv_alt')?.value)||65;
+  const conf = PVC_CONF[_pvcEsp];
+  const area_m2 = (larg * alt) / 10000;
+  const set = (id, v) => { const el = document.getElementById(id); if(el) el.value = Math.round(v); };
+  set('pv_pcorte',      Math.max(10, Math.round(area_m2 * conf.taxa_corte)));
+  set('pv_ppintura',   Math.round((larg / 100) * conf.taxa_pintura));
+  set('pv_pacabamento', Math.round((larg / 100) * conf.taxa_acabamento));
+  set('pv_pinst',       50);
+}
+
+function pvcOnDimChange(){
+  pvcUpdateDefaults();
+  pvcCalcUpdate();
+}
+
+function pvcToggleAcabamento(on){
+  const el = document.getElementById('pv_pacabamento');
+  if(!el) return;
+  if(!on){ el.value = 0; } else {
+    const larg = parseFloat(document.getElementById('pv_larg')?.value)||130;
+    const conf = PVC_CONF[_pvcEsp];
+    el.value = Math.round((larg/100) * conf.taxa_acabamento);
+  }
+  pvcCalcUpdate();
+}
+
+function pvcToggleInst(on){
+  const el = document.getElementById('pv_pinst');
+  if(!el) return;
+  if(!on){ el.value = 0; } else { el.value = 50; }
+  pvcCalcUpdate();
+}
+
+function pvcCalcUpdate(){
+  clearTimeout(_pvcTimer);
+  _pvcTimer = setTimeout(_pvcCalcRun, 50);
+}
+
+function _pvcCalcRun(){
+  const larg   = parseFloat(document.getElementById('pv_larg')?.value)||130;
+  const alt    = parseFloat(document.getElementById('pv_alt')?.value)||65;
+  const qtd    = parseInt(document.getElementById('pv_qtd')?.value)||1;
+  const desloc = parseFloat(document.getElementById('pv_desloc')?.value)||30;
+  const conf   = PVC_CONF[_pvcEsp];
+  const fmt = v => 'R$ '+v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\.d{3}),/,'.$1,');
+  const deslocLabel = {15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||'';
+
+  const area_cm2   = larg * alt;
+  const area_m2    = area_cm2 / 10000;
+  const num_chapas = Math.ceil(qtd * area_cm2 / (PVC_CHAPA_W * PVC_CHAPA_H));
+  const custo_mat  = num_chapas * conf.preco_chapa;
+
+  const custo_corte     = parseFloat(document.getElementById('pv_pcorte')?.value)||0;
+  const custo_pintura   = parseFloat(document.getElementById('pv_ppintura')?.value)||0;
+  const acabamentoOn    = document.getElementById('pv_acabamento_on')?.checked !== false;
+  const custo_acabamento= acabamentoOn ? (parseFloat(document.getElementById('pv_pacabamento')?.value)||0) : 0;
+  const instOn          = document.getElementById('pv_inst_on')?.checked !== false;
+  const custo_inst    = parseFloat(document.getElementById('pv_pinst')?.value)||0;
+  const custo_montag  = parseFloat(document.getElementById('pv_pmontag')?.value)||20;
+  const custo_fixacao = parseFloat(document.getElementById('pv_pfixacao')?.value)||25;
+  const custo_adic    = parseFloat(document.getElementById('pv_padic')?.value)||0;
+
+  const nome     = (document.getElementById('pv_nome')?.value||'').trim();
+  const nomeStr  = nome ? `"${nome}" ` : '';
+  const instStr  = instOn ? ' e instalação' : '';
+  const acabDesc = (acabamentoOn && custo_acabamento > 0) ? ' com acabamento' : '';
+  const pintDesc = custo_pintura > 0 ? ` com pintura automotiva${acabDesc}` : '';
+  const descFinal = qtd > 1
+    ? `Fornecimento${instStr} de ${qtd} letreiros em ${conf.label} ${nomeStr}medindo ${larg}×${alt} cm cada${pintDesc}. Fixação com dupla face. Deslocamento incluso (${deslocLabel}).`
+    : `Fornecimento${instStr} de letreiro em ${conf.label} ${nomeStr}medindo ${larg}×${alt} cm${pintDesc}. Fixação com dupla face. Deslocamento incluso (${deslocLabel}).`;
+  const descPrev = document.getElementById('pv_desc_preview');
+  if(descPrev) descPrev.textContent = descFinal;
+
+  const matLbl = document.getElementById('pv_mat_label');
+  if(matLbl) matLbl.textContent =
+    `${num_chapas} chapa(s) × ${fmt(conf.preco_chapa)} (${conf.label}, ${PVC_CHAPA_W}×${PVC_CHAPA_H}cm) = ${fmt(custo_mat)}`;
+
+  const custo_unit = custo_corte + custo_pintura + custo_acabamento + (instOn ? custo_inst : 0) + custo_montag + custo_fixacao;
+  const C    = custo_mat + (custo_unit * qtd) + custo_adic + desloc;
+  const oper = C * 0.30;
+  const com  = oper;
+  const sub  = C + oper + com;
+  const imp  = sub * 0.10;
+  const vista = Math.ceil(sub + imp);
+  const prazo = Math.ceil(vista * 1.10);
+
+  const rowUnit = (label, val) => val > 0
+    ? `<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px">
+        <span style="color:var(--text2)">${label}</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(val)}</span>
+       </div>` : '';
+
+  const porUnid = qtd > 1 ? `<div style="background:#22c55e18;border:1px solid #22c55e40;border-radius:8px;padding:10px 12px;margin-top:12px;text-align:center">
+    <div style="font-size:11px;color:#22c55e;font-weight:700;margin-bottom:2px">POR UNIDADE (média)</div>
+    <div style="font-size:22px;font-weight:800;color:#22c55e">${fmt(vista/qtd)}</div>
+    <div style="font-size:12px;color:var(--text2)">à vista &nbsp;|&nbsp; ${fmt(prazo/qtd)} a prazo</div>
+  </div>` : '';
+
+  document.getElementById('pvc-resultado').innerHTML = `
+    <h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📊 Breakdown do Cálculo</h3>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:8px">${larg}×${alt}cm — ${conf.label} — ${qtd} unidade(s) — ${area_m2.toFixed(3)}m²/un</div>
+    <div style="font-size:12px;line-height:1.9;font-family:monospace">
+      ${rowUnit(`Material (${num_chapas} chapa${num_chapas>1?'s':''})`, custo_mat)}
+      ${rowUnit(`Corte Router${qtd>1?' × '+qtd:''}`, custo_corte * qtd)}
+      ${rowUnit(`Pintura automotiva${qtd>1?' × '+qtd:''}`, custo_pintura * qtd)}
+      ${acabamentoOn && custo_acabamento > 0 ? rowUnit(`Acabamento (${(larg/100).toFixed(2)}m linear${qtd>1?' × '+qtd:''})`, custo_acabamento * qtd) : ''}
+      ${instOn&&custo_inst>0 ? rowUnit(`Instalação${qtd>1?' × '+qtd:''}`, custo_inst * qtd) : ''}
+      ${rowUnit(`Montagem / Gabarito${qtd>1?' × '+qtd:''}`, custo_montag * qtd)}
+      ${rowUnit(`Fixação (material)${qtd>1?' × '+qtd:''}`, custo_fixacao * qtd)}
+      ${custo_adic > 0 ? rowUnit('Adicional', custo_adic) : ''}
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);gap:8px">
+        <span style="color:var(--text2)">Deslocamento (${deslocLabel})</span>
+        <span style="font-weight:600;white-space:nowrap">${fmt(desloc)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:5px 0 2px;gap:8px">
+        <span style="color:var(--text2)">Custo Total (C)</span>
+        <span style="font-weight:700;white-space:nowrap">${fmt(C)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px">
+        <span>Operacional + Comissão (60%)</span><span>${fmt(oper+com)}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);color:var(--text2);gap:8px">
+        <span>Imposto (10%)</span><span>${fmt(imp)}</span>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <div style="background:var(--primary)18;border:1px solid var(--primary)40;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:2px">À VISTA</div>
+        <div style="font-size:24px;font-weight:800;color:var(--primary)">${fmt(vista)}</div>
+        <div style="font-size:11px;color:var(--text2)">C × 1,76</div>
+      </div>
+      <div style="background:#f59e0b18;border:1px solid #f59e0b40;border-radius:8px;padding:12px;text-align:center">
+        <div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:2px">A PRAZO</div>
+        <div style="font-size:24px;font-weight:800;color:#f59e0b">${fmt(prazo)}</div>
+        <div style="font-size:11px;color:var(--text2)">À vista × 1,10</div>
+      </div>
+    </div>
+
+    ${porUnid}
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+      <button onclick="pvcGerarOrcamento()" style="padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        📄 Criar Orçamento
+      </button>
+      <button onclick="pvcMostrarExistentes()" style="padding:11px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">
+        ➕ Adicionar a Existente
+      </button>
+    </div>
+
+    <div id="pvc-existentes-panel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)">
+      <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">SELECIONE O ORÇAMENTO:</div>
+      <div id="pvc-existentes-list" style="display:grid;gap:6px;max-height:220px;overflow-y:auto"></div>
+    </div>
+  `;
+
+  window._pvcDados = { larg, alt, qtd, desloc, deslocLabel, conf, esp:_pvcEsp,
+    num_chapas, custo_mat, custo_corte, custo_pintura, custo_acabamento, custo_inst: instOn?custo_inst:0,
+    custo_montag, custo_fixacao, custo_adic, area_m2, C, vista, prazo, desc: descFinal, instOn };
+}
+
+function pvcGerarOrcamento(){
+  if(!window._pvcDados) return;
+  const d = window._pvcDados;
+  formOrc = {
+    id:null, numero:gerarCodigo(), cliente:'', empresa:'', telefone:'', email:'',
+    data:today(), prazo_entrega:7, status:'Aberto', descricao:'',
+    servicos:[{
+      item:`Letreiro PVC ${d.conf.label} ${d.larg}×${d.alt}cm`,
+      descricao: d.desc,
+      unidades: d.qtd,
+      operacional_pct:30, comissao_pct:100, imposto_pct:10, juros_pct:10,
+      preco_final: parseFloat(d.prazo.toFixed(2)), itens:[]
+    }],
+    responsavel:'Marcelo'
+  };
+  formCalcs = []; orcTab = 'novo'; goTab('orcamentos');
+}
+
+function pvcMostrarExistentes(){
+  const panel = document.getElementById('pvc-existentes-panel');
+  const list  = document.getElementById('pvc-existentes-list');
+  if(!panel||!list) return;
+  if(panel.style.display !== 'none'){ panel.style.display='none'; return; }
+  const ativos = (S.orcamentos||[]).filter(o=>o.status!=='Arquivado').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  if(!ativos.length){
+    list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">Nenhum orçamento ativo encontrado.</div>';
+  } else {
+    list.innerHTML = ativos.map(o=>`
+      <button onclick="pvcAdicionarExistente('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);cursor:pointer;text-align:left;gap:8px">
+        <div>
+          <div style="font-weight:700;font-size:13px">#${o.numero} — ${o.cliente||o.empresa||'(sem nome)'}</div>
+          <div style="font-size:11px;color:var(--text2)">${o.data||''} · ${o.status||''} · ${(o.servicos||[]).length} serviço(s)</div>
+        </div>
+        <span style="font-size:12px;color:var(--primary);white-space:nowrap">➕ Adicionar</span>
+      </button>`).join('');
+  }
+  panel.style.display='block';
+}
+
+function pvcAdicionarExistente(orcId){
+  if(!window._pvcDados) return;
+  const d = window._pvcDados;
+  const orc = (S.orcamentos||[]).find(o=>o.id===orcId);
+  if(!orc){ alert('Orçamento não encontrado.'); return; }
+  formOrc = JSON.parse(JSON.stringify(orc));
+  formCalcs = [];
+  formOrc.servicos = formOrc.servicos || [];
+  formOrc.servicos.push({
+    item:`Letreiro PVC ${d.conf.label} ${d.larg}×${d.alt}cm`,
+    descricao: d.desc,
+    unidades: d.qtd,
+    operacional_pct:30, comissao_pct:100, imposto_pct:10, juros_pct:10,
+    preco_final: parseFloat(d.prazo.toFixed(2)), itens:[]
+  });
+  orcTab = 'editar'; goTab('orcamentos');
 }
 
 </script>
