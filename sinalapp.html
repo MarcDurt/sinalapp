@@ -2158,28 +2158,36 @@ async function generateDocx(orcId){
 // ─────────────────────────────────────────────────────────────────────────────
 const TASK_STATUS=['Pendente','Em Andamento','Concluída','Bloqueada'];
 const TASK_STATUS_COLOR={Pendente:'var(--text2)','Em Andamento':'var(--accent)','Concluída':'var(--green)',Bloqueada:'var(--red)'};
-const TASK_MODULOS=['','Arte/Design','Corte a Laser','Impressão Adesivo','Impressão UV','Montagem','Instalação','Outros'];
+const TASK_MODULOS=['','Arte/Design','Corte','Impressão Adesivo','Impressão UV','Montagem','Outros','Entrega/Instalação'];
 const CHECKLIST_TPL={
-  producao:['Arte aprovada pelo cliente','Material adquirido/separado','Corte / usinagem realizado','Impressão realizada','Pintura realizada','Acabamento e limpeza','Controle de qualidade','Embalado para entrega'],
+  producao:['Arte de apresentação','Arte final','Material adquirido/separado','Corte / usinagem realizado','Impressão realizada','Pintura realizada','Acabamento e limpeza','Controle de qualidade','Embalado para entrega'],
   instalacao:['Agendamento confirmado com cliente','Ferramentas e equipamentos separados','Material carregado no veículo','Fotos antes da instalação','Instalação realizada','Fotos após a instalação','Limpeza do local','Avaliação solicitada ao cliente']
 };
 function applyChecklistTemplate(tipo){
-  formTarefa.checklist=CHECKLIST_TPL[tipo].map(texto=>({id:genId(),texto,done:false}));
+  formTarefa.checklist=CHECKLIST_TPL[tipo].map(texto=>({id:genId(),texto,done:false,tpl:tipo}));
+  formTarefa.extraChecklist=[];
   render();
 }
 function addChecklistItem(){
   const input=document.getElementById('new-checklist-item');
   const txt=(input?.value||'').trim();
   if(!txt)return;
-  formTarefa.checklist=[...(formTarefa.checklist||[]),{id:genId(),texto:txt,done:false}];
+  if(!formTarefa.extraChecklist)formTarefa.extraChecklist=[];
+  formTarefa.extraChecklist=[...formTarefa.extraChecklist,{id:genId(),texto:txt,done:false}];
   render();
 }
 function toggleChecklistDone(id){
-  const item=(formTarefa.checklist||[]).find(x=>x.id===id);
+  let item=(formTarefa.checklist||[]).find(x=>x.id===id);
+  if(!item)item=(formTarefa.extraChecklist||[]).find(x=>x.id===id);
   if(item)item.done=!item.done;
+  if(tarefaTab==='editar'){
+    const idx=S.tarefas.findIndex(x=>x.id===formTarefa.id);
+    if(idx>=0){S.tarefas[idx]={...formTarefa};saveState();}
+  }
 }
 function removeChecklistItem(id){
   formTarefa.checklist=(formTarefa.checklist||[]).filter(x=>x.id!==id);
+  formTarefa.extraChecklist=(formTarefa.extraChecklist||[]).filter(x=>x.id!==id);
   render();
 }
 function addModulo(){
@@ -2214,8 +2222,10 @@ function newTarefa(opts={}){
     prazo:'',
     responsavel:'Marcelo',
     checklist:[],
+    extraChecklist:[],
     modulo:'',
     modulos:[],
+    modulosDone:[],
     crmCardId:'',
     createdAt:new Date().toISOString(),
     ...opts
@@ -2230,19 +2240,35 @@ function renderTarefas(){
   const individuais=S.tarefas.filter(t=>t.tipo==='individual'||!t.sprint);
   const sprintGroups=sprints.map(sp=>({nome:sp,tarefas:S.tarefas.filter(t=>t.sprint===sp)}));
 
+  const urgencyFlag=(prazo)=>{
+    if(!prazo)return'';
+    const days=Math.ceil((new Date(prazo)-new Date().setHours(0,0,0,0))/(1000*60*60*24));
+    if(days<0)return'<span title="Atrasada" style="font-size:13px">🔴</span>';
+    if(days<=3)return'<span title="Urgente (≤3 dias)" style="font-size:13px">🔴</span>';
+    if(days<=6)return'<span title="Médio (4-6 dias)" style="font-size:13px">🟡</span>';
+    return'<span title="Baixo (7+ dias)" style="font-size:13px">🟢</span>';
+  };
+  const taskProgress=(t)=>{
+    const all=[...(t.checklist||[]),...(t.extraChecklist||[])];
+    if(!all.length)return'';
+    const done=all.filter(x=>x.done).length;
+    const pct=Math.round(done/all.length*100);
+    const color=pct===100?'var(--green)':pct>0?'var(--accent)':'var(--border)';
+    return`<div style="margin-top:5px;display:flex;align-items:center;gap:6px">
+      <div style="flex:1;background:var(--bg3);border-radius:99px;height:5px;max-width:100px"><div style="background:${color};height:5px;border-radius:99px;width:${pct}%;transition:width .3s"></div></div>
+      <span style="font-size:10px;color:var(--text2)">${done}/${all.length}</span>
+    </div>`;
+  };
   const taskRow=(t,showSprint=false)=>`
     <tr style="opacity:${t.status==='Concluída'?0.6:1}">
       <td style="max-width:220px">
-        <div style="font-weight:600;font-size:13px">${t.titulo||'—'}</div>
+        <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:5px">${urgencyFlag(t.prazo)} ${t.titulo||'—'}</div>
         ${t.descricao?`<div style="font-size:11px;color:var(--text2)">${t.descricao}</div>`:''}
-        ${(showSprint&&t.sprint)||t.modulo?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
+        ${(showSprint&&t.sprint)||((t.modulos&&t.modulos.length)||t.modulo)?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
           ${showSprint&&t.sprint?`<span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:99px;font-size:10px">${t.sprint}</span>`:''}
           ${(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>`<span style="background:var(--bg3);color:var(--text2);padding:1px 6px;border-radius:99px;font-size:10px;border:1px solid var(--border)">${m}</span>`).join('')}
         </div>`:''}
-        ${(t.checklist||[]).length?`<div style="margin-top:4px">
-          <span style="font-size:10px;color:${t.checklist.filter(x=>x.done).length===t.checklist.length?'var(--green)':'var(--text2)'}">☑ ${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>
-          <div style="margin-top:2px;background:var(--border);border-radius:99px;height:3px;width:72px;display:inline-block;vertical-align:middle;margin-left:4px"><div style="background:var(--green);height:3px;border-radius:99px;width:${Math.round((t.checklist||[]).filter(x=>x.done).length/((t.checklist||[]).length||1)*100)}%"></div></div>
-        </div>`:''}
+        ${taskProgress(t)}
       </td>
       <td>${t.orcamentoId?(S.orcamentos.find(o=>o.id===t.orcamentoId)||{}).numero||'—':'—'}</td>
       <td><span style="font-size:11px;color:${TASK_STATUS_COLOR[t.status]||'var(--text2)'};font-weight:600">${t.status}</span></td>
@@ -2250,8 +2276,8 @@ function renderTarefas(){
       <td style="color:var(--text2);font-size:12px">${t.responsavel||'—'}</td>
       <td style="white-space:nowrap">
         <button class="btn-icon" onclick="editTarefa('${t.id}')" title="Editar">✏️</button>
-        <select style="font-size:11px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text)" onchange="setTarefaStatus('${t.id}',this.value)">
-          ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''} >${s}</option>`).join('')}
+        <select style="font-size:10px;padding:1px 3px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text);max-width:90px" onchange="setTarefaStatus('${t.id}',this.value)">
+          ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
         </select>
         <button class="btn-icon" onclick="deleteTarefa('${t.id}')" title="Excluir">🗑</button>
       </td>
@@ -2279,18 +2305,66 @@ function renderTarefas(){
     </tbody></table>
   </div>`:''}
 
-  ${sprintGroups.map(sg=>`
-  <div class="card" style="margin-bottom:12px">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-      <h3 style="font-size:14px;color:var(--accent);display:flex;align-items:center;gap:8px">
+  ${sprintGroups.map(sg=>{
+    const totalTarefas=sg.tarefas.length;
+    const concluidas=sg.tarefas.filter(t=>t.status==='Concluída').length;
+    const sprintPct=totalTarefas?Math.round(concluidas/totalTarefas*100):0;
+    // Colunas = módulos distintos usados nas tarefas do sprint
+    const modulosCols=[...new Set(sg.tarefas.flatMap(t=>t.modulos&&t.modulos.length?t.modulos:(t.modulo?[t.modulo]:['Geral'])))];
+    if(!modulosCols.length)modulosCols.push('Geral');
+    return`
+  <div class="card" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <h3 style="font-size:14px;color:var(--accent);display:flex;align-items:center;gap:8px;margin:0">
         🏃 Sprint: <strong>${sg.nome}</strong>
-        <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${sg.tarefas.length} tarefas · ${sg.tarefas.filter(t=>t.status==='Concluída').length} concluídas</span>
+        <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${totalTarefas} tarefas · ${concluidas} concluídas</span>
       </h3>
+      <button class="btn" onclick="openNovaTarefa({tipo:'sprint',sprint:'${sg.nome.replace(/'/g,'\\\'')}'})">+ Tarefa</button>
     </div>
-    <table style="width:100%;border-collapse:collapse">${tableHeader}<tbody>
-      ${sg.tarefas.map(t=>taskRow(t,false)).join('')}
-    </tbody></table>
-  </div>`).join('')}
+    <!-- Barra de progresso do sprint -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;background:var(--bg3);border-radius:99px;height:8px"><div style="background:${sprintPct===100?'var(--green)':'var(--accent)'};height:8px;border-radius:99px;width:${sprintPct}%;transition:width .3s"></div></div>
+      <span style="font-size:12px;font-weight:600;color:${sprintPct===100?'var(--green)':'var(--text2)'}">${sprintPct}%</span>
+    </div>
+    <!-- Kanban: colunas por módulo -->
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">
+      ${modulosCols.map(col=>{
+        const colTarefas=sg.tarefas.filter(t=>(t.modulos&&t.modulos.length?t.modulos:(t.modulo?[t.modulo]:['Geral'])).includes(col));
+        const colConcluidas=colTarefas.filter(t=>t.status==='Concluída').length;
+        const colPct=colTarefas.length?Math.round(colConcluidas/colTarefas.length*100):0;
+        return`<div style="min-width:220px;flex-shrink:0;background:var(--bg1);border-radius:10px;border:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+            <span style="font-size:12px;font-weight:700;color:var(--text)">${col}</span>
+            <span style="font-size:10px;color:${colPct===100?'var(--green)':'var(--text2)'}">${colConcluidas}/${colTarefas.length}</span>
+          </div>
+          <div style="background:var(--bg3);border-radius:99px;height:3px;margin-bottom:6px"><div style="background:${colPct===100?'var(--green)':'var(--accent)'};height:3px;border-radius:99px;width:${colPct}%"></div></div>
+          ${colTarefas.map(t=>{
+            const allItems=[...(t.checklist||[]),...(t.extraChecklist||[])];
+            const doneItems=allItems.filter(x=>x.done).length;
+            const tPct=allItems.length?Math.round(doneItems/allItems.length*100):0;
+            const flag=urgencyFlag(t.prazo);
+            return`<div style="background:var(--bg2);border-radius:8px;border:1px solid ${t.status==='Concluída'?'var(--green)40':'var(--border)'};padding:8px;opacity:${t.status==='Concluída'?0.65:1}">
+              <div style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;margin-bottom:4px">${flag}<span>${t.titulo||'—'}</span></div>
+              ${t.descricao?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">${t.descricao}</div>`:''}
+              ${allItems.length?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                <div style="flex:1;background:var(--bg3);border-radius:99px;height:4px"><div style="background:${tPct===100?'var(--green)':'var(--accent)'};height:4px;border-radius:99px;width:${tPct}%"></div></div>
+                <span style="font-size:10px;color:var(--text2)">${doneItems}/${allItems.length}</span>
+              </div>`:''}
+              <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+                <select style="font-size:10px;padding:1px 3px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);flex:1;min-width:80px" onchange="setTarefaStatus('${t.id}',this.value)">
+                  ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
+                </select>
+                <button onclick="editTarefa('${t.id}')" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer">✏️</button>
+                ${t.status!=='Concluída'?`<button onclick="setTarefaStatus('${t.id}','Concluída')" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--green)40;background:var(--green)15;color:var(--green);cursor:pointer;font-weight:600">✓</button>`:''}
+              </div>
+            </div>`;
+          }).join('')}
+          ${colTarefas.length>0&&colConcluidas<colTarefas.length?`<button onclick="concluirTodosModulo('${sg.nome.replace(/'/g,'\\\'').replace(/"/g,'&quot;')}','${col.replace(/'/g,'\\\'')}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--green)40;background:var(--green)10;color:var(--green);cursor:pointer;width:100%;margin-top:2px">✓ Concluir todos</button>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+  }).join('')}
 
   `}`;
 }
@@ -2355,18 +2429,30 @@ function renderFormTarefa(){
         </div>
         ${(t.checklist||[]).length>0?`
         <div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)">Template</div>
           ${(t.checklist||[]).map(item=>`
           <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20">
             <input type="checkbox" ${item.done?'checked':''} style="width:15px;height:15px;cursor:pointer;flex-shrink:0" onchange="toggleChecklistDone('${item.id}')">
             <span style="flex:1;font-size:12px;${item.done?'text-decoration:line-through;opacity:0.5':''}">${item.texto}</span>
             <button class="btn-icon" style="font-size:10px;color:var(--red)" type="button" onclick="removeChecklistItem('${item.id}')">✕</button>
           </div>`).join('')}
+          <div style="font-size:10px;color:var(--text2);margin-top:2px">${(t.checklist||[]).filter(x=>x.done).length}/${(t.checklist||[]).length} concluídos</div>
         </div>
-        <div style="font-size:11px;color:var(--text2)">${(t.checklist||[]).filter(x=>x.done).length}/${(t.checklist||[]).length} concluídos</div>
+        `:''}
+        ${(t.extraChecklist||[]).length>0?`
+        <div style="background:var(--bg1);border:1px solid var(--accent)30;border-radius:8px;padding:8px;width:100%;display:flex;flex-direction:column;gap:2px">
+          <div style="font-size:10px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--accent)20">Itens extras</div>
+          ${(t.extraChecklist||[]).map(item=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20">
+            <input type="checkbox" ${item.done?'checked':''} style="width:15px;height:15px;cursor:pointer;flex-shrink:0" onchange="toggleChecklistDone('${item.id}')">
+            <span style="flex:1;font-size:12px;${item.done?'text-decoration:line-through;opacity:0.5':''}">${item.texto}</span>
+            <button class="btn-icon" style="font-size:10px;color:var(--red)" type="button" onclick="removeChecklistItem('${item.id}')">✕</button>
+          </div>`).join('')}
+        </div>
         `:''}
         <div style="display:flex;gap:6px;width:100%">
-          <input id="new-checklist-item" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px" placeholder="Adicionar item ao checklist..." onkeydown="if(event.key==='Enter'){addChecklistItem();event.preventDefault()}">
-          <button class="btn btn-secondary" style="font-size:12px;white-space:nowrap" type="button" onclick="addChecklistItem()">+ Add</button>
+          <input id="new-checklist-item" style="flex:1;padding:6px 10px;border:1px solid var(--accent)40;border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px" placeholder="➕ Adicionar item extra..." onkeydown="if(event.key==='Enter'){addChecklistItem();event.preventDefault()}">
+          <button class="btn btn-secondary" style="font-size:12px;white-space:nowrap" type="button" onclick="addChecklistItem()">+ Extra</button>
         </div>
       </div>
     </div>
@@ -2385,7 +2471,7 @@ function openNovaTarefa(opts={}){
 function editTarefa(id){
   const t=S.tarefas.find(x=>x.id===id);
   if(!t)return;
-  formTarefa={...t,modulos:t.modulos||(t.modulo?[t.modulo]:[])};
+  formTarefa={...t,modulos:t.modulos||(t.modulo?[t.modulo]:[]),extraChecklist:t.extraChecklist||[]};
   tarefaTab='editar';
   render();
 }
@@ -2409,6 +2495,14 @@ function deleteTarefa(id){
   if(!confirm2('Excluir esta tarefa?'))return;
   S.tarefas=S.tarefas.filter(x=>x.id!==id);
   saveState();render();toast('Tarefa excluída');
+}
+function concluirTodosModulo(sprintNome,modulo){
+  S.tarefas.forEach(t=>{
+    if(t.sprint!==sprintNome)return;
+    const mods=t.modulos&&t.modulos.length?t.modulos:(t.modulo?[t.modulo]:['Geral']);
+    if(mods.includes(modulo))t.status='Concluída';
+  });
+  saveState();render();toast('Módulo concluído!');
 }
 // --- ATTACH HANDLERS ---
 function attachHandlers(){}
