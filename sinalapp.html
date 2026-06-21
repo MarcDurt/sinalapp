@@ -319,6 +319,7 @@ let S = {
   crm:[],
   financeiro:[],
   tarefas:[],
+  sprints:[],   // lista de sprints conhecidos (independente das tarefas)
   nextId:1
 };
 
@@ -371,9 +372,13 @@ function loadState(){
           } else {
             // Atualizações em tempo real: só aplica se não estiver editando
             const inForm=orcTab==='novo'||orcTab==='editar';
+            const inTarefaForm=tarefaTab==='nova'||tarefaTab==='editar'||tarefaTab==='sprint';
             const hasModal=!!document.querySelector('.modal-bg');
-            if(inForm||hasModal||currentTab==='calcular') return;
+            if(inForm||inTarefaForm||hasModal||currentTab==='calcular') return;
+            const prevSprints=S.sprints||[];
             Object.assign(S,doc.data());
+            // Preserva S.sprints local se Firebase não tem (campo novo)
+            if(!S.sprints||!S.sprints.length) S.sprints=prevSprints;
             localStorage.setItem('sinalapp_v1',JSON.stringify(S));
             const _sy=window.scrollY;
             render();
@@ -1340,13 +1345,24 @@ function _finalizarSalvarOrcamento(obj){
   } else {
     S.orcamentos.push(obj);
     // Auto-create CRM card na etapa Orçamento/Arte
+    const crmId=genId();
     S.crm.push({
-      id:genId(),orcamentoId:obj.id,
+      id:crmId,orcamentoId:obj.id,
       titulo:obj.cliente+(obj.empresa?' — '+obj.empresa:''),
       cliente:obj.cliente,empresa:obj.empresa,
       valor:obj.total_prazo,valor_vista:obj.total_vista,etapa:E_ORC_ARTE,
       data:obj.data,notas:'',responsavel:obj.responsavel
     });
+    // Auto-create tarefa vinculada ao orçamento
+    const empresa=obj.empresa||obj.cliente||'';
+    if(empresa){
+      S.tarefas.push(newTarefa({
+        titulo:uniqueTarefaName(empresa+' — Projeto'),
+        orcamentoId:obj.id,
+        crmCardId:crmId,
+        responsavel:obj.responsavel||'Marcelo'
+      }));
+    }
   }
   // Sync CRM card sempre (sem restrição de etapa)
   const _card=S.crm.find(c=>c.orcamentoId===obj.id);
@@ -1633,7 +1649,7 @@ function showCRMModal(card,isNew){
         <textarea id="cm_notas" rows="3">${card.notas||''}</textarea>
       </div>
     </div>
-    ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return`<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">${lt.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:${TASK_STATUS_COLOR[t.status]||'var(--text2)'};flex-shrink:0;display:inline-block"></span><span style="flex:1;font-size:12px">${t.titulo}</span>${(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>`<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">${m}</span>`).join('')} ${(t.checklist||[]).length?`<span style="font-size:10px;color:var(--text2)">${t.checklist.filter(x=>x.done).length}/${t.checklist.length}</span>`:''}</div>`).join('')}</div></div>`;})()}
+    ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">'+lt.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:'+(TASK_STATUS_COLOR[t.status]||'var(--text2)')+';flex-shrink:0;display:inline-block"></span><button onclick="irParaTarefa(\''+t.id+'\')" style="flex:1;font-size:12px;text-align:left;background:none;border:none;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline">'+t.titulo+'</button>'+(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>'<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">'+m+'</span>').join('')+((t.checklist||[]).length?'<span style="font-size:10px;color:var(--text2)">'+t.checklist.filter(x=>x.done).length+'/'+t.checklist.length+'</span>':'')+'</div>').join('')+'</div></div>';})()}
     <div class="modal-footer">
       ${!isNew?`<button class="btn btn-danger" onclick="deleteCRMCard('${card.id}',this)">Excluir</button>`:''}
       <button class="btn" style="background:#22c55e20;color:#22c55e;border:1px solid #22c55e40" onclick="openNovaTarefaFromCard('${card.id}')">+ Tarefa</button>
@@ -1677,6 +1693,16 @@ function saveCRMCard(id,isNew,btn){
     if(!obj.titulo) obj.titulo=obj.empresa||obj.cliente||'Novo';
     S.orcamentos.push(orcDraft);
     S.crm.push(obj);
+    // Auto-create tarefa vinculada ao card
+    const empresa=obj.empresa||obj.cliente||'';
+    if(empresa){
+      S.tarefas.push(newTarefa({
+        titulo:uniqueTarefaName(empresa+' — Projeto'),
+        orcamentoId:orcId,
+        crmCardId:obj.id,
+        responsavel:obj.responsavel||'Marcelo'
+      }));
+    }
   } else{
     const idx=S.crm.findIndex(x=>x.id===id);
     if(idx>=0)S.crm[idx]=obj;
@@ -2165,17 +2191,19 @@ const CHECKLIST_TPL={
   instalacao:['Agendamento confirmado com cliente','Ferramentas e equipamentos separados','Material carregado no veículo','Fotos antes da instalação','Instalação realizada','Fotos após a instalação','Limpeza do local','Avaliação solicitada ao cliente']
 };
 function applyChecklistTemplate(tipo){
-  // Preserva estado done dos itens já existentes desse template
-  const existing=(formTarefa.checklist||[]).filter(x=>x.tpl===tipo);
-  // Novos itens preservando done state se o item já existia
-  const newItems=CHECKLIST_TPL[tipo].map(texto=>{
-    const prev=existing.find(e=>e.texto===texto);
-    return{id:prev?.id||genId(),texto,done:prev?.done||false,tpl:tipo};
-  });
-  // Mantém itens do outro template intactos
-  const producaoItems=tipo==='producao'?newItems:(formTarefa.checklist||[]).filter(x=>x.tpl==='producao');
-  const instalacaoItems=tipo==='instalacao'?newItems:(formTarefa.checklist||[]).filter(x=>x.tpl==='instalacao');
-  formTarefa.checklist=[...producaoItems,...instalacaoItems];
+  const hasItems=(formTarefa.checklist||[]).some(x=>x.tpl===tipo);
+  if(hasItems){
+    // Toggle OFF: remove itens deste template
+    formTarefa.checklist=(formTarefa.checklist||[]).filter(x=>x.tpl!==tipo);
+  } else {
+    // Toggle ON: adiciona itens, preservando done state dos que já existiam
+    const existing=(formTarefa.checklist||[]).filter(x=>x.tpl===tipo);
+    const newItems=CHECKLIST_TPL[tipo].map(texto=>{
+      const prev=existing.find(e=>e.texto===texto);
+      return{id:prev?.id||genId(),texto,done:prev?.done||false,tpl:tipo};
+    });
+    formTarefa.checklist=[...(formTarefa.checklist||[]).filter(x=>x.tpl!==tipo),...newItems];
+  }
   render();
 }
 function addChecklistItem(){
@@ -2213,6 +2241,22 @@ function removeModulo(m){
   formTarefa.modulos=(formTarefa.modulos||[]).filter(x=>x!==m);
   render();
 }
+function toggleModulo(m){
+  const mods=formTarefa.modulos||[];
+  formTarefa.modulos=mods.includes(m)?mods.filter(x=>x!==m):[...mods,m];
+  render();
+}
+function toggleModuloSprint(sprintNome,m){
+  if(!formTarefa.sprintModulos)formTarefa.sprintModulos={};
+  const mods=formTarefa.sprintModulos[sprintNome]||[];
+  formTarefa.sprintModulos[sprintNome]=mods.includes(m)?mods.filter(x=>x!==m):[...mods,m];
+  render();
+}
+function irParaTarefa(id){
+  document.querySelector('.modal-bg')?.remove();
+  goTab('tarefas');
+  editTarefa(id);
+}
 function openNovaTarefaFromCard(cardId){
   document.querySelector('.modal-bg')?.remove();
   const card=S.crm.find(x=>x.id===cardId)||{};
@@ -2226,7 +2270,9 @@ function newTarefa(opts={}){
     titulo:'',
     descricao:'',
     tipo:'individual',   // 'individual' | 'sprint'
-    sprint:'',           // nome do sprint (quando tipo==='sprint')
+    sprint:'',           // legado — use sprints[]
+    sprints:[],          // lista de sprints (tarefa pode estar em vários)
+    sprintModulos:{},    // {sprintNome:[modulos]} — módulos por sprint
     orcamentoId:'',
     status:'Pendente',
     prazo:'',
@@ -2243,13 +2289,22 @@ function newTarefa(opts={}){
   };
 }
 
-let tarefaTab='lista'; // 'lista' | 'nova'
+let tarefaTab='lista'; // 'lista' | 'nova' | 'editar' | 'sprint'
 let formTarefa=newTarefa();
+let formSprintNome='';
+let verArquivados=false;
+let tarefaSelecao=new Set();
 
+function getTSprints(t){return Array.isArray(t.sprints)&&t.sprints.length?t.sprints:(t.sprint?[t.sprint]:[]);}
 function renderTarefas(){
-  const sprints=[...new Set(S.tarefas.filter(t=>t.sprint).map(t=>t.sprint))];
-  const individuais=S.tarefas.filter(t=>t.tipo==='individual'||!t.sprint);
-  const sprintGroups=sprints.map(sp=>({nome:sp,tarefas:S.tarefas.filter(t=>t.sprint===sp)}));
+  if(tarefaTab==='nova'||tarefaTab==='editar') return renderFormTarefa();
+  if(tarefaTab==='sprint') return renderFormSprint();
+  // Sprints: combina S.sprints conhecidos + sprints das tarefas
+  const sprintsFromTasks=[...new Set(S.tarefas.filter(t=>!t.arquivado&&getTSprints(t).length>0).flatMap(t=>getTSprints(t)))];
+  const sprints=[...new Set([...(S.sprints||[]),...sprintsFromTasks])];
+  // Todas as tarefas aparecem na lista principal (independente de sprint)
+  const individuais=S.tarefas.filter(t=>!t.arquivado);
+  const sprintGroups=sprints.map(sp=>({nome:sp,tarefas:S.tarefas.filter(t=>!t.arquivado&&getTSprints(t).includes(sp))}));
 
   const urgencyFlag=(prazo)=>{
     if(!prazo)return'';
@@ -2272,11 +2327,12 @@ function renderTarefas(){
   };
   const taskRow=(t,showSprint=false)=>`
     <tr style="opacity:${t.status==='Concluída'?0.6:1}">
+      <td style="width:20px"><input type="checkbox" ${tarefaSelecao.has('task:'+t.id)?'checked':''} onchange="toggleSelecaoTarefa('${t.id}')" style="width:14px;height:14px;cursor:pointer"></td>
       <td style="max-width:220px">
         <div style="font-weight:600;font-size:13px;display:flex;align-items:center;gap:5px">${urgencyFlag(t.prazo)} ${t.titulo||'—'}</div>
         ${t.descricao?`<div style="font-size:11px;color:var(--text2)">${t.descricao}</div>`:''}
-        ${(showSprint&&t.sprint)||((t.modulos&&t.modulos.length)||t.modulo)?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
-          ${showSprint&&t.sprint?`<span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:99px;font-size:10px">${t.sprint}</span>`:''}
+        ${(showSprint&&getTSprints(t).length)||((t.modulos&&t.modulos.length)||t.modulo)?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:3px">
+          ${showSprint?getTSprints(t).map(s=>`<span style="background:var(--accent);color:#fff;padding:1px 6px;border-radius:99px;font-size:10px">${s}</span>`).join(''):''}
           ${(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>`<span style="background:var(--bg3);color:var(--text2);padding:1px 6px;border-radius:99px;font-size:10px;border:1px solid var(--border)">${m}</span>`).join('')}
         </div>`:''}
         ${taskProgress(t)}
@@ -2286,35 +2342,78 @@ function renderTarefas(){
       <td style="color:var(--text2);font-size:12px">${t.prazo?fmtDateBR(t.prazo):'—'}</td>
       <td style="color:var(--text2);font-size:12px">${t.responsavel||'—'}</td>
       <td style="white-space:nowrap">
-        <button class="btn-icon" onclick="editTarefa('${t.id}')" title="Editar">✏️</button>
+        <button class="btn-icon" onclick="editTarefa('${t.id}')" title="Editar" style="font-size:11px">⚙️</button>
         <select style="font-size:10px;padding:1px 3px;border-radius:4px;border:1px solid var(--border);background:var(--bg2);color:var(--text);max-width:90px" onchange="setTarefaStatus('${t.id}',this.value)">
           ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
         </select>
+        <button class="btn-icon" onclick="arquivarTarefa('${t.id}')" title="Arquivar">📦</button>
         <button class="btn-icon" onclick="deleteTarefa('${t.id}')" title="Excluir">🗑</button>
       </td>
     </tr>`;
 
   const tableHeader=`<thead><tr>
-    <th>Tarefa</th><th>Orçamento</th><th>Status</th><th>Prazo</th><th>Responsável</th><th></th>
+    <th style="width:20px"></th><th>Tarefa</th><th>Orçamento</th><th>Status</th><th>Prazo</th><th>Responsável</th><th></th>
   </tr></thead>`;
 
-  if(tarefaTab==='nova'||tarefaTab==='editar') return renderFormTarefa();
-
   return `
+  ${tarefaSelecao.size>0?`<div style="background:var(--accent);color:#fff;padding:10px 16px;border-radius:8px;margin-bottom:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+    <span style="font-weight:600">${tarefaSelecao.size} selecionado(s)</span>
+    <button onclick="arquivarSelecionados()" style="background:#fff;color:var(--accent);border:none;padding:4px 12px;border-radius:6px;font-weight:600;cursor:pointer">📦 Arquivar</button>
+    <button onclick="deletarSelecionados()" style="background:#fff;color:#e53e3e;border:none;padding:4px 12px;border-radius:6px;font-weight:600;cursor:pointer">🗑 Excluir</button>
+    <button onclick="limparSelecaoTarefas()" style="background:transparent;color:#fff;border:1px solid #fff8;padding:4px 12px;border-radius:6px;cursor:pointer">✕ Cancelar</button>
+  </div>`:''}
   <div class="section-header">
     <h2>Tarefas</h2>
-    <button class="btn btn-primary" onclick="openNovaTarefa()">+ Nova Tarefa</button>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      ${tarefaSelecao.size===0?`<button class="btn" onclick="selecionarTodosTarefas()" style="background:var(--bg3);color:var(--text2)">☑ Selecionar todos</button>`:`<button class="btn" onclick="limparSelecaoTarefas()" style="background:var(--bg3);color:var(--text2)">✕ Limpar seleção</button>`}
+      <button class="btn" onclick="toggleVerArquivados()" style="background:var(--bg3);color:var(--text2)">${verArquivados?'◀ Ocultar arquivados':'📂 Ver arquivados'}</button>
+      <button class="btn" onclick="openNovoSprint()" style="background:var(--accent)15;color:var(--accent);border:1px solid var(--accent)40">🏃 Novo Sprint</button>
+      <button class="btn btn-primary" onclick="openNovaTarefa()">+ Nova Tarefa</button>
+    </div>
   </div>
 
   ${S.tarefas.length===0?`<div class="card"><div class="empty">Nenhuma tarefa cadastrada.</div></div>`:`
 
   ${individuais.length>0?`
   <div class="card" style="margin-bottom:12px">
-    <h3 style="margin-bottom:10px;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Tarefas Individuais</h3>
+    <h3 style="margin-bottom:10px;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Todas as Tarefas <span style="font-size:12px;font-weight:400;color:var(--text2)">(${individuais.length})</span></h3>
     <table style="width:100%;border-collapse:collapse">${tableHeader}<tbody>
-      ${individuais.map(t=>taskRow(t)).join('')}
+      ${individuais.map(t=>taskRow(t,getTSprints(t).length>0)).join('')}
     </tbody></table>
   </div>`:''}
+
+  ${verArquivados?(()=>{
+    const archSprs=[...new Set(S.tarefas.filter(t=>t.arquivado&&getTSprints(t).length>0).flatMap(t=>getTSprints(t)))];
+    const archIndiv=S.tarefas.filter(t=>t.arquivado&&getTSprints(t).length===0);
+    if(!archSprs.length&&!archIndiv.length)return'<div class="card" style="border:2px dashed var(--border);margin-bottom:12px"><div class="empty">Nenhum item arquivado.</div></div>';
+    return`<div class="card" style="border:2px dashed var(--border);margin-bottom:16px">
+      <h3 style="font-size:14px;color:var(--text2);margin-bottom:12px">📂 Arquivados</h3>
+      ${archSprs.map(sp=>{
+        const spTasks=S.tarefas.filter(t=>t.arquivado&&getTSprints(t).includes(sp));
+        const spN=sp.replace(/'/g,"\\'");
+        return`<div style="margin-bottom:10px;padding:10px;background:var(--bg1);border-radius:8px;border:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:6px">
+            <span style="font-weight:600;font-size:13px;color:var(--text2)">🏃 ${sp} <span style="font-size:11px;opacity:.7">(${spTasks.length} itens)</span></span>
+            <div style="display:flex;gap:6px">
+              <button class="btn" onclick="restaurarSprint('${spN}')" style="font-size:11px;padding:3px 10px;background:var(--accent)20;color:var(--accent)">↩ Restaurar</button>
+              <button class="btn" onclick="deleteSprint('${spN}')" style="font-size:11px;padding:3px 10px;background:#e53e3e20;color:#e53e3e">🗑 Excluir</button>
+            </div>
+          </div>
+          ${spTasks.map(t=>`<div style="font-size:12px;color:var(--text2);padding:3px 0;border-top:1px solid var(--border)">${t.titulo||'—'}</div>`).join('')}
+        </div>`;
+      }).join('')}
+      ${archIndiv.length?`<div style="padding-top:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">Tarefas Individuais</div>
+        ${archIndiv.map(t=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-top:1px solid var(--border);flex-wrap:wrap;gap:6px">
+          <span style="font-size:13px;color:var(--text2)">${t.titulo||'—'}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn" onclick="restaurarTarefa('${t.id}')" style="font-size:11px;padding:3px 10px;background:var(--accent)20;color:var(--accent)">↩ Restaurar</button>
+            <button class="btn" onclick="deleteTarefa('${t.id}')" style="font-size:11px;padding:3px 10px;background:#e53e3e20;color:#e53e3e">🗑 Excluir</button>
+          </div>
+        </div>`).join('')}
+      </div>`:''}
+    </div>`;
+  })():''}
 
   ${sprintGroups.map(sg=>{
     // Todos os módulos (não vazios) são colunas do kanban
@@ -2331,8 +2430,12 @@ function renderTarefas(){
         🏃 Sprint: <strong>${sg.nome}</strong>
         <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${sg.tarefas.length} itens</span>
       </h3>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <input type="checkbox" ${tarefaSelecao.has('sprint:'+spNome)?'checked':''} onchange="toggleSelecaoSprint('${spNome}')" style="width:16px;height:16px;cursor:pointer" title="Selecionar sprint">
         <button class="btn" onclick="openNovaTarefa({tipo:'sprint',sprint:'${spNome}'})">+ Novo Item</button>
+        <button class="btn" onclick="renameSprint('${spNome}')" title="Renomear sprint" style="padding:4px 10px;font-size:12px;background:var(--bg3);color:var(--text2)">✏️ Renomear</button>
+        <button class="btn" onclick="arquivarSprint('${spNome}')" title="Arquivar sprint" style="padding:4px 10px;font-size:12px;background:var(--bg3);color:var(--text2)">📦 Arquivar</button>
+        <button class="btn" onclick="deleteSprint('${spNome}')" title="Excluir sprint" style="padding:4px 10px;font-size:12px;background:#e53e3e20;color:#e53e3e">🗑 Excluir</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
@@ -2341,7 +2444,11 @@ function renderTarefas(){
     </div>
     <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">
       ${allMods.map(col=>{
-        const colTasks=sg.tarefas.filter(t=>(t.modulos||[]).includes(col));
+        // Usa sprintModulos[sprint] se definido, senão t.modulos global
+        const colTasks=sg.tarefas.filter(t=>{
+          const sm=(t.sprintModulos||{})[sg.nome];
+          return sm ? sm.includes(col) : (t.modulos||[]).includes(col);
+        });
         const colDone=colTasks.filter(t=>(t.modulosDone||[]).includes(col)).length;
         const colTotal=colTasks.length;
         const colPct=colTotal?Math.round(colDone/colTotal*100):0;
@@ -2364,6 +2471,11 @@ function renderTarefas(){
                 style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${done?'var(--green)40':'var(--border)'};background:${done?'var(--green)20':'transparent'};color:${done?'var(--green)':'var(--text2)'};cursor:pointer;font-weight:600;margin-top:2px;text-align:left">
                 ${done?'✓ Concluído':'○ Pendente'}
               </button>
+              <div style="display:flex;gap:3px;margin-top:3px">
+                <button onclick="editTarefa('${tId}')" title="Editar" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer">⚙️</button>
+                <button onclick="arquivarTarefa('${tId}')" title="Arquivar" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer">📦</button>
+                <button onclick="deleteTarefa('${tId}')" title="Excluir" style="flex:1;font-size:10px;padding:2px 4px;border-radius:4px;border:1px solid #e53e3e40;background:transparent;color:#e53e3e;cursor:pointer">🗑</button>
+              </div>
             </div>`;
           }).join('')}
           ${col==='Visita/Entrega/Instalação'?`<button onclick="openItinerario('${spNome}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--accent)40;background:var(--accent)10;color:var(--accent);cursor:pointer;width:100%;margin-top:2px">🗺️ Itinerário</button>`:''}
@@ -2394,6 +2506,8 @@ function renderFormTarefa(){
   const prodItems=(t.checklist||[]).filter(x=>x.tpl==='producao');
   const instItems=(t.checklist||[]).filter(x=>x.tpl==='instalacao');
   const extraItems=t.extraChecklist||[];
+  const prodAtivo=prodItems.length>0;
+  const instAtivo=instItems.length>0;
   const prodHtml=prodItems.length
     ?'<div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;margin-top:4px">'
      +'<div style="font-size:10px;color:var(--text2);font-weight:600;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)">📋 Produção — '+prodItems.filter(x=>x.done).length+'/'+prodItems.length+'</div>'
@@ -2406,6 +2520,76 @@ function renderFormTarefa(){
     ?'<div style="background:var(--bg1);border:1px solid var(--accent)30;border-radius:8px;padding:8px;width:100%;margin-top:6px">'
      +'<div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--accent)20">➕ Itens extras</div>'
      +extraItems.map(ckRow).join('')+'</div>':'';
+  // Sprint linker: mostra apenas sprints existentes, sem criar novo aqui
+  const todosSprs=[...new Set([...(S.sprints||[]),...S.tarefas.filter(x=>!x.arquivado&&getTSprints(x).length>0).flatMap(x=>getTSprints(x))])];
+  const selSprs=t.sprints||[];
+  const disponiveisSprs=todosSprs.filter(s=>!selSprs.includes(s));
+  // Módulos por sprint (só mostra quando em 2+ sprints)
+  // Módulos por sprint: chips toggle por sprint (sempre visível quando há sprints vinculados)
+  const sprintModulosHtml=selSprs.length>0
+    ?'<div style="border:1px solid var(--border);border-radius:8px;padding:10px;width:100%">'
+     +'<div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Módulos por Sprint <span style="font-weight:400;font-size:10px">(clique para marcar)</span></div>'
+     +selSprs.map(sp=>{
+       const spSafe=sp.replace(/'/g,"\\'");
+       const spMods=(t.sprintModulos||{})[sp]||[];
+       return'<div style="margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">'
+         +'<div style="font-size:12px;font-weight:600;color:var(--accent);margin-bottom:6px">🏃 '+sp+'</div>'
+         +'<div style="display:flex;gap:6px;flex-wrap:wrap">'
+         +TASK_MODULOS.filter(m=>m).map(m=>{
+           const active=spMods.includes(m);
+           const mSafe=m.replace(/'/g,"\\'");
+           return'<button type="button" onclick="toggleModuloSprint(\''+spSafe+'\',\''+mSafe+'\')" style="padding:4px 11px;border-radius:99px;font-size:11px;font-weight:600;cursor:pointer;border:2px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'transparent')+';color:'+(active?'#fff':'var(--text2)')+'">'+m+'</button>';
+         }).join('')
+         +'</div>'
+         +'</div>';
+     }).join('')
+     +'</div>'
+    :'';
+  const sprintLinkerHtml=
+    '<div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">'
+    +'<label style="font-size:13px;font-weight:600">🏃 Sprint(s) vinculado(s)</label>'
+    +(selSprs.length
+      ?'<div style="display:flex;gap:8px;flex-wrap:wrap">'+selSprs.map(s=>'<span style="background:var(--accent);color:#fff;border-radius:99px;padding:6px 16px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:8px">'+s+'<button type="button" onclick="removeSprintFromForm(\''+s.replace(/'/g,"\\'")+'\');event.preventDefault()" style="background:transparent;border:none;color:#fff;cursor:pointer;font-size:14px;line-height:1;padding:0">✕</button></span>').join('')+'</div>'
+      :'<div style="font-size:12px;color:var(--text2)">Nenhum sprint vinculado — tarefa ficará na lista individual</div>')
+    +(disponiveisSprs.length
+      ?'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="font-size:11px;color:var(--text2);white-space:nowrap">Adicionar ao sprint:</span>'
+       +disponiveisSprs.map(s=>'<button type="button" onclick="addSprintToForm(\''+s.replace(/'/g,"\\'")+'\');event.preventDefault()" style="padding:6px 16px;border-radius:99px;border:2px dashed var(--accent);background:var(--accent)10;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer">'+s+'</button>').join('')
+       +'</div>'
+      :'<div style="font-size:11px;color:var(--text2)">Nenhum sprint criado ainda — use o botão <strong>🏃 Novo Sprint</strong> na tela de tarefas.</div>')
+    +sprintModulosHtml
+    +'</div>';
+  // Locais: só aparece se tem sprints vinculados
+  const locaisHtml=(selSprs.length>0)
+    ?('<div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">'
+      +'<label>📍 Locais de Visita/Entrega/Instalação</label>'
+      +(t.locais||[]).map(loc=>'<div style="display:flex;align-items:center;gap:6px;background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:6px 10px">'
+        +'<span style="font-size:16px">📍</span>'
+        +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text)">'+loc.nome+'</div>'
+        +(loc.horario?'<div style="font-size:11px;color:var(--accent)">⏰ '+loc.horario+'</div>':'')
+        +(loc.link?'<a href="'+loc.link+'" target="_blank" style="font-size:11px;color:var(--text2);word-break:break-all">'+loc.link.substring(0,55)+(loc.link.length>55?'…':'')+'</a>':'')
+        +'</div>'
+        +'<button type="button" class="btn-icon" style="color:var(--red);flex-shrink:0" onclick="removeLocalSprint(\''+loc.id+'\')">✕</button>'
+        +'</div>').join('')
+      +'<div style="background:var(--bg1);border:1px solid var(--border)40;border-radius:8px;padding:10px;width:100%;display:flex;flex-direction:column;gap:6px">'
+      +'<input id="local-nome" placeholder="Nome do local / cliente" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">'
+      +'<input id="local-link" placeholder="Link do Google Maps ou Waze (cole aqui)" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">'
+      +'<div style="display:flex;gap:6px">'
+      +'<input id="local-horario" type="time" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">'
+      +'<button type="button" class="btn btn-secondary" style="font-size:12px;white-space:nowrap" onclick="addLocalSprint()">+ Adicionar local</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>')
+    :'';
+  // Pré-computar options para evitar template literals aninhados
+  const orcOptions=S.orcamentos.slice().reverse().map(o=>'<option value="'+o.id+'" '+(t.orcamentoId===o.id?'selected':'')+'>#'+o.numero+' '+(o.empresa||o.cliente||'')+'</option>').join('');
+  const statusOptions=TASK_STATUS.map(s=>'<option value="'+s+'" '+(t.status===s?'selected':'')+'>'+s+'</option>').join('');
+  // Módulos como chips toggle
+  const selMods=t.modulos||[];
+  const moduloChipsToggle='<div style="display:flex;gap:6px;flex-wrap:wrap">'+TASK_MODULOS.filter(m=>m).map(m=>{
+    const active=selMods.includes(m);
+    const mSafe=m.replace(/'/g,"\\'");
+    return'<button type="button" onclick="toggleModulo(\''+mSafe+'\')" style="padding:5px 13px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:2px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'transparent')+';color:'+(active?'#fff':'var(--text2)')+'">'+m+'</button>';
+  }).join('')+'</div>';
   return `
   <div class="section-header">
     <h2>${t.id&&tarefaTab==='editar'?'Editar Tarefa':'Nova Tarefa'}</h2>
@@ -2416,76 +2600,35 @@ function renderFormTarefa(){
       <div class="form-row form-full"><label>Título *</label><input value="${t.titulo}" oninput="formTarefa.titulo=this.value" placeholder="Descrição da tarefa"></div>
       <div class="form-row form-full"><label>Descrição</label><input value="${t.descricao}" oninput="formTarefa.descricao=this.value" placeholder="Detalhes..."></div>
 
-      <div class="form-row"><label>Tipo</label>
-        <select onchange="formTarefa.tipo=this.value;render()">
-          <option value="individual" ${t.tipo==='individual'?'selected':''}>Individual</option>
-          <option value="sprint" ${t.tipo==='sprint'?'selected':''}>Sprint</option>
-        </select>
-      </div>
-
-      ${`<div class="form-row"><label>Nome do Sprint</label><input value="${t.sprint}" oninput="formTarefa.sprint=this.value" placeholder="Ex: Produção Semana 24" list="sprint-list">
-        <datalist id="sprint-list">${[...new Set(S.tarefas.filter(x=>x.sprint).map(x=>x.sprint))].map(s=>`<option value="${s}">`).join('')}</datalist>
-      </div>`}
-
-      ${t.tipo==='sprint'?`
-      <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">
-        <label>📍 Locais de Visita/Entrega/Instalação</label>
-        ${(t.locais||[]).map(loc=>'<div style="display:flex;align-items:center;gap:6px;background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:6px 10px">'
-          +'<span style="font-size:16px">📍</span>'
-          +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text)">'+loc.nome+'</div>'
-          +(loc.horario?'<div style="font-size:11px;color:var(--accent)">⏰ '+loc.horario+'</div>':'')
-          +(loc.link?'<a href="'+loc.link+'" target="_blank" style="font-size:11px;color:var(--text2);word-break:break-all">'+loc.link.substring(0,55)+(loc.link.length>55?'…':'')+'</a>':'')
-          +'</div>'
-          +'<button type="button" class="btn-icon" style="color:var(--red);flex-shrink:0" onclick="removeLocalSprint(\''+loc.id+'\')">✕</button>'
-          +'</div>').join('')}
-        <div style="background:var(--bg1);border:1px solid var(--border)40;border-radius:8px;padding:10px;width:100%;display:flex;flex-direction:column;gap:6px">
-          <input id="local-nome" placeholder="Nome do local / cliente" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
-          <input id="local-link" placeholder="Link do Google Maps ou Waze (cole aqui)" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
-          <div style="display:flex;gap:6px">
-            <input id="local-horario" type="time" placeholder="Horário fixo (opcional)" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
-            <button type="button" class="btn btn-secondary" style="font-size:12px;white-space:nowrap" onclick="addLocalSprint()">+ Adicionar local</button>
-          </div>
-        </div>
-      </div>`:''}
-
-      ${t.tipo!=='sprint'?`
       <div class="form-row"><label>Orçamento vinculado</label>
         <select onchange="formTarefa.orcamentoId=this.value">
           <option value="">— Nenhum —</option>
-          ${S.orcamentos.slice().reverse().map(o=>`<option value="${o.id}" ${t.orcamentoId===o.id?'selected':''}>
-            #${o.numero} ${o.empresa||o.cliente||''}</option>`).join('')}
+          ${orcOptions}
         </select>
       </div>
       <div class="form-row"><label>Status</label>
         <select onchange="formTarefa.status=this.value">
-          ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''} >${s}</option>`).join('')}
+          ${statusOptions}
         </select>
       </div>
       <div class="form-row"><label>Prazo</label><input type="date" value="${t.prazo}" onchange="formTarefa.prazo=this.value"></div>
       <div class="form-row"><label>Responsável</label><input value="${t.responsavel}" oninput="formTarefa.responsavel=this.value"></div>
-      <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:6px">
-        <label>Módulos</label>
-        ${(t.modulos||[]).length?`<div style="display:flex;gap:4px;flex-wrap:wrap">${(t.modulos||[]).map(m=>`<span style="background:var(--bg3);border:1px solid var(--border);border-radius:99px;padding:2px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px">${m}<button type="button" onclick="removeModulo('${m}')" style="background:none;border:none;color:var(--text2);cursor:pointer;font-size:11px;line-height:1;padding:0">✕</button></span>`).join('')}</div>`:''}
-        <div style="display:flex;gap:6px;width:100%">
-          <select id="modulo-add-sel" style="flex:1;padding:6px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
-            <option value="">— Adicionar módulo —</option>
-            ${TASK_MODULOS.filter(m=>m&&!(t.modulos||[]).includes(m)).map(m=>`<option value="${m}">${m}</option>`).join('')}
-          </select>
-          <button class="btn btn-secondary" type="button" onclick="addModulo()" style="white-space:nowrap;font-size:12px">+ Add</button>
-        </div>
-      </div>
+
+      ${sprintLinkerHtml}
+      ${locaisHtml}
+
       <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">
         <label>Checklist</label>
         <div style="display:flex;gap:6px;flex-wrap:wrap">
-          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('producao')">📋 Produção</button>
-          <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('instalacao')">🔧 Entrega/Instalação</button>
+          <button class="btn ${prodAtivo?'btn-primary':'btn-secondary'}" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('producao')">📋 Produção${prodAtivo?' ✓':''}</button>
+          <button class="btn ${instAtivo?'btn-primary':'btn-secondary'}" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('instalacao')">🔧 Entrega/Instalação${instAtivo?' ✓':''}</button>
         </div>
         ${prodHtml}${instHtml}${extraHtml}
         <div style="display:flex;gap:6px;width:100%;margin-top:4px">
           <input id="new-checklist-item" style="flex:1;padding:6px 10px;border:1px solid var(--accent)40;border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px" placeholder="➕ Adicionar item extra..." onkeydown="if(event.key==='Enter'){addChecklistItem();event.preventDefault()}">
           <button class="btn btn-secondary" style="font-size:12px;white-space:nowrap" type="button" onclick="addChecklistItem()">+ Extra</button>
         </div>
-      </div>`:''}
+      </div>
     </div>
     <div style="margin-top:16px;display:flex;gap:8px">
       <button class="btn btn-primary" onclick="salvarTarefa()">💾 Salvar</button>
@@ -2493,25 +2636,91 @@ function renderFormTarefa(){
     </div>
   </div>`;
 }
+function renderFormSprint(){
+  return `
+  <div class="section-header">
+    <h2>Novo Sprint</h2>
+    <button class="btn" onclick="tarefaTab='lista';render()">← Voltar</button>
+  </div>
+  <div class="card">
+    <div class="form-grid">
+      <div class="form-row form-full">
+        <label>Nome do Sprint *</label>
+        <input id="novo-sprint-input" value="${formSprintNome}" oninput="formSprintNome=this.value" placeholder="Ex: Produção Semana 24" onkeydown="if(event.key==='Enter'){salvarNovoSprint();event.preventDefault()}">
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="salvarNovoSprint()">🏃 Criar Sprint</button>
+      <button class="btn" onclick="tarefaTab='lista';render()">Cancelar</button>
+    </div>
+  </div>`;
+}
 
 function openNovaTarefa(opts={}){
-  formTarefa=newTarefa(opts);
+  const base=newTarefa(opts);
+  // converter sprint:string legado para sprints:[]
+  if(base.sprint&&!base.sprints?.length)base.sprints=[base.sprint];
+  formTarefa=base;
   tarefaTab='nova';
   render();
+}
+function getWeekNumber(d){
+  const date=new Date(d);date.setHours(0,0,0,0);
+  date.setDate(date.getDate()+3-(date.getDay()+6)%7);
+  const week1=new Date(date.getFullYear(),0,4);
+  return 1+Math.round(((date.getTime()-week1.getTime())/86400000-3+(week1.getDay()+6)%7)/7);
+}
+function uniqueSprintName(base){
+  const existing=new Set([...(S.sprints||[]),...S.tarefas.flatMap(t=>getTSprints(t))]);
+  if(!existing.has(base))return base;
+  let i=2;while(existing.has(base+' '+i))i++;return base+' '+i;
+}
+function uniqueTarefaName(base){
+  const existing=new Set(S.tarefas.map(t=>t.titulo));
+  if(!existing.has(base))return base;
+  let i=2;while(existing.has(base+' '+i))i++;return base+' '+i;
+}
+function openNovoSprint(){
+  const wk=getWeekNumber(new Date());
+  formSprintNome='Produção Semana '+wk;
+  tarefaTab='sprint';
+  render();
+  setTimeout(()=>{
+    const el=document.getElementById('novo-sprint-input');
+    if(el){el.focus();el.select();}
+  },50);
+}
+function salvarNovoSprint(){
+  const base=formSprintNome.trim();
+  if(!base){toast('Digite o nome do sprint','error');return;}
+  const nome=uniqueSprintName(base);
+  if(!S.sprints)S.sprints=[];
+  S.sprints.push(nome);
+  formSprintNome='';
+  tarefaTab='lista';
+  saveState();render();toast('Sprint criado: '+nome);
 }
 function editTarefa(id){
   const t=S.tarefas.find(x=>x.id===id);
   if(!t)return;
-  formTarefa={...t,modulos:t.modulos||(t.modulo?[t.modulo]:[]),extraChecklist:t.extraChecklist||[]};
+  const sprints=getTSprints(t);
+  formTarefa={...t,sprints,modulos:t.modulos||(t.modulo?[t.modulo]:[]),extraChecklist:t.extraChecklist||[],sprintModulos:t.sprintModulos||{}};
   tarefaTab='editar';
   render();
 }
 function salvarTarefa(){
   if(!formTarefa.titulo){toast('Informe o título da tarefa','error');return;}
   const mods=formTarefa.modulos||[];
-  const obj=formTarefa.tipo==='sprint'
-    ?{id:formTarefa.id,titulo:formTarefa.titulo,descricao:formTarefa.descricao,tipo:'sprint',sprint:formTarefa.sprint,orcamentoId:formTarefa.orcamentoId||'',modulosDone:formTarefa.modulosDone||[],locais:formTarefa.locais||[],createdAt:formTarefa.createdAt,updatedAt:new Date().toISOString()}
-    :{...formTarefa,modulos:mods,modulo:mods[0]||'',updatedAt:new Date().toISOString()};
+  const sprints=formTarefa.sprints||[];
+  const obj={
+    ...formTarefa,
+    sprints,
+    tipo:sprints.length>0?'sprint':'individual',
+    modulos:mods,
+    modulo:mods[0]||'',
+    updatedAt:new Date().toISOString()
+  };
+  delete obj.sprint; // remover campo legado
   if(tarefaTab==='editar'){
     const idx=S.tarefas.findIndex(x=>x.id===obj.id);
     if(idx>=0) S.tarefas[idx]=obj;
@@ -2524,10 +2733,144 @@ function setTarefaStatus(id,status){
   const t=S.tarefas.find(x=>x.id===id);
   if(t){t.status=status;saveState();render();}
 }
+function renameTarefa(id){
+  const t=S.tarefas.find(x=>x.id===id);
+  if(!t)return;
+  const novo=prompt('Novo título da tarefa:',t.titulo);
+  if(novo===null||novo.trim()==='')return;
+  t.titulo=novo.trim();
+  saveState();render();toast('Tarefa renomeada');
+}
+function renameSprint(oldNome){
+  const novo=prompt(`Novo nome para o sprint "${oldNome}":`,oldNome);
+  if(novo===null||novo.trim()===''||novo.trim()===oldNome)return;
+  const novoNome=novo.trim();
+  // Renomeia em S.sprints
+  const si=(S.sprints||[]).indexOf(oldNome);
+  if(si>=0)S.sprints[si]=novoNome;
+  // Renomeia em todas as tarefas
+  S.tarefas.forEach(t=>{
+    if(Array.isArray(t.sprints)){
+      const idx=t.sprints.indexOf(oldNome);
+      if(idx>=0)t.sprints[idx]=novoNome;
+    }
+  });
+  saveState();render();toast('Sprint renomeado');
+}
 function deleteTarefa(id){
   if(!confirm2('Excluir esta tarefa?'))return;
   S.tarefas=S.tarefas.filter(x=>x.id!==id);
   saveState();render();toast('Tarefa excluída');
+}
+function deleteSprint(sprintNome){
+  if(!confirm2(`Excluir o sprint "${sprintNome}"?\nAs tarefas serão mantidas desvinculadas.`))return;
+  S.sprints=(S.sprints||[]).filter(s=>s!==sprintNome);
+  S.tarefas.forEach(t=>{
+    const sps=getTSprints(t);
+    if(sps.includes(sprintNome)){
+      t.sprints=sps.filter(s=>s!==sprintNome);
+      delete t.sprint;
+      if(!t.sprints.length)t.tipo='individual';
+    }
+  });
+  saveState();render();toast('Sprint excluído — tarefas mantidas');
+}
+function arquivarSprint(sprintNome){
+  // Remove da lista ativa de sprints
+  S.sprints=(S.sprints||[]).filter(s=>s!==sprintNome);
+  // Arquiva todas as tarefas do sprint
+  S.tarefas.filter(t=>getTSprints(t).includes(sprintNome)).forEach(t=>{t.arquivado=true;});
+  tarefaSelecao.delete('sprint:'+sprintNome);
+  saveState();render();toast('Sprint arquivado');
+}
+function restaurarSprint(sprintNome){
+  // Re-adiciona à lista ativa de sprints
+  if(!(S.sprints||[]).includes(sprintNome)){
+    if(!S.sprints)S.sprints=[];
+    S.sprints.push(sprintNome);
+  }
+  // Restaura todas as tarefas do sprint
+  S.tarefas.filter(t=>getTSprints(t).includes(sprintNome)).forEach(t=>{t.arquivado=false;});
+  saveState();render();toast('Sprint restaurado');
+}
+function arquivarTarefa(id){
+  const t=S.tarefas.find(x=>x.id===id);
+  if(t){t.arquivado=true;tarefaSelecao.delete('task:'+id);saveState();render();toast('Tarefa arquivada');}
+}
+function restaurarTarefa(id){
+  const t=S.tarefas.find(x=>x.id===id);
+  if(t){t.arquivado=false;saveState();render();toast('Tarefa restaurada');}
+}
+function toggleSelecaoSprint(sprintNome){
+  const key='sprint:'+sprintNome;
+  if(tarefaSelecao.has(key))tarefaSelecao.delete(key);else tarefaSelecao.add(key);
+  render();
+}
+function toggleSelecaoTarefa(id){
+  const key='task:'+id;
+  if(tarefaSelecao.has(key))tarefaSelecao.delete(key);else tarefaSelecao.add(key);
+  render();
+}
+function selecionarTodosTarefas(){
+  const sprs=[...new Set(S.tarefas.filter(t=>t.sprint&&!t.arquivado).map(t=>t.sprint))];
+  const indiv=S.tarefas.filter(t=>(t.tipo==='individual'||!t.sprint)&&!t.arquivado);
+  sprs.forEach(s=>tarefaSelecao.add('sprint:'+s));
+  indiv.forEach(t=>tarefaSelecao.add('task:'+t.id));
+  render();
+}
+function limparSelecaoTarefas(){tarefaSelecao.clear();render();}
+function toggleVerArquivados(){verArquivados=!verArquivados;render();}
+function addSprintToForm(nome){
+  if(!nome)return;
+  if(!formTarefa.sprints)formTarefa.sprints=[];
+  if(!formTarefa.sprints.includes(nome)){formTarefa.sprints.push(nome);formTarefa.tipo='sprint';}
+  render();
+}
+function removeSprintFromForm(nome){
+  formTarefa.sprints=(formTarefa.sprints||[]).filter(s=>s!==nome);
+  if(!formTarefa.sprints.length)formTarefa.tipo='individual';
+  // Remove módulos desse sprint
+  if(formTarefa.sprintModulos) delete formTarefa.sprintModulos[nome];
+  render();
+}
+function addModuloToSprint(sprintNome){
+  const sel=document.getElementById('spm-sel-'+CSS.escape(sprintNome));
+  if(!sel||!sel.value)return;
+  if(!formTarefa.sprintModulos)formTarefa.sprintModulos={};
+  if(!formTarefa.sprintModulos[sprintNome])formTarefa.sprintModulos[sprintNome]=[];
+  if(!formTarefa.sprintModulos[sprintNome].includes(sel.value))
+    formTarefa.sprintModulos[sprintNome].push(sel.value);
+  render();
+}
+function removeModuloFromSprint(sprintNome,modulo){
+  if(!formTarefa.sprintModulos||!formTarefa.sprintModulos[sprintNome])return;
+  formTarefa.sprintModulos[sprintNome]=formTarefa.sprintModulos[sprintNome].filter(m=>m!==modulo);
+  render();
+}
+function addNewSprintToForm(){
+  const el=document.getElementById('new-sprint-name');
+  if(!el)return;
+  const nome=el.value.trim();
+  if(!nome){toast('Digite o nome do sprint','error');return;}
+  addSprintToForm(nome);
+  el.value='';
+}
+function deletarSelecionados(){
+  if(!tarefaSelecao.size)return;
+  if(!confirm2(`Excluir ${tarefaSelecao.size} item(ns) selecionado(s)?`))return;
+  tarefaSelecao.forEach(key=>{
+    if(key.startsWith('sprint:')){const nome=key.slice(7);S.tarefas=S.tarefas.filter(t=>t.sprint!==nome);}
+    else{const id=key.slice(5);S.tarefas=S.tarefas.filter(t=>t.id!==id);}
+  });
+  tarefaSelecao.clear();saveState();render();toast('Itens excluídos');
+}
+function arquivarSelecionados(){
+  if(!tarefaSelecao.size)return;
+  tarefaSelecao.forEach(key=>{
+    if(key.startsWith('sprint:')){const nome=key.slice(7);S.tarefas.filter(t=>t.sprint===nome).forEach(t=>{t.arquivado=true;});}
+    else{const id=key.slice(5);const t=S.tarefas.find(x=>x.id===id);if(t)t.arquivado=true;}
+  });
+  tarefaSelecao.clear();saveState();render();toast('Itens arquivados');
 }
 function toggleModuloDone(tarefaId,modulo){
   const t=S.tarefas.find(x=>x.id===tarefaId);
@@ -2541,7 +2884,12 @@ function toggleModuloDone(tarefaId,modulo){
   saveState();render();
 }
 function concluirTodosModulo(sprintNome,modulo){
-  const tarefas=S.tarefas.filter(t=>t.sprint===sprintNome&&t.tipo==='sprint'&&(t.modulos||[]).includes(modulo));
+  // Busca tarefas do sprint que têm esse módulo (via sprintModulos ou modulos global)
+  const tarefas=S.tarefas.filter(t=>{
+    if(!getTSprints(t).includes(sprintNome))return false;
+    const sm=(t.sprintModulos||{})[sprintNome];
+    return sm ? sm.includes(modulo) : (t.modulos||[]).includes(modulo);
+  });
   const allDone=tarefas.length>0&&tarefas.every(t=>(t.modulosDone||[]).includes(modulo));
   tarefas.forEach(t=>{
     if(!t.modulosDone)t.modulosDone=[];
@@ -2551,7 +2899,7 @@ function concluirTodosModulo(sprintNome,modulo){
       if(!t.modulosDone.includes(modulo))t.modulosDone=[...t.modulosDone,modulo];
     }
   });
-  saveState();render();toast(allDone?'Revertido para pendente!':'Módulo concluído!');
+  saveState();render();toast(allDone?'↩ Revertido para pendente':'✓ Todos concluídos!');
 }
 // ── LOCAIS DO SPRINT ──
 function addLocalSprint(){
@@ -2819,43 +3167,68 @@ function renderCalculadora(){
   <p style="color:var(--text2);margin:0 0 24px;font-size:14px">Calcule o preço de cada serviço com breakdown completo</p>
 
   <!-- Seletor de Serviço -->
-  <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap">
-    <button onclick="calcSelectService('faixa_adesivo')" id="btn-faixa_adesivo"
-      style="padding:10px 20px;border-radius:8px;border:2px solid #22c55e;background:#22c55e20;color:#22c55e;font-weight:700;cursor:pointer;font-size:14px">
-      🏷️ Faixa em Adesivo
-    </button>
-    <button onclick="calcSelectService('porta_adesivo')" id="btn-porta_adesivo"
-      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
-      🚪 Adesivo — Porta
-    </button>
-    <button onclick="calcSelectService('geral_adesivo')" id="btn-geral_adesivo"
-      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
-      🪟 Adesivo — Geral
-    </button>
-    <button onclick="calcSelectService('letreiro_acrilico')" id="btn-letreiro_acrilico"
-      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
-      🔤 Letreiro — Acrílico
-    </button>
+  <div style="display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;align-items:flex-start">
+
+    <!-- GRUPO: ADESIVO -->
+    <div style="position:relative" id="grp-adesivo">
+      <button onclick="toggleGrupo('adesivo')" id="btn-grp-adesivo"
+        style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:700;cursor:pointer;font-size:14px">
+        🪟 Adesivo ▾
+      </button>
+      <div id="grp-adesivo-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#112238;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px #000a;min-width:150px;z-index:200;overflow:hidden">
+        <button onclick="calcSelectService('faixa_adesivo')" id="btn-faixa_adesivo"
+          style="display:block;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">
+          Faixa
+        </button>
+        <button onclick="calcSelectService('porta_adesivo')" id="btn-porta_adesivo"
+          style="display:block;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">
+          Porta
+        </button>
+        <button onclick="calcSelectService('geral_adesivo')" id="btn-geral_adesivo"
+          style="display:block;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">
+          Geral
+        </button>
+      </div>
+    </div>
+
+    <!-- GRUPO: LETREIRO -->
+    <div style="position:relative" id="grp-letreiro">
+      <button onclick="toggleGrupo('letreiro')" id="btn-grp-letreiro"
+        style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:700;cursor:pointer;font-size:14px">
+        🔤 Letreiro ▾
+      </button>
+      <div id="grp-letreiro-menu" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#112238;border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px #000a;min-width:150px;z-index:200;overflow:hidden">
+        <button onclick="calcSelectService('letreiro_acrilico')" id="btn-letreiro_acrilico"
+          style="display:block;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">
+          Acrílico
+        </button>
+        <button onclick="calcSelectService('letreiro_pvc')" id="btn-letreiro_pvc"
+          style="display:block;width:100%;padding:10px 16px;text-align:left;background:transparent;border:none;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">
+          PVC
+        </button>
+      </div>
+    </div>
+
+    <!-- PLACA IDENTIFICAÇÃO -->
     <button onclick="calcSelectService('placa_identificacao')" id="btn-placa_identificacao"
       style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
       🏷️ Placa — Identificação
     </button>
-    <button onclick="calcSelectService('letreiro_pvc')" id="btn-letreiro_pvc"
-      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
-      🔡 Letreiro — PVC
-    </button>
-    <button onclick="calcSelectService('placa_inox')" id="btn-placa_inox"
+
+    <!-- PLACA INOX (em breve) -->
+    <button id="btn-placa_inox"
       style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;opacity:0.5" disabled>
       🪞 Placa Inox <span style="font-size:11px">(em breve)</span>
     </button>
+
   </div>
 
-  <!-- Formulário Faixa em Adesivo -->
+  <!-- Formulário Adesivo — Faixa -->
   <div id="calc-form-faixa_adesivo" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
     <!-- COLUNA ESQUERDA: Inputs -->
     <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
-      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🏷️ Faixa em Adesivo Vinil</h3>
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">➖ Adesivo — Faixa</h3>
 
       <div style="display:grid;gap:14px">
 
@@ -2865,15 +3238,12 @@ function renderCalculadora(){
             <option value="vinil">Vinil Branco — R$ 35,00/m</option>
             <option value="jateado">Vinil Jateado — R$ 40,00/m</option>
             <option value="microperfurado">Vinil Microperfurado — R$ 50,00/m²</option>
+            <option value="transparente">Vinil Transparente — R$ 40,00/m</option>
+            <option value="colorido">Vinil Colorido — R$ 35,00/m</option>
           </select>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-          <div>
-            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Nº DE FAIXAS</label>
-            <input id="c_qtd" type="number" min="1" value="1" onchange="calcUpdate()" oninput="calcUpdate()"
-              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:16px;font-weight:700;box-sizing:border-box">
-          </div>
           <div>
             <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label>
             <input id="c_larg" type="number" min="1" max="120" value="85" onchange="calcUpdate()" oninput="calcUpdate()"
@@ -2883,6 +3253,23 @@ function renderCalculadora(){
             <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label>
             <input id="c_alt" type="number" min="1" max="100" value="20" onchange="calcUpdate()" oninput="calcUpdate()"
               style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+          </div>
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Nº DE FAIXAS</label>
+            <input id="c_qtd" type="number" min="1" value="1" onchange="calcUpdate()" oninput="calcUpdate()"
+              style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:16px;font-weight:700;box-sizing:border-box">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">Nº DE CAMADAS</label>
+            <select id="c_camadas" onchange="calcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+              <option value="1" selected>1 camada</option>
+              <option value="2">2 camadas</option>
+              <option value="3">3 camadas</option>
+              <option value="4">4 camadas</option>
+            </select>
           </div>
         </div>
 
@@ -3308,17 +3695,34 @@ function renderCalculadora(){
 </div>`;
 }
 
+const _svcGrupo = {
+  faixa_adesivo:'adesivo', porta_adesivo:'adesivo', geral_adesivo:'adesivo',
+  letreiro_acrilico:'letreiro', letreiro_pvc:'letreiro'
+};
+function toggleGrupo(grp){
+  const menu = document.getElementById('grp-'+grp+'-menu');
+  if(!menu) return;
+  const isOpen = menu.style.display !== 'none';
+  ['adesivo','letreiro'].forEach(g => { const m = document.getElementById('grp-'+g+'-menu'); if(m) m.style.display='none'; });
+  if(!isOpen) menu.style.display = 'block';
+}
+document.addEventListener('click', function(e){
+  if(!e.target.closest('[id^="grp-"]')){
+    ['adesivo','letreiro'].forEach(g => { const m = document.getElementById('grp-'+g+'-menu'); if(m) m.style.display='none'; });
+  }
+});
 function calcSelectService(svc){
-  // Esconde todos os forms, mostra só o selecionado
   document.querySelectorAll('[id^="calc-form-"]').forEach(el => el.style.display='none');
   const form = document.getElementById('calc-form-'+svc);
   if(form) form.style.display='grid';
-  // Atualiza botões
+  ['adesivo','letreiro'].forEach(g => { const m = document.getElementById('grp-'+g+'-menu'); if(m) m.style.display='none'; });
   document.querySelectorAll('[id^="btn-"]').forEach(btn => {
-    if(!btn.disabled){ btn.style.borderColor='var(--border)'; btn.style.background='transparent'; btn.style.color='var(--text2)'; }
+    if(!btn.disabled){ btn.style.borderColor='var(--border)'; btn.style.background='transparent'; btn.style.color='var(--text2)'; btn.style.fontWeight='600'; }
   });
   const active = document.getElementById('btn-'+svc);
-  if(active){ active.style.borderColor='#22c55e'; active.style.background='#22c55e20'; active.style.color='#22c55e'; }
+  if(active){ active.style.borderColor='#22c55e'; active.style.background='#22c55e20'; active.style.color='#22c55e'; active.style.fontWeight='700'; }
+  const grpPai = _svcGrupo[svc];
+  if(grpPai){ const b = document.getElementById('btn-grp-'+grpPai); if(b){ b.style.borderColor='#22c55e'; b.style.background='#22c55e20'; b.style.color='#22c55e'; } }
   if(svc==='faixa_adesivo') calcUpdate();
   if(svc==='porta_adesivo'){ portaInitCamadas(); portaCalcUpdate(); }
   if(svc==='geral_adesivo'){ geralInitCamadas(); geralCalcUpdate(); }
@@ -3335,6 +3739,8 @@ function calcTipoChange(){
   if(pm){
     if(t==='jateado') pm.value='40';
     else if(t==='microperfurado') pm.value='50';
+    else if(t==='transparente') pm.value='40';
+    else if(t==='colorido') pm.value='35';
     else pm.value='35';
   }
   if(unitEl){
@@ -3356,6 +3762,7 @@ function _calcRun(){
   const pInst  = parseFloat(document.getElementById('c_pinst')?.value||'30');
   const pCorte = parseFloat(document.getElementById('c_pcorte')?.value||'15');
   const tipo   = document.getElementById('c_tipo')?.value||'vinil';
+  const camadas  = parseInt(document.getElementById('c_camadas')?.value||'1')||1;
   const hasRecorte   = document.getElementById('c_recorte')?.checked || false;
   const pRecorteEsp  = parseFloat(document.getElementById('c_precorte_esp')?.value||'15');
 
@@ -3410,8 +3817,8 @@ function _calcRun(){
     custoMaterial = Math.max(30, areaM2 * pMat);
     matLinhaDesc  = `${areaM2.toFixed(2)} m² × R$${pMat.toFixed(2)}/m²`;
   } else {
-    custoMaterial = Math.max(30, metrosRolo * pMat);
-    matLinhaDesc  = `${metrosRolo}m de rolo × ${faixasPorMetro} fx/m — ${orientLabel}`;
+    custoMaterial = Math.max(30, metrosRolo * pMat) * camadas;
+    matLinhaDesc  = `${metrosRolo}m de rolo × ${faixasPorMetro} fx/m — ${orientLabel}${camadas>1?' × '+camadas+' camadas':''}`;
   }
 
   // Corte: metros do rolo consumido
@@ -3429,12 +3836,12 @@ function _calcRun(){
   const comissao   = operacional;
   const subtotal   = C + operacional + comissao; // C × 1,60
   const imposto    = subtotal * 0.10;
-  const vista      = subtotal + imposto;  // C × 1,76
-  const prazo      = vista * 1.10;
+  const vista      = Math.ceil(subtotal + imposto);  // C × 1,76
+  const prazo      = Math.ceil(vista * 1.10);
 
   const fmt = v => 'R$ ' + v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\d{3}),/,'.$1,');
   const deslocLabel = {15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||'';
-  const tipoLabel   = tipo==='jateado' ? 'Vinil Jateado' : tipo==='microperfurado' ? 'Vinil Microperfurado' : 'Vinil Branco';
+  const tipoLabel   = tipo==='jateado' ? 'Vinil Jateado' : tipo==='microperfurado' ? 'Vinil Microperfurado' : tipo==='transparente' ? 'Vinil Transparente' : tipo==='colorido' ? 'Vinil Colorido' : 'Vinil Branco';
 
   // ── Atualiza descrição ao vivo ──────────────────────────────────────────────
   const descViva = `Fornecimento e instalação de ${qtd} faixa${qtd>1?'s':''} em Adesivo ${tipoLabel}${hasRecorte?' com Recorte Eletrônico':''}, ${larg} × ${alt} cm. Deslocamento incluso (${deslocLabel}).`;
