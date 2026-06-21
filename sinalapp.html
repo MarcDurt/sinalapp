@@ -757,13 +757,13 @@ function renderOrcamentos(){
   <div class="card">
     <table><thead><tr>
       <th style="width:32px"><input type="checkbox" ${allSel?'checked':''} onchange="toggleSelectAll(this.checked,[${allIds.map(id=>`'${id}'`).join(',')}])" title="Selecionar todos"></th>
-      <th>Nº</th><th>Cliente</th><th>Serviços</th><th>Data</th><th>Prazo</th><th>À Vista</th><th>Status</th><th></th>
+      <th>Nº</th><th>Empresa</th><th>Serviços</th><th>Data</th><th>Prazo</th><th>À Vista</th><th>Status</th><th></th>
     </tr></thead><tbody>
     ${list.map(o=>`
       <tr style="${selectedOrcs.has(o.id)?'background:var(--bg2)':''}">
         <td><input type="checkbox" ${selectedOrcs.has(o.id)?'checked':''} onchange="toggleOrcSelect('${o.id}',this.checked)"></td>
         <td>#${o.numero}</td>
-        <td><strong>${o.cliente||'—'}</strong><br><span style="color:var(--text2);font-size:11px">${o.empresa||''}</span></td>
+        <td><strong>${o.empresa||o.cliente||'—'}</strong><br><span style="color:var(--text2);font-size:11px">${o.empresa?o.cliente||'':''}</span></td>
         <td style="color:var(--text2)">${(o.servicos||[]).length} serviço(s)</td>
         <td style="color:var(--text2)">${o.data||'—'}</td>
         <td style="font-weight:700;color:var(--green)">${BRL(o.total_prazo)}</td>
@@ -1555,6 +1555,7 @@ const MODELOS_ORC=[
   {nome:'Fachada Completa',icon:'🏢',desc:'Projeto e execução de fachada completa',servicos:[{item:'Fachada',descricao:'Projeto e execução de fachada completa com identidade visual',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Projeto, fabricação e instalação de fachada',tipo:'fabrico',horas:20,custo_hora:100}]}]},
   {nome:'Luminoso LED',icon:'💡',desc:'Painel luminoso com tecnologia LED',servicos:[{item:'Luminoso LED',descricao:'Painel luminoso com módulos LED e estrutura metálica',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Luminoso LED com estrutura',tipo:'fabrico',horas:6,custo_hora:90}]}]},
   {nome:'Totem',icon:'🗼',desc:'Totem de sinalização em ACM ou MDF',servicos:[{item:'Totem',descricao:'Totem de sinalização com impressão e estrutura',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Fabricação de totem de sinalização',tipo:'fabrico',horas:12,custo_hora:85}]}]},
+  {nome:'Placas de Identificação',icon:'🪧',desc:'Placas de identificação para ambientes',servicos:[{item:'Placas de Identificação',descricao:'Confecção de placas de identificação em PVC, acrílico ou ACM',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:null,itens:[{descricao:'Placas de identificação',tipo:'fabrico',horas:3,custo_hora:65}]}]},
 ];
 
 function openModelosOrcamento(){
@@ -2158,14 +2159,23 @@ async function generateDocx(orcId){
 // ─────────────────────────────────────────────────────────────────────────────
 const TASK_STATUS=['Pendente','Em Andamento','Concluída','Bloqueada'];
 const TASK_STATUS_COLOR={Pendente:'var(--text2)','Em Andamento':'var(--accent)','Concluída':'var(--green)',Bloqueada:'var(--red)'};
-const TASK_MODULOS=['','Arte/Design','Corte','Impressão Adesivo','Impressão UV','Montagem','Outros','Entrega/Instalação'];
+const TASK_MODULOS=['','Arte/Design','Corte','Impressão Adesivo','Impressão UV','Montagem','Outros','Visita/Entrega/Instalação'];
 const CHECKLIST_TPL={
   producao:['Arte de apresentação','Arte final','Material adquirido/separado','Corte / usinagem realizado','Impressão realizada','Pintura realizada','Acabamento e limpeza','Controle de qualidade','Embalado para entrega'],
   instalacao:['Agendamento confirmado com cliente','Ferramentas e equipamentos separados','Material carregado no veículo','Fotos antes da instalação','Instalação realizada','Fotos após a instalação','Limpeza do local','Avaliação solicitada ao cliente']
 };
 function applyChecklistTemplate(tipo){
-  formTarefa.checklist=CHECKLIST_TPL[tipo].map(texto=>({id:genId(),texto,done:false,tpl:tipo}));
-  formTarefa.extraChecklist=[];
+  // Preserva estado done dos itens já existentes desse template
+  const existing=(formTarefa.checklist||[]).filter(x=>x.tpl===tipo);
+  // Novos itens preservando done state se o item já existia
+  const newItems=CHECKLIST_TPL[tipo].map(texto=>{
+    const prev=existing.find(e=>e.texto===texto);
+    return{id:prev?.id||genId(),texto,done:prev?.done||false,tpl:tipo};
+  });
+  // Mantém itens do outro template intactos
+  const producaoItems=tipo==='producao'?newItems:(formTarefa.checklist||[]).filter(x=>x.tpl==='producao');
+  const instalacaoItems=tipo==='instalacao'?newItems:(formTarefa.checklist||[]).filter(x=>x.tpl==='instalacao');
+  formTarefa.checklist=[...producaoItems,...instalacaoItems];
   render();
 }
 function addChecklistItem(){
@@ -2226,6 +2236,7 @@ function newTarefa(opts={}){
     modulo:'',
     modulos:[],
     modulosDone:[],
+    locais:[],
     crmCardId:'',
     createdAt:new Date().toISOString(),
     ...opts
@@ -2306,60 +2317,55 @@ function renderTarefas(){
   </div>`:''}
 
   ${sprintGroups.map(sg=>{
-    const totalTarefas=sg.tarefas.length;
-    const concluidas=sg.tarefas.filter(t=>t.status==='Concluída').length;
-    const sprintPct=totalTarefas?Math.round(concluidas/totalTarefas*100):0;
-    // Colunas = módulos distintos usados nas tarefas do sprint
-    const modulosCols=[...new Set(sg.tarefas.flatMap(t=>t.modulos&&t.modulos.length?t.modulos:(t.modulo?[t.modulo]:['Geral'])))];
-    if(!modulosCols.length)modulosCols.push('Geral');
+    // Todos os módulos (não vazios) são colunas do kanban
+    const allMods=TASK_MODULOS.filter(m=>m);
+    // Progresso: quantas combinações (tarefa × módulo) estão concluídas
+    const totalCombos=sg.tarefas.length*allMods.length;
+    const doneCombos=sg.tarefas.reduce((acc,t)=>acc+(t.modulosDone||[]).length,0);
+    const sprintPct=totalCombos?Math.round(doneCombos/totalCombos*100):0;
+    const spNome=sg.nome.replace(/'/g,"\\'");
     return`
   <div class="card" style="margin-bottom:16px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
       <h3 style="font-size:14px;color:var(--accent);display:flex;align-items:center;gap:8px;margin:0">
         🏃 Sprint: <strong>${sg.nome}</strong>
-        <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${totalTarefas} tarefas · ${concluidas} concluídas</span>
+        <span style="font-size:11px;background:var(--bg3);padding:2px 8px;border-radius:99px;color:var(--text2)">${sg.tarefas.length} itens</span>
       </h3>
-      <button class="btn" onclick="openNovaTarefa({tipo:'sprint',sprint:'${sg.nome.replace(/'/g,'\\\'')}'})">+ Tarefa</button>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-secondary" onclick="openItinerario('${spNome}')" style="font-size:12px">🗺️ Itinerário</button>
+        <button class="btn" onclick="openNovaTarefa({tipo:'sprint',sprint:'${spNome}'})">+ Novo Item</button>
+      </div>
     </div>
-    <!-- Barra de progresso do sprint -->
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
       <div style="flex:1;background:var(--bg3);border-radius:99px;height:8px"><div style="background:${sprintPct===100?'var(--green)':'var(--accent)'};height:8px;border-radius:99px;width:${sprintPct}%;transition:width .3s"></div></div>
       <span style="font-size:12px;font-weight:600;color:${sprintPct===100?'var(--green)':'var(--text2)'}">${sprintPct}%</span>
     </div>
-    <!-- Kanban: colunas por módulo -->
     <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:8px">
-      ${modulosCols.map(col=>{
-        const colTarefas=sg.tarefas.filter(t=>(t.modulos&&t.modulos.length?t.modulos:(t.modulo?[t.modulo]:['Geral'])).includes(col));
-        const colConcluidas=colTarefas.filter(t=>t.status==='Concluída').length;
-        const colPct=colTarefas.length?Math.round(colConcluidas/colTarefas.length*100):0;
-        return`<div style="min-width:220px;flex-shrink:0;background:var(--bg1);border-radius:10px;border:1px solid var(--border);padding:10px;display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
-            <span style="font-size:12px;font-weight:700;color:var(--text)">${col}</span>
-            <span style="font-size:10px;color:${colPct===100?'var(--green)':'var(--text2)'}">${colConcluidas}/${colTarefas.length}</span>
+      ${allMods.map(col=>{
+        const colDone=sg.tarefas.filter(t=>(t.modulosDone||[]).includes(col)).length;
+        const colTotal=sg.tarefas.length;
+        const colPct=colTotal?Math.round(colDone/colTotal*100):0;
+        return`<div style="min-width:200px;flex-shrink:0;background:var(--bg1);border-radius:10px;border:1px solid ${colPct===100?'var(--green)40':'var(--border)'};padding:10px;display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;font-weight:700;color:${colPct===100?'var(--green)':'var(--text)'}">${col}</span>
+            <span style="font-size:10px;color:${colPct===100?'var(--green)':'var(--text2)'}">${colDone}/${colTotal}</span>
           </div>
-          <div style="background:var(--bg3);border-radius:99px;height:3px;margin-bottom:6px"><div style="background:${colPct===100?'var(--green)':'var(--accent)'};height:3px;border-radius:99px;width:${colPct}%"></div></div>
-          ${colTarefas.map(t=>{
-            const allItems=[...(t.checklist||[]),...(t.extraChecklist||[])];
-            const doneItems=allItems.filter(x=>x.done).length;
-            const tPct=allItems.length?Math.round(doneItems/allItems.length*100):0;
-            const flag=urgencyFlag(t.prazo);
-            return`<div style="background:var(--bg2);border-radius:8px;border:1px solid ${t.status==='Concluída'?'var(--green)40':'var(--border)'};padding:8px;opacity:${t.status==='Concluída'?0.65:1}">
-              <div style="font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;margin-bottom:4px">${flag}<span>${t.titulo||'—'}</span></div>
-              ${t.descricao?`<div style="font-size:10px;color:var(--text2);margin-bottom:4px">${t.descricao}</div>`:''}
-              ${allItems.length?`<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
-                <div style="flex:1;background:var(--bg3);border-radius:99px;height:4px"><div style="background:${tPct===100?'var(--green)':'var(--accent)'};height:4px;border-radius:99px;width:${tPct}%"></div></div>
-                <span style="font-size:10px;color:var(--text2)">${doneItems}/${allItems.length}</span>
-              </div>`:''}
-              <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-                <select style="font-size:10px;padding:1px 3px;border-radius:4px;border:1px solid var(--border);background:var(--bg3);color:var(--text);flex:1;min-width:80px" onchange="setTarefaStatus('${t.id}',this.value)">
-                  ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''}>${s}</option>`).join('')}
-                </select>
-                <button onclick="editTarefa('${t.id}')" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer">✏️</button>
-                ${t.status!=='Concluída'?`<button onclick="setTarefaStatus('${t.id}','Concluída')" style="font-size:10px;padding:2px 6px;border-radius:4px;border:1px solid var(--green)40;background:var(--green)15;color:var(--green);cursor:pointer;font-weight:600">✓</button>`:''}
-              </div>
+          <div style="background:var(--bg3);border-radius:99px;height:3px;margin-bottom:4px"><div style="background:${colPct===100?'var(--green)':'var(--accent)'};height:3px;border-radius:99px;width:${colPct}%"></div></div>
+          ${sg.tarefas.map(t=>{
+            const done=(t.modulosDone||[]).includes(col);
+            const tId=t.id;
+            const colE=col.replace(/'/g,"\\'");
+            return`<div style="background:var(--bg2);border-radius:8px;border:1px solid ${done?'var(--green)40':'var(--border)'};padding:8px;opacity:${done?0.65:1};display:flex;flex-direction:column;gap:4px">
+              <div style="font-size:11px;font-weight:600;color:var(--text)">${t.titulo||'—'}</div>
+              ${t.descricao?'<div style="font-size:10px;color:var(--text2)">'+t.descricao+'</div>':''}
+              ${(t.locais||[]).length?'<div style="margin-top:3px;display:flex;flex-direction:column;gap:2px">'+(t.locais||[]).map(loc=>'<div style="font-size:10px;color:var(--text2);display:flex;align-items:center;gap:3px">'+(loc.horario?'<span style="color:var(--accent);font-weight:600">'+loc.horario+'</span> ':'')+'<span>📍</span>'+(loc.link?'<a href="'+loc.link+'" target="_blank" style="color:var(--text2);text-decoration:underline;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:120px">'+loc.nome+'</a>':'<span>'+loc.nome+'</span>')+'</div>').join('')+'</div>':''}
+              <button onclick="toggleModuloDone('${tId}','${colE}')"
+                style="font-size:10px;padding:3px 8px;border-radius:4px;border:1px solid ${done?'var(--green)40':'var(--border)'};background:${done?'var(--green)20':'transparent'};color:${done?'var(--green)':'var(--text2)'};cursor:pointer;font-weight:600;margin-top:2px;text-align:left">
+                ${done?'✓ Concluído':'○ Pendente'}
+              </button>
             </div>`;
           }).join('')}
-          ${colTarefas.length>0&&colConcluidas<colTarefas.length?`<button onclick="concluirTodosModulo('${sg.nome.replace(/'/g,'\\\'').replace(/"/g,'&quot;')}','${col.replace(/'/g,'\\\'')}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--green)40;background:var(--green)10;color:var(--green);cursor:pointer;width:100%;margin-top:2px">✓ Concluir todos</button>`:''}
+          ${colTotal>0&&colDone<colTotal?`<button onclick="concluirTodosModulo('${spNome}','${col.replace(/'/g,"\\'")}','${col.replace(/'/g,"\\'")}')" style="font-size:11px;padding:4px;border-radius:6px;border:1px solid var(--green)40;background:var(--green)10;color:var(--green);cursor:pointer;width:100%;margin-top:2px">✓ Concluir todos</button>`:''}
         </div>`;
       }).join('')}
     </div>
@@ -2371,8 +2377,33 @@ function renderTarefas(){
 
 function fmtDateBR(d){if(!d)return'';const[y,m,dd]=d.split('-');return dd+'/'+m+'/'+y;}
 
+function ckRow(item){
+  const chk=item.done?' checked':'';
+  const s=item.done?'text-decoration:line-through;opacity:0.5':'';
+  return '<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20">'
+    +'<input type="checkbox"'+chk+' style="width:15px;height:15px;cursor:pointer;flex-shrink:0" onchange="toggleChecklistDone(\''+item.id+'\')">'
+    +'<span style="flex:1;font-size:12px;'+s+'">'+item.texto+'</span>'
+    +'<button class="btn-icon" style="font-size:10px;color:var(--red)" type="button" onclick="removeChecklistItem(\''+item.id+'\')">✕</button>'
+    +'</div>';
+}
 function renderFormTarefa(){
   const t=formTarefa;
+  // Pre-computar HTML do checklist sem aninhar template literals
+  const prodItems=(t.checklist||[]).filter(x=>x.tpl==='producao');
+  const instItems=(t.checklist||[]).filter(x=>x.tpl==='instalacao');
+  const extraItems=t.extraChecklist||[];
+  const prodHtml=prodItems.length
+    ?'<div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;margin-top:4px">'
+     +'<div style="font-size:10px;color:var(--text2);font-weight:600;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)">📋 Produção — '+prodItems.filter(x=>x.done).length+'/'+prodItems.length+'</div>'
+     +prodItems.map(ckRow).join('')+'</div>':'';
+  const instHtml=instItems.length
+    ?'<div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;margin-top:6px">'
+     +'<div style="font-size:10px;color:var(--text2);font-weight:600;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)">🔧 Entrega/Instalação — '+instItems.filter(x=>x.done).length+'/'+instItems.length+'</div>'
+     +instItems.map(ckRow).join('')+'</div>':'';
+  const extraHtml=extraItems.length
+    ?'<div style="background:var(--bg1);border:1px solid var(--accent)30;border-radius:8px;padding:8px;width:100%;margin-top:6px">'
+     +'<div style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--accent)20">➕ Itens extras</div>'
+     +extraItems.map(ckRow).join('')+'</div>':'';
   return `
   <div class="section-header">
     <h2>${t.id&&tarefaTab==='editar'?'Editar Tarefa':'Nova Tarefa'}</h2>
@@ -2390,10 +2421,32 @@ function renderFormTarefa(){
         </select>
       </div>
 
-      ${t.tipo==='sprint'?`<div class="form-row"><label>Nome do Sprint</label><input value="${t.sprint}" oninput="formTarefa.sprint=this.value" placeholder="Ex: Produção Semana 24" list="sprint-list">
+      ${`<div class="form-row"><label>Nome do Sprint</label><input value="${t.sprint}" oninput="formTarefa.sprint=this.value" placeholder="Ex: Produção Semana 24" list="sprint-list">
         <datalist id="sprint-list">${[...new Set(S.tarefas.filter(x=>x.sprint).map(x=>x.sprint))].map(s=>`<option value="${s}">`).join('')}</datalist>
+      </div>`}
+
+      ${t.tipo==='sprint'?`
+      <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <label>📍 Locais de Visita/Entrega/Instalação</label>
+        ${(t.locais||[]).map(loc=>'<div style="display:flex;align-items:center;gap:6px;background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:6px 10px">'
+          +'<span style="font-size:16px">📍</span>'
+          +'<div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:600;color:var(--text)">'+loc.nome+'</div>'
+          +(loc.horario?'<div style="font-size:11px;color:var(--accent)">⏰ '+loc.horario+'</div>':'')
+          +(loc.link?'<a href="'+loc.link+'" target="_blank" style="font-size:11px;color:var(--text2);word-break:break-all">'+loc.link.substring(0,55)+(loc.link.length>55?'…':'')+'</a>':'')
+          +'</div>'
+          +'<button type="button" class="btn-icon" style="color:var(--red);flex-shrink:0" onclick="removeLocalSprint(\''+loc.id+'\')">✕</button>'
+          +'</div>').join('')}
+        <div style="background:var(--bg1);border:1px solid var(--border)40;border-radius:8px;padding:10px;width:100%;display:flex;flex-direction:column;gap:6px">
+          <input id="local-nome" placeholder="Nome do local / cliente" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
+          <input id="local-link" placeholder="Link do Google Maps ou Waze (cole aqui)" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
+          <div style="display:flex;gap:6px">
+            <input id="local-horario" type="time" placeholder="Horário fixo (opcional)" style="flex:1;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px">
+            <button type="button" class="btn btn-secondary" style="font-size:12px;white-space:nowrap" onclick="addLocalSprint()">+ Adicionar local</button>
+          </div>
+        </div>
       </div>`:''}
 
+      ${t.tipo!=='sprint'?`
       <div class="form-row"><label>Orçamento vinculado</label>
         <select onchange="formTarefa.orcamentoId=this.value">
           <option value="">— Nenhum —</option>
@@ -2401,13 +2454,11 @@ function renderFormTarefa(){
             #${o.numero} ${o.empresa||o.cliente||''}</option>`).join('')}
         </select>
       </div>
-
       <div class="form-row"><label>Status</label>
         <select onchange="formTarefa.status=this.value">
           ${TASK_STATUS.map(s=>`<option value="${s}" ${t.status===s?'selected':''} >${s}</option>`).join('')}
         </select>
       </div>
-
       <div class="form-row"><label>Prazo</label><input type="date" value="${t.prazo}" onchange="formTarefa.prazo=this.value"></div>
       <div class="form-row"><label>Responsável</label><input value="${t.responsavel}" oninput="formTarefa.responsavel=this.value"></div>
       <div class="form-row form-full" style="flex-direction:column;align-items:flex-start;gap:6px">
@@ -2427,34 +2478,12 @@ function renderFormTarefa(){
           <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('producao')">📋 Produção</button>
           <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" type="button" onclick="applyChecklistTemplate('instalacao')">🔧 Entrega/Instalação</button>
         </div>
-        ${(t.checklist||[]).length>0?`
-        <div style="background:var(--bg1);border:1px solid var(--border);border-radius:8px;padding:8px;width:100%;display:flex;flex-direction:column;gap:2px">
-          <div style="font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--border)">Template</div>
-          ${(t.checklist||[]).map(item=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20">
-            <input type="checkbox" ${item.done?'checked':''} style="width:15px;height:15px;cursor:pointer;flex-shrink:0" onchange="toggleChecklistDone('${item.id}')">
-            <span style="flex:1;font-size:12px;${item.done?'text-decoration:line-through;opacity:0.5':''}">${item.texto}</span>
-            <button class="btn-icon" style="font-size:10px;color:var(--red)" type="button" onclick="removeChecklistItem('${item.id}')">✕</button>
-          </div>`).join('')}
-          <div style="font-size:10px;color:var(--text2);margin-top:2px">${(t.checklist||[]).filter(x=>x.done).length}/${(t.checklist||[]).length} concluídos</div>
-        </div>
-        `:''}
-        ${(t.extraChecklist||[]).length>0?`
-        <div style="background:var(--bg1);border:1px solid var(--accent)30;border-radius:8px;padding:8px;width:100%;display:flex;flex-direction:column;gap:2px">
-          <div style="font-size:10px;color:var(--accent);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;padding-bottom:4px;border-bottom:1px solid var(--accent)20">Itens extras</div>
-          ${(t.extraChecklist||[]).map(item=>`
-          <div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20">
-            <input type="checkbox" ${item.done?'checked':''} style="width:15px;height:15px;cursor:pointer;flex-shrink:0" onchange="toggleChecklistDone('${item.id}')">
-            <span style="flex:1;font-size:12px;${item.done?'text-decoration:line-through;opacity:0.5':''}">${item.texto}</span>
-            <button class="btn-icon" style="font-size:10px;color:var(--red)" type="button" onclick="removeChecklistItem('${item.id}')">✕</button>
-          </div>`).join('')}
-        </div>
-        `:''}
-        <div style="display:flex;gap:6px;width:100%">
+        ${prodHtml}${instHtml}${extraHtml}
+        <div style="display:flex;gap:6px;width:100%;margin-top:4px">
           <input id="new-checklist-item" style="flex:1;padding:6px 10px;border:1px solid var(--accent)40;border-radius:6px;background:var(--bg2);color:var(--text);font-size:12px" placeholder="➕ Adicionar item extra..." onkeydown="if(event.key==='Enter'){addChecklistItem();event.preventDefault()}">
           <button class="btn btn-secondary" style="font-size:12px;white-space:nowrap" type="button" onclick="addChecklistItem()">+ Extra</button>
         </div>
-      </div>
+      </div>`:''}
     </div>
     <div style="margin-top:16px;display:flex;gap:8px">
       <button class="btn btn-primary" onclick="salvarTarefa()">💾 Salvar</button>
@@ -2478,7 +2507,9 @@ function editTarefa(id){
 function salvarTarefa(){
   if(!formTarefa.titulo){toast('Informe o título da tarefa','error');return;}
   const mods=formTarefa.modulos||[];
-  const obj={...formTarefa,modulos:mods,modulo:mods[0]||'',updatedAt:new Date().toISOString()};
+  const obj=formTarefa.tipo==='sprint'
+    ?{id:formTarefa.id,titulo:formTarefa.titulo,descricao:formTarefa.descricao,tipo:'sprint',sprint:formTarefa.sprint,orcamentoId:formTarefa.orcamentoId||'',modulosDone:formTarefa.modulosDone||[],locais:formTarefa.locais||[],createdAt:formTarefa.createdAt,updatedAt:new Date().toISOString()}
+    :{...formTarefa,modulos:mods,modulo:mods[0]||'',updatedAt:new Date().toISOString()};
   if(tarefaTab==='editar'){
     const idx=S.tarefas.findIndex(x=>x.id===obj.id);
     if(idx>=0) S.tarefas[idx]=obj;
@@ -2496,14 +2527,177 @@ function deleteTarefa(id){
   S.tarefas=S.tarefas.filter(x=>x.id!==id);
   saveState();render();toast('Tarefa excluída');
 }
+function toggleModuloDone(tarefaId,modulo){
+  const t=S.tarefas.find(x=>x.id===tarefaId);
+  if(!t)return;
+  if(!t.modulosDone)t.modulosDone=[];
+  if(t.modulosDone.includes(modulo)){
+    t.modulosDone=t.modulosDone.filter(m=>m!==modulo);
+  }else{
+    t.modulosDone=[...t.modulosDone,modulo];
+  }
+  saveState();render();
+}
 function concluirTodosModulo(sprintNome,modulo){
   S.tarefas.forEach(t=>{
-    if(t.sprint!==sprintNome)return;
-    const mods=t.modulos&&t.modulos.length?t.modulos:(t.modulo?[t.modulo]:['Geral']);
-    if(mods.includes(modulo))t.status='Concluída';
+    if(t.sprint!==sprintNome||t.tipo!=='sprint')return;
+    if(!t.modulosDone)t.modulosDone=[];
+    if(!t.modulosDone.includes(modulo))t.modulosDone=[...t.modulosDone,modulo];
   });
   saveState();render();toast('Módulo concluído!');
 }
+// ── LOCAIS DO SPRINT ──
+function addLocalSprint(){
+  const nome=(document.getElementById('local-nome')?.value||'').trim();
+  const link=(document.getElementById('local-link')?.value||'').trim();
+  const horario=document.getElementById('local-horario')?.value||'';
+  if(!nome&&!link){toast('Informe o nome ou link do local','error');return;}
+  if(!formTarefa.locais)formTarefa.locais=[];
+  formTarefa.locais=[...formTarefa.locais,{id:genId(),nome:nome||'Local',link,horario}];
+  render();
+}
+function removeLocalSprint(id){
+  formTarefa.locais=(formTarefa.locais||[]).filter(x=>x.id!==id);
+  render();
+}
+
+// ── ITINERÁRIO ──
+function extractCoords(url){
+  if(!url)return null;
+  // Google Maps /@lat,lng
+  let m=url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m)return{lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  // Maps ?q=lat,lng
+  m=url.match(/[?&]q=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m)return{lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  // Waze ll=lat,lng
+  m=url.match(/ll=(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if(m)return{lat:parseFloat(m[1]),lng:parseFloat(m[2])};
+  return null;
+}
+function haversineKm(a,b){
+  const R=6371,dLat=(b.lat-a.lat)*Math.PI/180,dLng=(b.lng-a.lng)*Math.PI/180;
+  const x=Math.sin(dLat/2)**2+Math.cos(a.lat*Math.PI/180)*Math.cos(b.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
+}
+function nearestNeighborRoute(stops,homeCoords){
+  // stops: [{id,nome,link,horario,coords,fixo}]
+  const fixed=stops.filter(s=>s.fixo&&s.horario).sort((a,b)=>a.horario.localeCompare(b.horario));
+  const flexible=stops.filter(s=>!s.fixo||!s.horario);
+  // greedy nearest-neighbor for flexible stops (from home)
+  const ordered=[];
+  let current=homeCoords;
+  const remaining=[...flexible];
+  while(remaining.length){
+    if(!current){ordered.push(...remaining);break;}
+    let best=-1,bestDist=Infinity;
+    remaining.forEach((s,i)=>{
+      if(!s.coords){return;}
+      const d=haversineKm(current,s.coords);
+      if(d<bestDist){bestDist=d;best=i;}
+    });
+    if(best===-1){ordered.push(...remaining.splice(0));break;}
+    const picked=remaining.splice(best,1)[0];
+    ordered.push(picked);
+    current=picked.coords||current;
+  }
+  // Merge: insert fixed stops by time, filling flexible around them
+  const merged=[];
+  let oi=0;
+  fixed.forEach(f=>{
+    // add flexible stops until fixed stop time
+    while(oi<ordered.length)merged.push(ordered[oi++]);
+    merged.push(f);
+  });
+  while(oi<ordered.length)merged.push(ordered[oi++]);
+  return merged;
+}
+function openItinerario(sprintNome){
+  const tarefas=S.tarefas.filter(t=>t.sprint===sprintNome&&t.tipo==='sprint');
+  const cfg=JSON.parse(localStorage.getItem('sinalapp_cfg')||'{}');
+  const endBase=cfg.enderecoBase||'';
+  const kmL=cfg.kmL||10;
+  const precoL=cfg.precoL||6.50;
+
+  // build stops list
+  const allLocais=[];
+  tarefas.forEach(t=>{
+    (t.locais||[]).forEach(loc=>{
+      allLocais.push({...loc,tarefaTitulo:t.titulo,coords:extractCoords(loc.link),fixo:!!loc.horario});
+    });
+  });
+
+  const homeCoords=extractCoords(endBase);
+
+  function renderRota(rota,homeCoords){
+    if(!rota.length)return '<div style="color:var(--text2);font-size:12px">Nenhuma parada com local definido neste sprint.</div>';
+    let html='';
+    let totalKm=0;
+    let prev=homeCoords;
+    rota.forEach((stop,i)=>{
+      const dist=(prev&&stop.coords)?haversineKm(prev,stop.coords):null;
+      if(dist!==null)totalKm+=dist;
+      html+='<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border)20">'
+        +'<div style="background:var(--accent);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">'+(i+1)+'</div>'
+        +'<div style="flex:1">'
+        +(stop.horario?'<span style="font-size:10px;background:var(--accent)20;color:var(--accent);padding:1px 6px;border-radius:99px;font-weight:600;margin-right:4px">'+stop.horario+' ⏰</span>':'')
+        +'<span style="font-size:12px;font-weight:600">'+stop.nome+'</span>'
+        +(stop.tarefaTitulo?'<div style="font-size:10px;color:var(--text2)">'+stop.tarefaTitulo+'</div>':'')
+        +(dist!==null?'<div style="font-size:10px;color:var(--text2)">↑ '+dist.toFixed(1)+' km do ponto anterior</div>':'')
+        +(stop.link?'<a href="'+stop.link+'" target="_blank" style="font-size:11px;color:var(--accent)">📍 Abrir no Maps</a>':'')
+        +'</div></div>';
+      prev=stop.coords||prev;
+    });
+    const gastoL=totalKm/kmL;
+    const custoComb=(gastoL*precoL).toFixed(2);
+    html+='<div style="margin-top:10px;padding:8px;background:var(--bg3);border-radius:8px;font-size:12px;display:flex;gap:12px;flex-wrap:wrap">'
+      +'<span>📏 Total: ~<strong>'+totalKm.toFixed(1)+' km</strong></span>'
+      +'<span>⛽ Combustível: ~<strong>R$ '+custoComb+'</strong> ('+kmL+'km/L × R$'+precoL.toFixed(2)+'/L)</span>'
+      +'</div>';
+    return html;
+  }
+
+  const rota=nearestNeighborRoute(allLocais,homeCoords);
+  // rota alternativa: inverter os flexíveis
+  const altLocais=[...allLocais];
+  const flexIdx=altLocais.filter(s=>!s.fixo||!s.horario);
+  const rotaAlt=nearestNeighborRoute([...flexIdx.reverse(),...altLocais.filter(s=>s.fixo&&s.horario)],homeCoords);
+
+  const html='<div class="modal-bg" onclick="if(event.target===this)this.remove()" style="position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:3000;display:flex;align-items:center;justify-content:center">'
+    +'<div style="background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px;width:560px;max-width:96vw;max-height:90vh;overflow-y:auto">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">'
+    +'<h3 style="margin:0">🗺️ Itinerário — '+sprintNome+'</h3>'
+    +'<button class="btn btn-secondary" style="padding:4px 12px" onclick="this.closest(\'.modal-bg\').remove()">✕</button>'
+    +'</div>'
+    +'<div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">'
+    +'<label style="font-size:12px;font-weight:600;color:var(--text2)">📍 Endereço de saída (cole link do Maps ou endereço)</label>'
+    +'<input id="itin-home" value="'+endBase+'" placeholder="Cole link do Maps da sua casa ou endereço" style="width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:var(--bg1);color:var(--text);font-size:13px">'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    +'<div style="display:flex;align-items:center;gap:6px;font-size:12px"><label>⛽ km/L:</label><input id="itin-kml" type="number" value="'+kmL+'" min="1" max="30" style="width:60px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg1);color:var(--text);font-size:12px"></div>'
+    +'<div style="display:flex;align-items:center;gap:6px;font-size:12px"><label>💰 R$/L:</label><input id="itin-preco" type="number" value="'+precoL+'" min="1" step="0.1" style="width:70px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;background:var(--bg1);color:var(--text);font-size:12px"></div>'
+    +'</div>'
+    +'<button class="btn btn-primary" style="font-size:13px" onclick="recalcItinerario(\''+sprintNome.replace(/'/g,"\\'")+'\')" >🔄 Recalcular rota</button>'
+    +'</div>'
+    +(allLocais.length===0?'<div style="color:var(--text2);font-size:13px;padding:20px;text-align:center">Nenhum local cadastrado neste sprint.<br>Adicione locais nas tarefas para montar o itinerário.</div>'
+      :'<div id="itin-result">'
+      +'<h4 style="font-size:13px;color:var(--accent);margin:0 0 8px">🏆 Rota otimizada</h4>'
+      +(endBase?'<div style="font-size:11px;color:var(--text2);margin-bottom:8px">Partida: 🏠 '+endBase.substring(0,60)+'</div>':'')
+      +renderRota(rota,homeCoords)
+      +(rotaAlt.length>1&&JSON.stringify(rota.map(r=>r.id))!==JSON.stringify(rotaAlt.map(r=>r.id))?'<h4 style="font-size:13px;color:var(--text2);margin:16px 0 8px">Rota alternativa</h4>'+renderRota(rotaAlt,homeCoords):'')
+      +'</div>')
+    +'<div style="font-size:11px;color:var(--text2);margin-top:12px">ℹ️ Distâncias calculadas em linha reta. Para horário real de percurso, use o Maps.</div>'
+    +'</div></div>';
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function recalcItinerario(sprintNome){
+  const homeVal=(document.getElementById('itin-home')?.value||'').trim();
+  const kmL=parseFloat(document.getElementById('itin-kml')?.value)||10;
+  const precoL=parseFloat(document.getElementById('itin-preco')?.value)||6.50;
+  localStorage.setItem('sinalapp_cfg',JSON.stringify({enderecoBase:homeVal,kmL,precoL}));
+  document.querySelector('.modal-bg')?.remove();
+  openItinerario(sprintNome);
+}
+
 // --- ATTACH HANDLERS ---
 function attachHandlers(){}
 
@@ -2625,11 +2819,19 @@ function renderCalculadora(){
     </button>
     <button onclick="calcSelectService('porta_adesivo')" id="btn-porta_adesivo"
       style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
-      🚪 Adesivo de Porta
+      🚪 Adesivo — Porta
+    </button>
+    <button onclick="calcSelectService('geral_adesivo')" id="btn-geral_adesivo"
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
+      🪟 Adesivo — Geral
     </button>
     <button onclick="calcSelectService('letreiro_acrilico')" id="btn-letreiro_acrilico"
-      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;opacity:0.5" disabled>
-      🔤 Letreiro Acrílico <span style="font-size:11px">(em breve)</span>
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
+      🔤 Letreiro — Acrílico
+    </button>
+    <button onclick="calcSelectService('placa_identificacao')" id="btn-placa_identificacao"
+      style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px">
+      🏷️ Placa — Identificação
     </button>
     <button onclick="calcSelectService('placa_inox')" id="btn-placa_inox"
       style="padding:10px 20px;border-radius:8px;border:2px solid var(--border);background:transparent;color:var(--text2);font-weight:600;cursor:pointer;font-size:14px;opacity:0.5" disabled>
@@ -2822,6 +3024,141 @@ function renderCalculadora(){
 
   </div>
 
+  <!-- Formulário Adesivo — Geral -->
+  <div id="calc-form-geral_adesivo" style="display:none;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+    <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🪟 Adesivo — Geral</h3>
+      <div style="display:grid;gap:14px">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label><input id="g_larg" type="number" value="100" min="1" max="500" oninput="geralCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label><input id="g_alt" type="number" value="100" min="1" max="500" oninput="geralCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">QTD PEÇAS</label><input id="g_qtd" type="number" value="1" min="1" max="999" oninput="geralCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <label style="font-size:12px;font-weight:600;color:var(--text2)">CAMADAS DE ADESIVO</label>
+            <button onclick="geralAddCamada()" id="btn-geral-add-camada" style="padding:4px 10px;border-radius:6px;border:1px solid var(--primary);background:var(--primary)18;color:var(--primary);font-weight:700;font-size:12px;cursor:pointer">+ Camada</button>
+          </div>
+          <div id="geral-camadas" style="display:grid;gap:10px"></div>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">INSTALAÇÃO</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+            <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Preço/metro</label><input id="g_pinst" type="number" value="30" min="0" step="5" oninput="geralCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+            <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Preço corte/m</label><input id="g_pcorte" type="number" value="15" min="0" step="5" oninput="geralCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          </div>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DESLOCAMENTO</label>
+          <select id="g_desloc" onchange="geralCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="15">Mínimo — R$ 15,00</option><option value="30" selected>5–15 km — R$ 30,00</option><option value="50">16–20 km — R$ 50,00</option><option value="80">21–30 km — R$ 80,00</option><option value="100">31–50 km — R$ 100,00</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="geral-resultado" style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px"><p style="color:var(--text2);font-size:13px">Preencha os dados ao lado para ver o cálculo.</p></div>
+  </div>
+
+  <!-- Formulário Letreiro — Acrílico -->
+  <div id="calc-form-letreiro_acrilico" style="display:none;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+    <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🔤 Letreiro — Acrílico</h3>
+      <div style="display:grid;gap:14px">
+        <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">ESPESSURA</label>
+          <div style="display:flex;gap:8px">
+            <button id="lbtn-3mm" onclick="letreiroSetEsp('3mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">3 mm</button>
+            <button id="lbtn-6mm" onclick="letreiroSetEsp('6mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--primary);background:var(--primary);color:white;font-weight:700;font-size:13px;cursor:pointer">6 mm</button>
+            <button id="lbtn-10mm" onclick="letreiroSetEsp('10mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">10 mm</button>
+          </div>
+        </div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">NOME DO LETREIRO</label><input id="l_nome" type="text" value="" placeholder="ex: EMPRESA ABC" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label><input id="l_larg" type="number" value="130" min="1" max="1000" oninput="letreiroOnDimChange()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label><input id="l_alt" type="number" value="65" min="1" max="1000" oninput="letreiroOnDimChange()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">UNIDADES</label><input id="l_qtd" type="number" value="1" min="1" max="99" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+        </div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">MATERIAL (CHAPA ACRÍLICO) — automático</div><div id="l_mat_label" style="font-size:13px;font-weight:600;color:var(--text1)">calculando...</div></div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">CUSTOS POR PEÇA (R$)</label>
+          <div style="display:grid;gap:8px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Corte (laser)</label><input id="l_pcorte" type="number" value="0" min="0" step="1" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+              <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Impressão (digital)</label><input id="l_pimp" type="number" value="0" min="0" step="1" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);margin-bottom:3px"><input id="l_inst_on" type="checkbox" checked onchange="letreiroToggleInst(this.checked)" style="cursor:pointer">Instalação</label><input id="l_pinst" type="number" value="50" min="0" step="1" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+              <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Montagem / Gabarito</label><input id="l_pmontag" type="number" value="20" min="0" step="1" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Fixação (material)</label><input id="l_pfixacao" type="number" value="25" min="0" step="1" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+              <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Adicional (total)</label><input id="l_padic" type="number" value="0" min="0" step="1" oninput="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+            </div>
+          </div>
+        </div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DESLOCAMENTO</label>
+          <select id="l_desloc" onchange="letreiroCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="15">Mínimo — R$ 15,00</option><option value="30" selected>5–15 km — R$ 30,00</option><option value="50">16–20 km — R$ 50,00</option><option value="80">21–30 km — R$ 80,00</option><option value="100">31–50 km — R$ 100,00</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">DESCRIÇÃO DO SERVIÇO (automática)</div><div id="l_desc_preview" style="font-size:13px;color:var(--text1);line-height:1.5;min-height:36px">—</div></div>
+      <div id="letreiro-resultado" style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px"><p style="color:var(--text2);font-size:13px">Preencha os dados ao lado para ver o cálculo.</p></div>
+    </div>
+  </div>
+
+  <!-- Formulário Placa — Identificação -->
+  <div id="calc-form-placa_identificacao" style="display:none;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+    <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px">
+      <h3 style="margin:0 0 16px;font-size:15px;font-weight:700;color:var(--text1)">🏷️ Placa — Identificação</h3>
+      <div style="display:grid;gap:14px">
+        <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">ESPESSURA</label>
+          <div style="display:flex;gap:8px">
+            <button id="pbtn-3mm" onclick="placaSetEsp('3mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--primary);background:var(--primary);color:white;font-weight:700;font-size:13px;cursor:pointer">3 mm</button>
+            <button id="pbtn-5mm" onclick="placaSetEsp('5mm')" style="flex:1;padding:8px 4px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-weight:600;font-size:13px;cursor:pointer">5 mm</button>
+          </div>
+        </div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">MATERIAL</label><div id="placa-mat-btns" style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px"></div></div>
+        <div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:4px">MATERIAL (CHAPA) — automático</div><div id="p_mat_label" style="font-size:13px;font-weight:600;color:var(--text1)">calculando...</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">LARGURA (cm)</label><input id="p_larg" type="number" value="30" min="1" max="500" oninput="placaOnDimChange()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">ALTURA (cm)</label><input id="p_alt" type="number" value="8" min="1" max="500" oninput="placaOnDimChange()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+          <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">UNIDADES</label><input id="p_qtd" type="number" value="1" min="1" max="99" oninput="placaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px">CUSTOS POR PEÇA (R$)</label>
+          <div style="display:grid;gap:8px">
+            <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Corte</label><input id="p_pcorte" type="number" value="0" min="0" step="0.1" oninput="placaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+            <div>
+              <label style="display:block;font-size:11px;color:var(--text2);margin-bottom:4px">Impressão</label>
+              <div style="display:flex;gap:6px;margin-bottom:6px">
+                <button id="pimp-btn-digital" onclick="placaSetImpType('digital')" style="flex:1;padding:6px 4px;border-radius:6px;border:1px solid var(--primary);background:var(--primary);color:white;font-weight:700;font-size:11px;cursor:pointer">Digital (Adesivo)</button>
+                <button id="pimp-btn-uv" onclick="placaSetImpType('uv')" style="flex:1;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--text2);font-weight:600;font-size:11px;cursor:pointer">UV (Direto na Chapa)</button>
+              </div>
+              <input id="p_pimp" type="number" value="0" min="0" step="0.1" oninput="placaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box">
+            </div>
+            <div id="placa-verniz-row" style="display:none"><label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer"><input id="p_verniz" type="checkbox" onchange="placaCalcUpdate()" style="cursor:pointer">Verniz fosco (+R$10,00/peça)</label></div>
+            <div id="placa-lamin-row" style="display:block"><label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer"><input id="p_lamin" type="checkbox" onchange="placaCalcUpdate()" style="cursor:pointer">Laminação transparente (+R$10,00/peça)</label></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div><label style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2)"><input id="p_inst_on" type="checkbox" checked onchange="placaToggleInst(this.checked)" style="cursor:pointer">Instalação</label><input id="p_pinst" type="number" value="10" min="0" step="1" oninput="placaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+              <div><label style="display:block;font-size:11px;color:var(--text2);margin-bottom:3px">Fixação (dupla face)</label><input id="p_pfixacao" type="number" value="5" min="0" step="1" oninput="placaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px;box-sizing:border-box"></div>
+            </div>
+          </div>
+        </div>
+        <div><label style="display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">DESLOCAMENTO</label>
+          <select id="p_desloc" onchange="placaCalcUpdate()" style="width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text1);font-size:14px">
+            <option value="15">Mínimo — R$ 15,00</option><option value="30" selected>5–15 km — R$ 30,00</option><option value="50">16–20 km — R$ 50,00</option><option value="80">21–30 km — R$ 80,00</option><option value="100">31–50 km — R$ 100,00</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:14px"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:6px">DESCRIÇÃO DO SERVIÇO (automática)</div><div id="p_desc_preview" style="font-size:13px;color:var(--text1);line-height:1.5;min-height:36px">—</div></div>
+      <div id="placa-resultado" style="background:var(--card);border-radius:12px;border:1px solid var(--border);padding:20px"><p style="color:var(--text2);font-size:13px">Preencha os dados ao lado para ver o cálculo.</p></div>
+    </div>
+  </div>
+
 </div>\`;
 }
 
@@ -2838,6 +3175,9 @@ function calcSelectService(svc){
   if(active){ active.style.borderColor='#22c55e'; active.style.background='#22c55e20'; active.style.color='#22c55e'; }
   if(svc==='faixa_adesivo') calcUpdate();
   if(svc==='porta_adesivo'){ portaInitCamadas(); portaCalcUpdate(); }
+  if(svc==='geral_adesivo'){ geralInitCamadas(); geralCalcUpdate(); }
+  if(svc==='letreiro_acrilico'){ letreiroInit(); }
+  if(svc==='placa_identificacao'){ placaInit(); }
 }
 
 let _calcTimer=null;
@@ -3426,6 +3766,268 @@ function portaAdicionarExistente(orcId){
   });
   orcTab = 'editar';
   goTab('orcamentos');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CALCULADORA ADESIVO — GERAL
+// ═══════════════════════════════════════════════════════════════
+let _geralCamadas = [];
+let _geralCalcTimer = null;
+function geralInitCamadas(){
+  if(_geralCamadas.length===0){_geralCamadas=[{tipo:'vinil_branco',recorte:false}];geralRenderCamadas();}
+}
+function geralAddCamada(){
+  if(_geralCamadas.length>=4)return;
+  _geralCamadas.push({tipo:'vinil_branco',recorte:false});geralRenderCamadas();geralCalcUpdate();
+}
+function geralRemoveCamada(idx){
+  if(_geralCamadas.length<=1)return;
+  _geralCamadas.splice(idx,1);geralRenderCamadas();geralCalcUpdate();
+}
+function geralSetTipo(idx,val){_geralCamadas[idx].tipo=val;geralCalcUpdate();}
+function geralSetRecorte(idx,val){_geralCamadas[idx].recorte=val;geralCalcUpdate();}
+function geralRenderCamadas(){
+  const container=document.getElementById('geral-camadas');if(!container)return;
+  const addBtn=document.getElementById('btn-geral-add-camada');
+  if(addBtn)addBtn.style.opacity=_geralCamadas.length>=4?'0.4':'1';
+  container.innerHTML=_geralCamadas.map((c,i)=>{
+    const opts=PORTA_MATERIAIS.map(m=>`<option value="${m.id}" ${c.tipo===m.id?'selected':''}>${m.label} — R$${m.preco.toFixed(2).replace('.',',')}/${m.unidade==='m2'?'m²':'m'}</option>`).join('');
+    const showRecorte=c.tipo!=='microperfurado';
+    return`<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <span style="font-size:12px;font-weight:700;color:var(--text2)">CAMADA ${i+1}</span>
+        ${_geralCamadas.length>1?`<button onclick="geralRemoveCamada(${i})" style="padding:2px 8px;border-radius:4px;border:1px solid #f8717140;background:#f871711a;color:#f87171;font-size:11px;cursor:pointer;font-weight:600">✕ Remover</button>`:''}
+      </div>
+      <select onchange="geralSetTipo(${i},this.value)" style="width:100%;padding:7px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);font-size:13px;margin-bottom:8px">${opts}</select>
+      ${showRecorte?`<label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);cursor:pointer"><input type="checkbox" ${c.recorte?'checked':''} onchange="geralSetRecorte(${i},this.checked)" style="width:14px;height:14px;cursor:pointer">Recorte eletrônico (+R$15,00/m de rolo)</label>`:''}
+    </div>`;
+  }).join('');
+}
+function geralCalcUpdate(){clearTimeout(_geralCalcTimer);_geralCalcTimer=setTimeout(_geralCalcRun,50);}
+function _geralCalcRun(){
+  const larg=parseFloat(document.getElementById('g_larg')?.value||'100')||100;
+  const alt=parseFloat(document.getElementById('g_alt')?.value||'100')||100;
+  const qtd=parseInt(document.getElementById('g_qtd')?.value||'1')||1;
+  const pInst=parseFloat(document.getElementById('g_pinst')?.value||'30');
+  const pCorte=parseFloat(document.getElementById('g_pcorte')?.value||'15');
+  const desloc=parseFloat(document.getElementById('g_desloc')?.value||'30');
+  const fmt=v=>'R$ '+v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\d{3}),/,'.$1,');
+  const deslocLabel={15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||'';
+  const {metrosRolo,orientLabel,emenda,numEmendas,areaM2}=_portaRoloCalc(larg,alt,qtd);
+  let totalMat=0,totalCorte=0,totalRecorte=0;
+  const camDetalhes=_geralCamadas.map((c,i)=>{
+    const mat=PORTA_MATERIAIS.find(m=>m.id===c.tipo)||PORTA_MATERIAIS[0];
+    let custoMat,matDesc;
+    if(mat.unidade==='m2'){custoMat=Math.max(30,areaM2*mat.preco);matDesc=`${areaM2.toFixed(2)}m² × R$${mat.preco.toFixed(2).replace('.',',')}/m²`;}
+    else{custoMat=Math.max(30,metrosRolo*mat.preco);matDesc=`${metrosRolo.toFixed(1)}m × R$${mat.preco.toFixed(2).replace('.',',')}/m`;}
+    const custoCorte=mat.unidade==='m2'?0:metrosRolo*pCorte;
+    const custoRec=c.recorte&&mat.unidade!=='m2'?metrosRolo*15:0;
+    totalMat+=custoMat;totalCorte+=custoCorte;totalRecorte+=custoRec;
+    return{label:mat.label,custoMat,matDesc,custoCorte,custoRec,recorte:c.recorte&&mat.unidade!=='m2'};
+  });
+  const instMetros=Math.ceil(Math.max(larg/100,1.0)/0.5)*0.5;
+  const custoInst=instMetros*pInst*qtd;
+  const C=totalMat+totalCorte+totalRecorte+custoInst+desloc;
+  const oper=C*0.30,com=oper,sub=C+oper+com,imp=sub*0.10;
+  const vista=Math.ceil(sub+imp),prazo=Math.ceil(vista*1.10);
+  const emendaBlock=emenda?`<div style="color:#f59e0b;padding:10px 14px;background:#f59e0b18;border:1px solid #f59e0b50;border-radius:8px;font-size:12px;font-weight:600;margin-bottom:12px">⚠️ Altura ${alt}cm > 112cm — <b>${numEmendas} tiras com emenda</b> por peça.</div>`:'';
+  const camadasRows=camDetalhes.map((cd,i)=>`<div style="padding:4px 0 2px;border-bottom:1px solid var(--border)20"><div style="font-size:11px;font-weight:700;color:var(--text2);margin-bottom:2px">CAMADA ${i+1} — ${cd.label}</div><div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--text2)">Material (${cd.matDesc})</span><span style="font-weight:600;white-space:nowrap">${fmt(cd.custoMat)}</span></div>${cd.custoCorte>0?`<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--text2)">Corte</span><span style="font-weight:600;white-space:nowrap">${fmt(cd.custoCorte)}</span></div>`:''}${cd.recorte?`<div style="display:flex;justify-content:space-between;gap:8px"><span style="color:var(--text2)">Recorte eletrônico</span><span style="font-weight:600;white-space:nowrap">${fmt(cd.custoRec)}</span></div>`:''}</div>`).join('');
+  const porPeca=qtd>1?`<div style="background:#22c55e18;border:1px solid #22c55e40;border-radius:8px;padding:10px 12px;margin-top:12px;text-align:center"><div style="font-size:11px;color:#22c55e;font-weight:700;margin-bottom:2px">POR PEÇA (média)</div><div style="font-size:22px;font-weight:800;color:#22c55e">${fmt(vista/qtd)}</div><div style="font-size:12px;color:var(--text2)">à vista &nbsp;|&nbsp; ${fmt(prazo/qtd)} a prazo</div></div>`:'';
+  document.getElementById('geral-resultado').innerHTML=`${emendaBlock}<h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📊 Breakdown</h3><div style="font-size:12px;line-height:1.9;font-family:monospace"><div style="font-size:11px;color:var(--text2);margin-bottom:6px">${orientLabel}</div>${camadasRows}<div style="display:flex;justify-content:space-between;padding:4px 0 2px;border-bottom:1px solid var(--border)20;gap:8px"><span style="color:var(--text2)">Instalação (${qtd}pç × ${instMetros.toFixed(1)}m × ${fmt(pInst)}/m)</span><span style="font-weight:600;white-space:nowrap">${fmt(custoInst)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);gap:8px"><span style="color:var(--text2)">Deslocamento (${deslocLabel})</span><span style="font-weight:600;white-space:nowrap">${fmt(desloc)}</span></div><div style="display:flex;justify-content:space-between;padding:5px 0 2px;gap:8px"><span style="color:var(--text2)">Custo Total (C)</span><span style="font-weight:700;white-space:nowrap">${fmt(C)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px"><span>Operacional (30%)</span><span>${fmt(oper)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px"><span>Comissão (100% oper.)</span><span>${fmt(com)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);color:var(--text2);gap:8px"><span>Imposto (10%)</span><span>${fmt(imp)}</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><div style="background:var(--primary)18;border:1px solid var(--primary)40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:2px">À VISTA</div><div style="font-size:24px;font-weight:800;color:var(--primary)">${fmt(vista)}</div></div><div style="background:#f59e0b18;border:1px solid #f59e0b40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:2px">A PRAZO</div><div style="font-size:24px;font-weight:800;color:#f59e0b">${fmt(prazo)}</div></div></div>${porPeca}<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><button onclick="geralGerarOrcamento()" style="padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">📄 Criar Orçamento</button><button onclick="geralMostrarExistentes()" style="padding:11px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">➕ Adicionar a Existente</button></div><div id="geral-existentes-panel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">SELECIONE O ORÇAMENTO:</div><div id="geral-existentes-list" style="display:grid;gap:6px;max-height:220px;overflow-y:auto"></div></div>`;
+  window._geralDados={larg,alt,qtd,pInst,pCorte,desloc,deslocLabel,camadas:JSON.parse(JSON.stringify(_geralCamadas)),metrosRolo,orientLabel,emenda,numEmendas,areaM2,camDetalhes,totalMat,totalCorte,totalRecorte,custoInst,instMetros,C,vista,prazo};
+}
+function geralGerarOrcamento(){
+  if(!window._geralDados)return;const d=window._geralDados;
+  const camadasDesc=d.camDetalhes.map((cd,i)=>`Camada ${i+1}: ${cd.label}`).join(' + ');
+  const descViva=`Fornecimento e instalação de adesivo ${d.larg}×${d.alt}cm (${d.qtd} peça(s)). ${camadasDesc}. Deslocamento incluso (${d.deslocLabel}).`;
+  formOrc={id:null,numero:gerarCodigo(),cliente:'',empresa:'',telefone:'',email:'',data:today(),prazo_entrega:7,status:'Aberto',descricao:'',servicos:[{item:`Adesivo — Geral ${d.larg}×${d.alt}cm`,descricao:descViva,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]}],responsavel:'Marcelo'};
+  formCalcs=[];orcTab='novo';goTab('orcamentos');
+}
+function geralMostrarExistentes(){
+  const panel=document.getElementById('geral-existentes-panel'),list=document.getElementById('geral-existentes-list');
+  if(!panel||!list)return;if(panel.style.display!=='none'){panel.style.display='none';return;}
+  const ativos=(S.orcamentos||[]).filter(o=>o.status!=='Arquivado').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  list.innerHTML=ativos.length?ativos.map(o=>`<button onclick="geralAdicionarExistente('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);cursor:pointer;text-align:left;gap:8px"><div><div style="font-weight:700;font-size:13px">#${o.numero} — ${o.cliente||o.empresa||'(sem nome)'}</div><div style="font-size:11px;color:var(--text2)">${o.data||''} · ${(o.servicos||[]).length} serviço(s)</div></div><span style="font-size:12px;color:var(--primary);white-space:nowrap">➕</span></button>`).join(''):'<div style="color:var(--text2);font-size:13px;padding:8px">Nenhum orçamento ativo.</div>';
+  panel.style.display='block';
+}
+function geralAdicionarExistente(orcId){
+  if(!window._geralDados)return;const d=window._geralDados;
+  const orc=(S.orcamentos||[]).find(o=>o.id===orcId);if(!orc)return;
+  formOrc=JSON.parse(JSON.stringify(orc));formCalcs=[];formOrc.servicos=formOrc.servicos||[];
+  const camadasDesc=d.camDetalhes.map((cd,i)=>`Camada ${i+1}: ${cd.label}`).join(' + ');
+  formOrc.servicos.push({item:`Adesivo — Geral ${d.larg}×${d.alt}cm`,descricao:`Fornecimento e instalação de adesivo ${d.larg}×${d.alt}cm (${d.qtd} peça(s)). ${camadasDesc}. Deslocamento incluso (${d.deslocLabel}).`,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]});
+  orcTab='editar';goTab('orcamentos');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CALCULADORA LETREIRO — ACRÍLICO
+// ═══════════════════════════════════════════════════════════════
+const ACRILICO_CONF={'3mm':{preco_chapa:285,taxa_corte:40,adic_padrao:40,label:'Acrílico 3 mm'},'6mm':{preco_chapa:580,taxa_corte:70,adic_padrao:75,label:'Acrílico 6 mm'},'10mm':{preco_chapa:980,taxa_corte:100,adic_padrao:119,label:'Acrílico 10 mm'}};
+const ACR_CHAPA_W=200,ACR_CHAPA_H=100,ACR_TAXA_IMP=110,ACR_TAXA_INST=110;
+let _letreiroEsp='6mm',_letreiroTimer=null;
+function letreiroInit(){letreiroSetEsp(_letreiroEsp);}
+function letreiroSetEsp(esp){
+  _letreiroEsp=esp;
+  ['3mm','6mm','10mm'].forEach(e=>{const btn=document.getElementById('lbtn-'+e);if(!btn)return;if(e===esp){btn.style.background='var(--primary)';btn.style.color='white';btn.style.borderColor='var(--primary)';}else{btn.style.background='transparent';btn.style.color='var(--text2)';btn.style.borderColor='var(--border)';}});
+  letreiroUpdateDefaults(true);letreiroCalcUpdate();
+}
+function letreiroOnDimChange(){letreiroUpdateDefaults();letreiroCalcUpdate();}
+function letreiroToggleInst(on){const el=document.getElementById('l_pinst');if(!el)return;if(!on){el.value=0;}else{letreiroUpdateDefaults();}letreiroCalcUpdate();}
+function letreiroUpdateDefaults(resetAdic=false){
+  const larg=parseFloat(document.getElementById('l_larg')?.value)||130;
+  const alt=parseFloat(document.getElementById('l_alt')?.value)||65;
+  const conf=ACRILICO_CONF[_letreiroEsp];
+  const area_m2=(larg*alt)/10000;
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=Math.round(v);};
+  set('l_pcorte',Math.round(area_m2*conf.taxa_corte));set('l_pimp',Math.round(area_m2*ACR_TAXA_IMP));set('l_pinst',50);
+  if(resetAdic)set('l_padic',conf.adic_padrao);
+}
+function letreiroCalcUpdate(){clearTimeout(_letreiroTimer);_letreiroTimer=setTimeout(_letreiroCalcRun,50);}
+function _letreiroCalcRun(){
+  const larg=parseFloat(document.getElementById('l_larg')?.value)||130;
+  const alt=parseFloat(document.getElementById('l_alt')?.value)||65;
+  const qtd=parseInt(document.getElementById('l_qtd')?.value)||1;
+  const desloc=parseFloat(document.getElementById('l_desloc')?.value)||30;
+  const conf=ACRILICO_CONF[_letreiroEsp];
+  const fmt=v=>'R$ '+v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\d{3}),/,'.$1,');
+  const deslocLabel={15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||'';
+  const area_cm2=larg*alt,area_m2=area_cm2/10000;
+  const num_chapas=Math.ceil(qtd*area_cm2/(ACR_CHAPA_W*ACR_CHAPA_H));
+  const custo_mat=num_chapas*conf.preco_chapa;
+  const custo_corte=parseFloat(document.getElementById('l_pcorte')?.value)||0;
+  const custo_imp=parseFloat(document.getElementById('l_pimp')?.value)||0;
+  const custo_inst=parseFloat(document.getElementById('l_pinst')?.value)||0;
+  const custo_montag=parseFloat(document.getElementById('l_pmontag')?.value)||20;
+  const custo_fixacao=parseFloat(document.getElementById('l_pfixacao')?.value)||25;
+  const custo_adic=parseFloat(document.getElementById('l_padic')?.value)||0;
+  const nome=(document.getElementById('l_nome')?.value||'').trim();
+  const nomeStr=nome?`"${nome}" `:'';
+  const instOn=document.getElementById('l_inst_on')?.checked!==false;
+  const descFinal=instOn
+    ?(qtd>1?`Fornecimento e instalação de ${qtd} letreiros em Acrílico ${conf.label} ${nomeStr}medindo ${larg}×${alt} cm cada. Fixação com dupla face. Deslocamento incluso (${deslocLabel}).`:`Fornecimento e instalação de letreiro em Acrílico ${conf.label} ${nomeStr}medindo ${larg}×${alt} cm. Fixação com dupla face. Deslocamento incluso (${deslocLabel}).`)
+    :(qtd>1?`Fornecimento de ${qtd} letreiros em Acrílico ${conf.label} ${nomeStr}medindo ${larg}×${alt} cm cada. Fixação com dupla face.`:`Fornecimento de letreiro em Acrílico ${conf.label} ${nomeStr}medindo ${larg}×${alt} cm. Fixação com dupla face.`);
+  const descPrev=document.getElementById('l_desc_preview');if(descPrev)descPrev.textContent=descFinal;
+  const matLbl=document.getElementById('l_mat_label');if(matLbl)matLbl.textContent=`${num_chapas} chapa(s) × ${fmt(conf.preco_chapa)} (${conf.label}, ${ACR_CHAPA_W}×${ACR_CHAPA_H}cm) = ${fmt(custo_mat)}`;
+  const custo_unit=custo_corte+custo_imp+custo_inst+custo_montag+custo_fixacao;
+  const C=custo_mat+(custo_unit*qtd)+custo_adic+desloc,oper=C*0.30,com=oper,sub=C+oper+com,imp=sub*0.10;
+  const vista=Math.ceil(sub+imp),prazo=Math.ceil(vista*1.10);
+  const porUnid=qtd>1?`<div style="background:#22c55e18;border:1px solid #22c55e40;border-radius:8px;padding:10px 12px;margin-top:12px;text-align:center"><div style="font-size:11px;color:#22c55e;font-weight:700;margin-bottom:2px">POR UNIDADE (média)</div><div style="font-size:22px;font-weight:800;color:#22c55e">${fmt(vista/qtd)}</div><div style="font-size:12px;color:var(--text2)">à vista &nbsp;|&nbsp; ${fmt(prazo/qtd)} a prazo</div></div>`:'';
+  const rowUnit=(label,val)=>val>0?`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px"><span style="color:var(--text2)">${label}</span><span style="font-weight:600;white-space:nowrap">${fmt(val)}</span></div>`:'';
+  document.getElementById('letreiro-resultado').innerHTML=`<h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📊 Breakdown</h3><div style="font-size:11px;color:var(--text2);margin-bottom:8px">${larg}×${alt}cm — ${conf.label} — ${qtd}un — ${area_m2.toFixed(3)}m²/un</div><div style="font-size:12px;line-height:1.9;font-family:monospace">${rowUnit(`Material (${num_chapas} chapa${num_chapas>1?'s':''})`,custo_mat)}${rowUnit(`Corte laser${qtd>1?' × '+qtd:''}`,custo_corte*qtd)}${rowUnit(`Impressão digital${qtd>1?' × '+qtd:''}`,custo_imp*qtd)}${rowUnit(`Instalação${qtd>1?' × '+qtd:''}`,custo_inst*qtd)}${rowUnit(`Montagem/Gabarito${qtd>1?' × '+qtd:''}`,custo_montag*qtd)}${rowUnit(`Fixação${qtd>1?' × '+qtd:''}`,custo_fixacao*qtd)}${custo_adic>0?rowUnit('Adicional',custo_adic):''}<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);gap:8px"><span style="color:var(--text2)">Deslocamento (${deslocLabel})</span><span style="font-weight:600;white-space:nowrap">${fmt(desloc)}</span></div><div style="display:flex;justify-content:space-between;padding:5px 0 2px;gap:8px"><span style="color:var(--text2)">Custo Total (C)</span><span style="font-weight:700;white-space:nowrap">${fmt(C)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px"><span>Operacional (30%)</span><span>${fmt(oper)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px"><span>Comissão (100% oper.)</span><span>${fmt(com)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);color:var(--text2);gap:8px"><span>Imposto (10%)</span><span>${fmt(imp)}</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><div style="background:var(--primary)18;border:1px solid var(--primary)40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:2px">À VISTA</div><div style="font-size:24px;font-weight:800;color:var(--primary)">${fmt(vista)}</div></div><div style="background:#f59e0b18;border:1px solid #f59e0b40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:2px">A PRAZO</div><div style="font-size:24px;font-weight:800;color:#f59e0b">${fmt(prazo)}</div></div></div>${porUnid}<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><button onclick="letreiroGerarOrcamento()" style="padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">📄 Criar Orçamento</button><button onclick="letreiroMostrarExistentes()" style="padding:11px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">➕ Adicionar a Existente</button></div><div id="letreiro-existentes-panel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">SELECIONE O ORÇAMENTO:</div><div id="letreiro-existentes-list" style="display:grid;gap:6px;max-height:220px;overflow-y:auto"></div></div>`;
+  window._letreiroDados={larg,alt,qtd,desloc,deslocLabel,conf,esp:_letreiroEsp,num_chapas,custo_mat,custo_corte,custo_imp,custo_inst,custo_montag,custo_fixacao,custo_adic,area_m2,C,vista,prazo,desc:descFinal};
+}
+function letreiroGerarOrcamento(){
+  if(!window._letreiroDados)return;const d=window._letreiroDados;
+  formOrc={id:null,numero:gerarCodigo(),cliente:'',empresa:'',telefone:'',email:'',data:today(),prazo_entrega:7,status:'Aberto',descricao:'',servicos:[{item:`Letreiro Acrílico ${d.esp} — ${d.larg}×${d.alt}cm`,descricao:d.desc,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]}],responsavel:'Marcelo'};
+  formCalcs=[];orcTab='novo';goTab('orcamentos');
+}
+function letreiroMostrarExistentes(){
+  const panel=document.getElementById('letreiro-existentes-panel'),list=document.getElementById('letreiro-existentes-list');
+  if(!panel||!list)return;if(panel.style.display!=='none'){panel.style.display='none';return;}
+  const ativos=(S.orcamentos||[]).filter(o=>o.status!=='Arquivado').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  list.innerHTML=ativos.length?ativos.map(o=>`<button onclick="letreiroAdicionarExistente('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);cursor:pointer;text-align:left;gap:8px"><div><div style="font-weight:700;font-size:13px">#${o.numero} — ${o.cliente||o.empresa||'(sem nome)'}</div><div style="font-size:11px;color:var(--text2)">${o.data||''} · ${(o.servicos||[]).length} serviço(s)</div></div><span style="font-size:12px;color:var(--primary);white-space:nowrap">➕</span></button>`).join(''):'<div style="color:var(--text2);font-size:13px;padding:8px">Nenhum orçamento ativo.</div>';
+  panel.style.display='block';
+}
+function letreiroAdicionarExistente(orcId){
+  if(!window._letreiroDados)return;const d=window._letreiroDados;
+  const orc=(S.orcamentos||[]).find(o=>o.id===orcId);if(!orc)return;
+  formOrc=JSON.parse(JSON.stringify(orc));formCalcs=[];formOrc.servicos=formOrc.servicos||[];
+  formOrc.servicos.push({item:`Letreiro Acrílico ${d.esp} — ${d.larg}×${d.alt}cm`,descricao:d.desc,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]});
+  orcTab='editar';goTab('orcamentos');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CALCULADORA PLACA — IDENTIFICAÇÃO
+// ═══════════════════════════════════════════════════════════════
+const PLACA_MATS={
+  '3mm':[{id:'acrilico',label:'Acrílico 3mm',preco_chapa:285,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 3mm',preco_chapa:130,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 3mm',preco_chapa:90,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 3mm',preco_chapa:85,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço Escovado 0,5mm',preco_chapa:300,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}],
+  '5mm':[{id:'acrilico',label:'Acrílico 5mm',preco_chapa:550,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 5mm',preco_chapa:170,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 5mm',preco_chapa:120,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 5mm',preco_chapa:115,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço Escovado 1mm',preco_chapa:580,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}]
+};
+let _placaEsp='3mm',_placaMatId='acrilico',_placaTimer=null,_placaImpType='digital';
+function placaInit(){_placaEsp='3mm';_placaMatId='acrilico';_placaImpType='digital';_placaRenderMatBtns();placaSetEsp('3mm');setTimeout(()=>placaSetImpType('digital'),10);}
+function _placaRenderMatBtns(){
+  const mats=PLACA_MATS[_placaEsp];const cont=document.getElementById('placa-mat-btns');if(!cont)return;
+  cont.innerHTML=mats.map(m=>{const active=m.id===_placaMatId;return`<button id="pmbtn-${m.id}" onclick="placaSetMat('${m.id}')" style="padding:7px 4px;border-radius:6px;border:1px solid ${active?'var(--primary)':'var(--border)'};background:${active?'var(--primary)':'transparent'};color:${active?'white':'var(--text2)'};font-weight:${active?'700':'600'};font-size:12px;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.label}</button>`;}).join('');
+}
+function placaSetEsp(esp){
+  _placaEsp=esp;
+  ['3mm','5mm'].forEach(e=>{const btn=document.getElementById('pbtn-'+e);if(!btn)return;if(e===esp){btn.style.background='var(--primary)';btn.style.color='white';btn.style.borderColor='var(--primary)';}else{btn.style.background='transparent';btn.style.color='var(--text2)';btn.style.borderColor='var(--border)';}});
+  const ids=PLACA_MATS[esp].map(m=>m.id);if(!ids.includes(_placaMatId))_placaMatId='acrilico';
+  _placaRenderMatBtns();_placaUpdateCorteImp();placaCalcUpdate();
+}
+function placaSetImpType(type){
+  _placaImpType=type;
+  ['digital','uv'].forEach(t=>{const btn=document.getElementById('pimp-btn-'+t);if(!btn)return;if(t===type){btn.style.background='var(--primary)';btn.style.color='white';btn.style.borderColor='var(--primary)';}else{btn.style.background='transparent';btn.style.color='var(--text2)';btn.style.borderColor='var(--border)';}});
+  const vernizRow=document.getElementById('placa-verniz-row');if(vernizRow)vernizRow.style.display=type==='uv'?'block':'none';
+  const laminRow=document.getElementById('placa-lamin-row');if(laminRow)laminRow.style.display=type==='digital'?'block':'none';
+  if(type!=='uv'){const vEl=document.getElementById('p_verniz');if(vEl)vEl.checked=false;}
+  if(type!=='digital'){const lEl=document.getElementById('p_lamin');if(lEl)lEl.checked=false;}
+  placaCalcUpdate();
+}
+function placaSetMat(matId){_placaMatId=matId;_placaRenderMatBtns();_placaUpdateCorteImp();placaSetImpType(matId==='aco'?'uv':'digital');}
+function _placaGetMat(){return(PLACA_MATS[_placaEsp]||[]).find(m=>m.id===_placaMatId)||PLACA_MATS['3mm'][0];}
+function _placaAutoCorteImp(mat,larg,alt){const area_m2=(larg*alt)/10000;return{corte:parseFloat((Math.max(10,area_m2*mat.taxa_corte)).toFixed(2)),imp:mat.taxa_imp>0?parseFloat((Math.max(10,area_m2*mat.taxa_imp)).toFixed(2)):0};}
+function _placaUpdateCorteImp(){const mat=_placaGetMat();const larg=parseFloat(document.getElementById('p_larg')?.value)||30;const alt=parseFloat(document.getElementById('p_alt')?.value)||8;const {corte,imp}=_placaAutoCorteImp(mat,larg,alt);const setV=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};setV('p_pcorte',corte);setV('p_pimp',imp);}
+function placaOnDimChange(){_placaUpdateCorteImp();placaCalcUpdate();}
+function placaToggleInst(on){const el=document.getElementById('p_pinst');if(!el)return;if(!on)el.value=0;else el.value=10;placaCalcUpdate();}
+function placaCalcUpdate(){clearTimeout(_placaTimer);_placaTimer=setTimeout(_placaCalcRun,50);}
+function _placaCalcRun(){
+  const larg=parseFloat(document.getElementById('p_larg')?.value)||30;
+  const alt=parseFloat(document.getElementById('p_alt')?.value)||8;
+  const qtd=parseInt(document.getElementById('p_qtd')?.value)||1;
+  const mat=_placaGetMat();
+  const fmt=v=>'R$ '+v.toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.').replace(/\.(\d{3}),/,'.$1,');
+  const instOn=document.getElementById('p_inst_on')?.checked!==false;
+  const deslocSel=parseFloat(document.getElementById('p_desloc')?.value)||30;
+  const desloc=qtd>5?Math.max(deslocSel,50):deslocSel;
+  const deslocLabel={15:'Mínimo',30:'5–15 km',50:'16–20 km',80:'21–30 km',100:'31–50 km'}[desloc]||`R$${desloc}`;
+  const ppc=Math.max(1,Math.floor(mat.chapa_w/(larg+1))*Math.floor(mat.chapa_h/(alt+1)));
+  const num_chapas=Math.ceil(qtd/ppc),custo_mat=num_chapas*mat.preco_chapa;
+  const area_m2=(larg*alt)/10000;
+  const c_corte=parseFloat(document.getElementById('p_pcorte')?.value)||0;
+  const c_imp=parseFloat(document.getElementById('p_pimp')?.value)||0;
+  const vernizOn=document.getElementById('p_verniz')?.checked===true;
+  const laminOn=document.getElementById('p_lamin')?.checked===true;
+  const c_verniz=(mat.taxa_imp>0&&_placaImpType==='uv'&&vernizOn)?10:0;
+  const c_lamin=(mat.taxa_imp>0&&_placaImpType==='digital'&&laminOn)?10:0;
+  const c_inst=parseFloat(document.getElementById('p_pinst')?.value)||0;
+  const c_fix=parseFloat(document.getElementById('p_pfixacao')?.value)||0;
+  const matLbl=document.getElementById('p_mat_label');
+  const taxaLabel=mat.taxa_corte===150?'Laser Fibra':'Router';
+  const impLabel=_placaImpType==='uv'?'Impressão UV':'Impressão Digital';
+  if(matLbl)matLbl.textContent=`${num_chapas} chapa(s) ${mat.label} (${mat.chapa_w}×${mat.chapa_h}cm) · ${ppc} pçs/chapa = ${fmt(custo_mat)} | Corte ${taxaLabel}: ${fmt(c_corte)}/pç · ${mat.taxa_imp>0?impLabel+': '+fmt(c_imp)+'/pç':'sem impressão'}`;
+  const instStr=instOn?' e instalação':'';
+  const hasImp=mat.taxa_imp>0;
+  const impDescStr=hasImp?(_placaImpType==='uv'?'Impressão UV diretamente na chapa e recorte especial'+(vernizOn?' com aplicação de verniz fosco':''):(laminOn?'Impressão digital com informações em adesivo e recorte especial com aplicação de laminação em adesivo transparente':'Impressão digital com informações em adesivo e recorte')):'Recorte a laser especial';
+  const descFinal=qtd>1?`Fornecimento${instStr} de ${qtd} placas de identificação em ${mat.label}, ${larg}×${alt} cm. ${impDescStr}. Fixação com dupla face. Deslocamento incluso (${deslocLabel}).`:`Fornecimento${instStr} de placa de identificação em ${mat.label}, ${larg}×${alt} cm. ${impDescStr}. Fixação com dupla face. Deslocamento incluso (${deslocLabel}).`;
+  const descPrev=document.getElementById('p_desc_preview');if(descPrev)descPrev.textContent=descFinal;
+  const C=custo_mat+(c_corte+c_imp+c_verniz+c_lamin+(instOn?c_inst:0)+c_fix)*qtd+desloc;
+  const oper=C*0.30,com=oper,sub=C+oper+com,imp=sub*0.10;
+  const vista=Math.ceil(sub+imp),prazo=Math.ceil(vista*1.10);
+  const rowUnit=(label,val)=>val>0?`<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border)20;gap:8px"><span style="color:var(--text2)">${label}</span><span style="font-weight:600;white-space:nowrap">${fmt(val)}</span></div>`:'';
+  const porUnid=qtd>1?`<div style="background:#22c55e18;border:1px solid #22c55e40;border-radius:8px;padding:10px 12px;margin-top:12px;text-align:center"><div style="font-size:11px;color:#22c55e;font-weight:700;margin-bottom:2px">POR UNIDADE (média)</div><div style="font-size:22px;font-weight:800;color:#22c55e">${fmt(vista/qtd)}</div><div style="font-size:12px;color:var(--text2)">à vista &nbsp;|&nbsp; ${fmt(prazo/qtd)} a prazo</div></div>`:'';
+  const deslocNote=qtd>5&&deslocSel<50?`<div style="color:#f59e0b;font-size:11px;margin-top:4px">⚠️ +5 peças: deslocamento ajustado para R$50,00</div>`:'';
+  document.getElementById('placa-resultado').innerHTML=`<h3 style="margin:0 0 14px;font-size:14px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📊 Breakdown</h3><div style="font-size:11px;color:var(--text2);margin-bottom:8px">${mat.label} — ${larg}×${alt}cm — ${qtd}un</div><div style="font-size:12px;line-height:1.9;font-family:monospace">${rowUnit(`Material (${num_chapas} chapa${num_chapas>1?'s':''}, ${ppc} pçs/chapa)`,custo_mat)}${rowUnit(`Corte ${taxaLabel}${qtd>1?' × '+qtd:''}`,c_corte*qtd)}${c_imp>0?rowUnit(`${_placaImpType==='uv'?'Impressão UV':'Impressão Digital'}${qtd>1?' × '+qtd:''}`,c_imp*qtd):''}${c_verniz>0?rowUnit(`Verniz fosco${qtd>1?' × '+qtd:''}`,c_verniz*qtd):''}${c_lamin>0?rowUnit(`Laminação${qtd>1?' × '+qtd:''}`,c_lamin*qtd):''}${instOn&&c_inst>0?rowUnit(`Instalação${qtd>1?' × '+qtd:''}`,c_inst*qtd):''}${rowUnit(`Fixação${qtd>1?' × '+qtd:''}`,c_fix*qtd)}<div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);gap:8px"><span style="color:var(--text2)">Deslocamento (${deslocLabel})</span><span style="font-weight:600;white-space:nowrap">${fmt(desloc)}</span></div>${deslocNote}<div style="display:flex;justify-content:space-between;padding:5px 0 2px;gap:8px"><span style="color:var(--text2)">Custo Total (C)</span><span style="font-weight:700;white-space:nowrap">${fmt(C)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;color:var(--text2);gap:8px"><span>Operacional + Comissão (60%)</span><span>${fmt(oper+com)}</span></div><div style="display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px solid var(--border);color:var(--text2);gap:8px"><span>Imposto (10%)</span><span>${fmt(imp)}</span></div></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><div style="background:var(--primary)18;border:1px solid var(--primary)40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:var(--primary);font-weight:700;margin-bottom:2px">À VISTA</div><div style="font-size:24px;font-weight:800;color:var(--primary)">${fmt(vista)}</div></div><div style="background:#f59e0b18;border:1px solid #f59e0b40;border-radius:8px;padding:12px;text-align:center"><div style="font-size:11px;color:#f59e0b;font-weight:700;margin-bottom:2px">A PRAZO</div><div style="font-size:24px;font-weight:800;color:#f59e0b">${fmt(prazo)}</div></div></div>${porUnid}<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px"><button onclick="placaGerarOrcamento()" style="padding:11px;background:var(--primary);color:white;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">📄 Criar Orçamento</button><button onclick="placaMostrarExistentes()" style="padding:11px;background:transparent;color:var(--primary);border:2px solid var(--primary);border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">➕ Adicionar a Existente</button></div><div id="placa-existentes-panel" style="display:none;margin-top:12px;border:1px solid var(--border);border-radius:8px;padding:12px;background:var(--bg)"><div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:8px">SELECIONE O ORÇAMENTO:</div><div id="placa-existentes-list" style="display:grid;gap:6px;max-height:220px;overflow-y:auto"></div></div>`;
+  window._placaDados={larg,alt,qtd,desloc,deslocLabel,mat,esp:_placaEsp,num_chapas,ppc,custo_mat,c_corte,c_imp,c_verniz,c_lamin,c_inst:instOn?c_inst:0,c_fix,C,vista,prazo,desc:descFinal,instOn,impType:_placaImpType};
+}
+function placaGerarOrcamento(){
+  if(!window._placaDados)return;const d=window._placaDados;
+  formOrc={id:null,numero:gerarCodigo(),cliente:'',empresa:'',telefone:'',email:'',data:today(),prazo_entrega:5,status:'Aberto',descricao:'',servicos:[{item:`Placa de Identificação ${d.mat.label} ${d.larg}×${d.alt}cm`,descricao:d.desc,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]}],responsavel:'Marcelo'};
+  formCalcs=[];orcTab='novo';goTab('orcamentos');
+}
+function placaMostrarExistentes(){
+  const panel=document.getElementById('placa-existentes-panel'),list=document.getElementById('placa-existentes-list');
+  if(!panel||!list)return;if(panel.style.display!=='none'){panel.style.display='none';return;}
+  const ativos=(S.orcamentos||[]).filter(o=>o.status!=='Arquivado').sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+  list.innerHTML=ativos.length?ativos.map(o=>`<button onclick="placaAdicionarExistente('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:var(--text1);cursor:pointer;text-align:left;gap:8px"><div><div style="font-weight:700;font-size:13px">#${o.numero} — ${o.cliente||o.empresa||'(sem nome)'}</div><div style="font-size:11px;color:var(--text2)">${o.data||''} · ${(o.servicos||[]).length} serviço(s)</div></div><span style="font-size:12px;color:var(--primary);white-space:nowrap">➕</span></button>`).join(''):'<div style="color:var(--text2);font-size:13px;padding:8px">Nenhum orçamento ativo.</div>';
+  panel.style.display='block';
+}
+function placaAdicionarExistente(orcId){
+  if(!window._placaDados)return;const d=window._placaDados;
+  const orc=(S.orcamentos||[]).find(o=>o.id===orcId);if(!orc)return;
+  formOrc=JSON.parse(JSON.stringify(orc));formCalcs=[];formOrc.servicos=formOrc.servicos||[];
+  formOrc.servicos.push({item:`Placa de Identificação ${d.mat.label} ${d.larg}×${d.alt}cm`,descricao:d.desc,unidades:d.qtd,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:parseFloat(d.prazo.toFixed(2)),itens:[]});
+  orcTab='editar';goTab('orcamentos');
 }
 
 </script>
