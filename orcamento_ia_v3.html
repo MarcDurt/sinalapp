@@ -57,12 +57,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .back-link:hover{color:#2563eb}
 
 /* ── SERVICE CARDS ── */
-.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.svc-grid{margin-bottom:10px}
 .svc-card{background:#fff;border:1.5px solid #e4e4e7;border-radius:12px;padding:14px 8px 12px;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;gap:5px}
 .svc-card:hover{border-color:#93c5fd;box-shadow:0 2px 8px rgba(37,99,235,.08)}
 .svc-card.sel{border-color:#2563eb;background:#eff6ff;box-shadow:0 2px 12px rgba(37,99,235,.12)}
 .svc-icon{font-size:26px;line-height:1}
 .svc-lbl{font-size:11px;font-weight:700;color:#18181b;line-height:1.3}
+/* ── GROUP CARDS ── */
+.grp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px}
+.grp-card{background:#fff;border:1.5px solid #e4e4e7;border-radius:12px;padding:12px 6px 10px;cursor:pointer;text-align:center;transition:all .15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;width:100%;min-height:90px}
+.grp-card:hover{border-color:#93c5fd;box-shadow:0 2px 8px rgba(37,99,235,.08)}
+.grp-card.sel{border-color:#2563eb;background:#eff6ff;box-shadow:0 2px 12px rgba(37,99,235,.12)}
+.grp-icon{font-size:24px;line-height:1}
+.grp-lbl{font-size:11px;font-weight:700;color:#18181b;line-height:1.3}
+.grp-arrow{font-size:9px;color:#71717a;margin-top:1px}
+.grp-sub-wrap{background:#f8faff;border:1.5px solid #dbeafe;border-radius:12px;padding:10px 10px 8px;margin-bottom:8px}
+.grp-sub-chips{display:flex;flex-wrap:wrap;gap:7px}
+.sub-chip{background:#fff;border:1.5px solid #e4e4e7;border-radius:9px;padding:8px 12px;cursor:pointer;font-size:12px;font-weight:600;color:#18181b;transition:all .15s;display:flex;align-items:center;gap:5px}
+.sub-chip:hover{border-color:#93c5fd;background:#f0f6ff}
+.sub-chip.sel{border-color:#2563eb;background:#eff6ff;color:#2563eb}
+.sub-chip.soon{opacity:.4;cursor:default;pointer-events:none}
+.sub-chip.soon .soon-tag{font-size:9px;font-weight:400;background:#e4e4e7;border-radius:4px;padding:1px 4px;color:#71717a}
 
 /* ── DETAIL PANEL ── */
 .detail-panel{background:#fff;border:1.5px solid #dbeafe;border-radius:13px;padding:16px;margin-bottom:10px}
@@ -332,6 +347,30 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .fz-svc-row-del:hover{color:#ef4444}
 .fz-svc-row-dup{background:none;border:none;font-size:13px;color:#93c5fd;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
 .fz-svc-row-dup:hover{color:#2563eb}
+.fz-svc-row-var{background:none;border:none;font-size:13px;color:#a78bfa;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
+.fz-svc-row-var:hover{color:#7c3aed}
+.fz-svc-row-var.ativo{color:#7c3aed;filter:drop-shadow(0 0 3px #a78bfa)}
+/* ── PAINEL VARIAÇÃO ── */
+.fz-var-panel{background:#faf5ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:10px 12px;margin:-2px 0 6px;animation:fadeSlideIn .12s ease}
+.fz-var-chip{background:#ede9fe;border:1.5px solid #a78bfa;color:#5b21b6;border-radius:8px;padding:5px 10px;font-size:9px;font-weight:700;cursor:pointer;transition:background .1s,border-color .1s;white-space:nowrap}
+.fz-var-chip:hover:not(:disabled){background:#ddd6fe;border-color:#7c3aed}
+.fz-var-chip:disabled,.fz-var-chip-dis{opacity:.42;cursor:not-allowed;border-style:dashed}
+.fz-var-add-btn{background:#ede9fe;border:1.5px dashed #a78bfa;color:#7c3aed;border-radius:6px;padding:2px 8px;font-size:8px;font-weight:700;cursor:pointer;white-space:nowrap}
+.fz-var-add-btn:hover,.fz-var-add-btn.ativo{background:#ddd6fe;border-color:#7c3aed;border-style:solid}
+/* ── VARIAÇÕES ── */
+.var-group-wrap{border:1.5px solid #c4b5fd;border-radius:12px;padding:6px;margin-bottom:6px;background:linear-gradient(135deg,#faf5ff 0%,#f5f3ff 100%)}
+.var-group-header{font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.07em;padding:0 4px 4px;display:flex;align-items:center;gap:6px}
+.var-group-header::before{content:'🔀';font-size:11px}
+.var-option-badge{font-size:8px;font-weight:800;color:#fff;background:#7c3aed;border-radius:4px;padding:2px 5px;flex-shrink:0;align-self:flex-start;margin-top:1px}
+.var-option-badge.aprovada{background:#16a34a}
+.var-option-badge.descartada{background:#a1a1aa}
+.fz-svc-row.var-aprovada{border:1.5px solid #86efac;background:#f0fdf4}
+.fz-svc-row.var-descartada{opacity:.45;filter:grayscale(.6);pointer-events:none}
+.fz-svc-row.var-descartada button{pointer-events:none}
+.btn-aprovar-var{background:none;border:1.5px solid #16a34a;color:#16a34a;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;padding:2px 7px;flex-shrink:0;white-space:nowrap}
+.btn-aprovar-var:hover{background:#f0fdf4}
+.btn-aprovar-var.ativo{background:#16a34a;color:#fff}
+.var-subtotal{font-size:10px;color:#7c3aed;font-weight:700;padding:4px 6px 2px;text-align:right}
 /* ── GRAND TOTAL ── */
 .fz-grand-total{display:flex;justify-content:space-between;align-items:center;padding-top:10px;border-top:2px solid #e4e4e7;margin-top:8px}
 .fz-gt-lbl{font-size:13px;font-weight:700;color:#18181b}
@@ -347,7 +386,7 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .fz-add-svc-btn.open{background:#eff6ff;border-style:solid}
 /* ── INLINE SERVICE PICKER ── */
 .fz-pick-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
-.fz-pick-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:1.5px solid #e4e4e7;border-radius:10px;background:#fff;cursor:pointer;transition:all .15s;font-size:11px;font-weight:700;color:#374151;text-align:center;line-height:1.2}
+.fz-pick-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:10px 6px;border:1.5px solid #e4e4e7;border-radius:10px;background:#fff;cursor:pointer;transition:all .15s;font-size:11px;font-weight:700;color:#374151;text-align:center;line-height:1.2;min-height:82px}
 .fz-pick-btn:hover{border-color:#93c5fd;background:#eff6ff;color:#2563eb}
 .fz-pick-btn.sel{border-color:#2563eb;background:#eff6ff;color:#2563eb}
 .fz-pick-btn-icon{font-size:22px;line-height:1}
@@ -551,7 +590,7 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="c-desc-box"><div class="c-desc-lbl">Descrição do serviço</div><textarea class="c-desc-txt" id="ad-desc" rows="3" placeholder="Descrição gerada automaticamente..."></textarea></div>
       <div class="breakdown" id="ad-resultado"><div class="bk-placeholder">Preencha os dados ao lado para ver o cálculo.</div></div>
-      <button class="calc-fz-btn" onclick="adFormalizar()">📄 Usar no orçamento → Formalizar</button>
+      <button class="calc-fz-btn" onclick="adFormalizar()">➕ Adicionar ao orçamento</button>
     </div>
   </div>
 
@@ -592,7 +631,7 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="c-desc-box"><div class="c-desc-lbl">Descrição do serviço</div><textarea class="c-desc-txt" id="l_desc_preview" rows="3" placeholder="Descrição gerada automaticamente..."></textarea></div>
       <div class="breakdown" id="letreiro-resultado"><div class="bk-placeholder">Preencha os dados ao lado para ver o cálculo.</div></div>
-      <button class="calc-fz-btn" onclick="letreiroFormalizar()">📄 Usar no orçamento → Formalizar</button>
+      <button class="calc-fz-btn" onclick="letreiroFormalizar()">➕ Adicionar ao orçamento</button>
     </div>
   </div>
 
@@ -633,7 +672,7 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="c-desc-box"><div class="c-desc-lbl">Descrição do serviço</div><textarea class="c-desc-txt" id="pv_desc_preview" rows="3" placeholder="Descrição gerada automaticamente..."></textarea></div>
       <div class="breakdown" id="pvc-resultado"><div class="bk-placeholder">Preencha os dados ao lado para ver o cálculo.</div></div>
-      <button class="calc-fz-btn" onclick="pvcFormalizar()">📄 Usar no orçamento → Formalizar</button>
+      <button class="calc-fz-btn" onclick="pvcFormalizar()">➕ Adicionar ao orçamento</button>
     </div>
   </div>
 
@@ -689,7 +728,7 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="c-desc-box"><div class="c-desc-lbl">Descrição do serviço</div><textarea class="c-desc-txt" id="p_desc_preview" rows="3" placeholder="Descrição gerada automaticamente..."></textarea></div>
       <div class="breakdown" id="placa-resultado"><div class="bk-placeholder">Preencha os dados ao lado para ver o cálculo.</div></div>
-      <button class="calc-fz-btn" onclick="placaFormalizar()">📄 Usar no orçamento → Formalizar</button>
+      <button class="calc-fz-btn" onclick="placaFormalizar()">➕ Adicionar ao orçamento</button>
     </div>
   </div>
 
@@ -751,7 +790,7 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
     <div style="display:flex;flex-direction:column;gap:12px">
       <div class="c-desc-box"><div class="c-desc-lbl">Descrição do serviço</div><textarea class="c-desc-txt" id="lc-desc" rows="3" placeholder="Descrição gerada automaticamente..."></textarea></div>
       <div class="breakdown" id="lc-resultado"><div class="bk-placeholder">Preencha os dados ao lado para ver o cálculo.</div></div>
-      <button class="calc-fz-btn" onclick="lcFormalizar()">📄 Usar no orçamento → Formalizar</button>
+      <button class="calc-fz-btn" onclick="lcFormalizar()">➕ Adicionar ao orçamento</button>
     </div>
   </div>
 </div><!-- /step3 -->
@@ -760,15 +799,19 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
      PASSO 4 — FORMALIZAR
      ════════════════════════════════ -->
 <div id="step4">
-  <div class="app-hdr" style="margin-bottom:8px;display:flex;align-items:center;flex-wrap:wrap;gap:8px">
-    <h1 id="fz-orc-num-hdr" style="font-size:18px;margin:0;flex-shrink:0">📋 Orçamento <span id="fz-orc-num" style="color:#2563eb;font-size:14px;font-weight:600"></span></h1>
-    <button class="fz-act-btn-sm fz-act-primary-sm" id="btn-formalizar" onclick="fzToggleFormalizar()">📄 Formalizar</button>
-    <div id="fz-formalizar-opts" style="display:none;align-items:center;gap:6px">
+  <div class="app-hdr" style="margin-bottom:8px;">
+    <div style="display:flex;align-items:center;gap:8px;justify-content:space-between">
+      <h1 id="fz-orc-num-hdr" style="font-size:20px;margin:0;flex:0 0 auto;white-space:nowrap">📋 Orçamento <span id="fz-orc-num" style="color:#2563eb;font-size:20px;font-weight:700"></span></h1>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <button class="fz-act-btn-sm fz-act-primary-sm" id="btn-formalizar" onclick="fzToggleFormalizar()">📄 Formalizar</button>
+        <button class="fz-act-btn-sm" id="btn-salvar-crm" onclick="fzSalvarNoCRM()" style="background:#16a34a;color:#fff;border-color:#15803d">💾 Salvar no CRM</button>
+      </div>
+    </div>
+    <div id="fz-formalizar-opts" style="display:none;margin-top:6px;gap:6px;justify-content:flex-end">
+      <button class="fz-act-btn-sm" onclick="fzGerarPDF()">📄 PDF</button>
       <button class="fz-act-btn-sm" style="background:#25D366;color:#fff;border-color:#25D366" onclick="fzEnviarWhatsApp()">💬 WhatsApp</button>
       <button class="fz-act-btn-sm" style="background:#2563eb;color:#fff;border-color:#2563eb" onclick="fzEnviarEmail()">✉️ E-mail</button>
-      <button class="fz-act-btn-sm" onclick="fzGerarPDF()">📄 PDF</button>
     </div>
-    <button class="fz-act-btn-sm" id="btn-salvar-crm" onclick="fzSalvarNoCRM()" style="background:#16a34a;color:#fff;border-color:#15803d;margin-left:auto">💾 Salvar no CRM</button>
   </div>
 
   <!-- 1. CLIENTE + IA -->
@@ -832,6 +875,13 @@ let _fzMeta  = {}; // {svcLabel, svcIcon, dim, finish} for current service
 let _fzServicesList = []; // [{meta, items, vista, prazo, descricao}] all services in this quote
 let _fzAddMode = false;   // true when adding a new service without resetting list
 let _fzEditingIdx = 0;    // index of service currently being edited
+// ── Variation panel state ──
+let _varPanelIdx = null;   // index of service with open variation panel (null = closed)
+let _varType     = null;   // 'tamanho' | 'material' | 'espessura' | null (step 1)
+let _varLock     = true;   // proportional lock W/H
+let _varW        = 0;      // current W input
+let _varH        = 0;      // current H input
+let _varRatioWH  = 1;      // original W/H ratio (for proportional lock)
 // ── Inline detail state ──
 let _detLarg = null, _detAlt = null, _detQtd = 1;
 let _detLogistica = 'instalacao';
@@ -1351,50 +1401,157 @@ function renderFzSvcList() {
   if (!_fzServicesList.length) {
     listEl.innerHTML = '<div style="color:#a1a1aa;font-size:12px;padding:8px 0">Nenhum serviço.</div>';
   } else {
-    listEl.innerHTML = _fzServicesList.map((svc, i) => {
-      const active = i === _fzEditingIdx;
-      const conf = svc.confidence ?? null;
-      const confDot = _confCircles(conf);
-      // Breakdown summary from items array (substitui "Material" pelo nome real do material)
-      const breakdown = (svc.items||[]).map(it=>{
-        if(it.label==='Material'||(it.label||'').match(/^Material \d+$/)) return svc.meta.material||it.label;
-        return it.label;
-      }).filter(Boolean).join(' · ');
-      const dimInfo = svc.meta.dim||'';
-      const descPreview = (svc.descricao||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      return `<div class="fz-svc-row${active?' fz-svc-row-active':''}" onclick="fzEditService(${i})">
-        <span style="font-size:10px;font-weight:700;color:#35597F;min-width:14px;text-align:center;flex-shrink:0;line-height:1">${i+1}</span>
-        <span class="fz-svc-row-icon">${svc.meta.svcIcon}</span>
-        <div class="fz-svc-row-info" style="display:grid;grid-template-columns:52% 1fr;gap:8px;min-width:0;align-items:start">
-          <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
-            <div style="display:flex;align-items:center;gap:4px;width:100%">
-              <input class="fz-nome-item-inp" value="${(svc.nomeItem||svc.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:10px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
-              ${confDot}
+    // Pré-computar grupos de variação
+    const _vgMap = {}; // grupoId → { items:[idx,...], approvedIdx:-1 }
+    _fzServicesList.forEach((svc, i) => {
+      const g = svc.meta.varGrupo;
+      if (g) {
+        if (!_vgMap[g]) _vgMap[g] = { items:[], approvedIdx:-1 };
+        _vgMap[g].items.push(i);
+        if (svc.meta.varAprovada) _vgMap[g].approvedIdx = i;
+      }
+    });
+
+    // Função para verificar se o serviço suporta gerar variação (apenas originais, não variações)
+    const _canVarFrom = svc => {
+      if (svc.meta?.isVariacao) return false;
+      const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
+      return cs === 'letreiro_acrilico' || cs === 'letreiro_pvc';
+    };
+
+    // Render cards, agrupando variações
+    const html = [];
+    const rendered = new Set();
+
+    _fzServicesList.forEach((svc, i) => {
+      if (rendered.has(i)) return;
+      const g = svc.meta.varGrupo;
+
+      if (g && _vgMap[g]) {
+        const grp = _vgMap[g];
+        // Só renderiza o bloco na primeira ocorrência do grupo
+        if (grp.items[0] !== i) { rendered.add(i); return; }
+        // Bloco de variação
+        const letters = 'ABCDEFGH';
+        const origSvcForGroup = _fzServicesList[grp.items[0]];
+        const _canVarOrig = origSvcForGroup && !origSvcForGroup.meta?.isVariacao;
+        const _grpPanelOpen = _varPanelIdx === grp.items[0];
+        html.push(`<div class="var-group-wrap">`);
+        html.push(`<div class="var-group-header" style="justify-content:space-between">
+          <span>Variações — escolha uma opção</span>
+          ${_canVarOrig ? `<button class="fz-var-add-btn${_grpPanelOpen?' ativo':''}" onclick="event.stopPropagation();fzOpenVarPanel(${grp.items[0]})" title="Adicionar outra variação">+ variação</button>` : ''}
+        </div>`);
+        grp.items.forEach((idx, pos) => {
+          rendered.add(idx);
+          const sv = _fzServicesList[idx];
+          const active = idx === _fzEditingIdx;
+          const isAprov = !!sv.meta.varAprovada;
+          const isDismissed = grp.approvedIdx >= 0 && !isAprov;
+          const letter = letters[pos] || (pos+1);
+          const conf = sv.confidence ?? null;
+          const confDot = _confCircles(conf);
+          const breakdown = (sv.items||[]).map(it=>{
+            if(it.label==='Material'||(it.label||'').match(/^Material \d+$/)) return sv.meta.material||it.label;
+            return it.label;
+          }).filter(Boolean).join(' · ');
+          const dimInfo = sv.meta.dim||'';
+          const descPreview = (sv.descricao||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          const rowClass = ['fz-svc-row', active?'fz-svc-row-active':'', isAprov?'var-aprovada':'', isDismissed?'var-descartada':''].filter(Boolean).join(' ');
+          const badgeClass = 'var-option-badge'+(isAprov?' aprovada':isDismissed?' descartada':'');
+          html.push(`<div class="${rowClass}" onclick="fzEditService(${idx})" style="margin-bottom:4px">
+            <span class="${badgeClass}">${letter}</span>
+            <span class="fz-svc-row-icon">${sv.meta.svcIcon}</span>
+            <div class="fz-svc-row-info" style="display:grid;grid-template-columns:52% 1fr;gap:8px;min-width:0;align-items:start">
+              <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
+                <div style="display:flex;align-items:center;gap:4px;width:100%">
+                  <input class="fz-nome-item-inp" value="${(sv.nomeItem||sv.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:10px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
+                  ${confDot}
+                </div>
+                ${active
+                  ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:9px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
+                  : (descPreview ? `<div style="font-size:9px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
+                }
+              </div>
+              <div style="min-width:0;display:flex;flex-direction:column;gap:1px">
+                ${breakdown?`<div style="font-size:9px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
+                ${dimInfo?`<div style="font-size:9px;color:#a1a1aa">${dimInfo}</div>`:''}
+              </div>
             </div>
-            ${active
-              ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:9px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
-              : (descPreview ? `<div style="font-size:9px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
-            }
+            <div class="fz-svc-row-prices">
+              <div class="fz-srp-prazo">À Prazo<br><strong>R$ ${(sv.prazo||0).toLocaleString('pt-BR')}</strong></div>
+              <div class="fz-srp-vista">À Vista<br><strong>R$ ${(sv.vista||0).toLocaleString('pt-BR')}</strong></div>
+            </div>
+            <button class="btn-aprovar-var${isAprov?' ativo':''}" onclick="event.stopPropagation();fzAprovarVariacao(${idx})" title="${isAprov?'Aprovado pelo cliente':'Marcar como aprovado'}">${isAprov?'✓ Aprovado':'✓ Aprovar'}</button>
+            <button class="fz-svc-row-dup" onclick="event.stopPropagation();fzDuplicateService(${idx})" title="Duplicar">⎘</button>
+            <button class="fz-svc-row-del" onclick="event.stopPropagation();fzRemoveService(${idx})" title="Remover">×</button>
+          </div>`);
+        });
+        html.push(`</div>`); // close var-group-wrap
+        if (_grpPanelOpen) html.push(_buildVarPanelHTML(grp.items[0], origSvcForGroup));
+      } else {
+        // Card normal (sem grupo de variação)
+        rendered.add(i);
+        const active = i === _fzEditingIdx;
+        const conf = svc.confidence ?? null;
+        const confDot = _confCircles(conf);
+        const breakdown = (svc.items||[]).map(it=>{
+          if(it.label==='Material'||(it.label||'').match(/^Material \d+$/)) return svc.meta.material||it.label;
+          return it.label;
+        }).filter(Boolean).join(' · ');
+        const dimInfo = svc.meta.dim||'';
+        const descPreview = (svc.descricao||'').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        const canVar = _canVarFrom(svc);
+        const varPanelOpen = _varPanelIdx === i;
+        html.push(`<div class="fz-svc-row${active?' fz-svc-row-active':''}" onclick="fzEditService(${i})">
+          <span style="font-size:10px;font-weight:700;color:#35597F;min-width:14px;text-align:center;flex-shrink:0;line-height:1">${i+1}</span>
+          <span class="fz-svc-row-icon">${svc.meta.svcIcon}</span>
+          <div class="fz-svc-row-info" style="display:grid;grid-template-columns:52% 1fr;gap:8px;min-width:0;align-items:start">
+            <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
+              <div style="display:flex;align-items:center;gap:4px;width:100%">
+                <input class="fz-nome-item-inp" value="${(svc.nomeItem||svc.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:10px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
+                ${confDot}
+              </div>
+              ${active
+                ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:9px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
+                : (descPreview ? `<div style="font-size:9px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
+              }
+            </div>
+            <div style="min-width:0;display:flex;flex-direction:column;gap:1px">
+              ${breakdown?`<div style="font-size:9px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
+              ${dimInfo?`<div style="font-size:9px;color:#a1a1aa">${dimInfo}</div>`:''}
+            </div>
           </div>
-          <div style="min-width:0;display:flex;flex-direction:column;gap:1px">
-            ${breakdown?`<div style="font-size:9px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
-            ${dimInfo?`<div style="font-size:9px;color:#a1a1aa">${dimInfo}</div>`:''}
+          <div class="fz-svc-row-prices">
+            <div class="fz-srp-prazo">À Prazo<br><strong>R$ ${(svc.prazo||0).toLocaleString('pt-BR')}</strong></div>
+            <div class="fz-srp-vista">À Vista<br><strong>R$ ${(svc.vista||0).toLocaleString('pt-BR')}</strong></div>
           </div>
-        </div>
-        <div class="fz-svc-row-prices">
-          <div class="fz-srp-prazo">À Prazo<br><strong>R$ ${(svc.prazo||0).toLocaleString('pt-BR')}</strong></div>
-          <div class="fz-srp-vista">À Vista<br><strong>R$ ${(svc.vista||0).toLocaleString('pt-BR')}</strong></div>
-        </div>
-        <button class="fz-svc-row-dup" onclick="event.stopPropagation();fzDuplicateService(${i})" title="Duplicar serviço">⎘</button>
-        <button class="fz-svc-row-del" onclick="event.stopPropagation();fzRemoveService(${i})" title="Remover">×</button>
-      </div>`;
-    }).join('');
+          ${canVar?`<button class="fz-svc-row-var${varPanelOpen?' ativo':''}" onclick="event.stopPropagation();fzOpenVarPanel(${i})" title="Gerar variação">🔀</button>`:''}
+          <button class="fz-svc-row-dup" onclick="event.stopPropagation();fzDuplicateService(${i})" title="Duplicar serviço">⎘</button>
+          <button class="fz-svc-row-del" onclick="event.stopPropagation();fzRemoveService(${i})" title="Remover">×</button>
+        </div>`);
+        if (varPanelOpen) html.push(_buildVarPanelHTML(i, svc));
+      }
+    });
+    listEl.innerHTML = html.join('');
   }
-  // Grand total
-  const tv = _fzServicesList.reduce((s,svc)=>s+(svc.vista||0),0);
-  const tp = _fzServicesList.reduce((s,svc)=>s+(svc.prazo||0),0);
+
+  // Grand total — lógica de grupos de variação
+  const _hasGroups = _fzServicesList.some(svc => svc.meta.varGrupo);
+  const _allGroupsResolved = !_fzServicesList.some(svc => {
+    if (!svc.meta.varGrupo) return false;
+    // Verifica se o grupo deste serviço tem algum aprovado
+    const grupoHasAprov = _fzServicesList.some(s => s.meta.varGrupo === svc.meta.varGrupo && s.meta.varAprovada);
+    return !grupoHasAprov;
+  });
+  // Soma apenas itens sem grupo + variação aprovada de cada grupo
+  const _countable = _fzServicesList.filter(svc =>
+    !svc.meta.varGrupo || svc.meta.varAprovada
+  );
+  const tv = _countable.reduce((s,svc)=>s+(svc.vista||0),0);
+  const tp = _countable.reduce((s,svc)=>s+(svc.prazo||0),0);
   const gtEl = document.getElementById('fz-grand-total-row');
-  if (gtEl) gtEl.style.display = _fzServicesList.length > 1 ? 'flex' : 'none';
+  const showTotal = _fzServicesList.length > 1 && (!_hasGroups || _allGroupsResolved);
+  if (gtEl) gtEl.style.display = showTotal ? 'flex' : 'none';
   const gv = document.getElementById('fz-gt-vista'); if(gv) gv.textContent = 'R$ '+tv.toLocaleString('pt-BR');
   const gp = document.getElementById('fz-gt-prazo'); if(gp) gp.textContent = 'R$ '+tp.toLocaleString('pt-BR');
   // Show/hide clipboard paste button
@@ -1469,7 +1626,32 @@ function fzEditService(i) {
     else if (/caixa/.test(_lbl)) svcsIdx = 11;
     else if (/misto/.test(_lbl)) svcsIdx = 10;
   }
-  if (svcsIdx < 0) return; // truly unknown — active state already updated
+  if (svcsIdx < 0) {
+    // Serviço genérico da Calculadora Completa → abre direto sem painel simplificado
+    if (svc.meta.lastCalc === 'completa') {
+      _addPanelEditMode = true;
+      _addPanelEditIdx  = i;
+      _addPanelSvcIdx   = null;
+      const panel = document.getElementById('fz-add-panel');
+      const btn   = document.getElementById('btn-add-svc');
+      if (panel) panel.style.display = 'block';
+      if (btn)   btn.classList.add('open');
+      const grid = document.getElementById('fz-add-svc-grid');
+      if (grid) { grid.innerHTML = ''; grid.style.display = 'none'; }
+      const cfg = document.getElementById('fz-add-svc-config');
+      if (cfg) {
+        // Cria o container que _openCalcCompleta() precisa encontrar
+        cfg.innerHTML = '<div id="fz-add-calc-container" style="display:none;margin-top:0;border-top:none;padding-top:0"></div>';
+        cfg.style.display = 'block';
+      }
+      setTimeout(() => {
+        _openCalcCompleta();
+        if (svc.meta.lastInputs) setTimeout(() => _restoreCalcState(svc), 200);
+      }, 60);
+      panel?.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+    return;
+  }
   // Set edit state
   _addPanelEditMode = true;
   _addPanelEditIdx  = i;
@@ -1562,8 +1744,18 @@ function fzRemoveService(i) {
   const svc = _fzServicesList[i];
   const lbl = svc?.meta?.svcLabel || 'este serviço';
   if (!confirm(`Remover "${lbl}" do orçamento?`)) return;
+  const _removedGrupo = svc?.meta?.varGrupo;
   _fzServicesList.splice(i, 1);
   if (!_fzServicesList.length) { _fzEditingIdx = null; renderFzSvcList(); return; }
+  // Se o item removido pertencia a um grupo, verificar se sobrou apenas 1 membro —
+  // nesse caso o grupo deixou de existir e varGrupo deve ser limpo do item restante.
+  if (_removedGrupo) {
+    const restantes = _fzServicesList.filter(s => s.meta?.varGrupo === _removedGrupo);
+    if (restantes.length === 1) {
+      delete restantes[0].meta.varGrupo;
+      delete restantes[0].meta.varAprovada;
+    }
+  }
   if (_fzEditingIdx >= _fzServicesList.length) _fzEditingIdx = _fzServicesList.length - 1;
   else if (_fzEditingIdx > i) _fzEditingIdx--;
   // Fecha painel se estava aberto (item removido), apenas re-renderiza a lista
@@ -1578,8 +1770,322 @@ function fzDuplicateService(i) {
   const svc = _fzServicesList[i];
   if (!svc) return;
   const copy = JSON.parse(JSON.stringify(svc));
+  // Duplicata não herda grupo de variação nem aprovação
+  delete copy.meta.varGrupo;
+  delete copy.meta.varAprovada;
   _fzServicesList.splice(i + 1, 0, copy);
   renderFzSvcList();
+}
+
+// ── Aprovar variação ──
+function fzAprovarVariacao(i) {
+  const svc = _fzServicesList[i];
+  if (!svc || !svc.meta.varGrupo) return;
+  const g = svc.meta.varGrupo;
+  const eraAprovado = !!svc.meta.varAprovada;
+  // Toggle: se já aprovado, desaprova. Senão, aprova este e desaprova irmãos.
+  _fzServicesList.forEach(s => {
+    if (s.meta.varGrupo === g) s.meta.varAprovada = false;
+  });
+  if (!eraAprovado) svc.meta.varAprovada = true;
+  renderFzSvcList();
+}
+
+// ── Variação: helpers de dimensão ──
+function _parseDimStr(str) {
+  if (!str) return null;
+  const m = str.match(/(\d+(?:[.,]\d+)?)\s*[×xX]\s*(\d+(?:[.,]\d+)?)\s*cm/i);
+  if (m) return { larg: parseFloat(m[1].replace(',','.')), alt: parseFloat(m[2].replace(',','.')) };
+  return null;
+}
+function _extractDim(svc) {
+  const inp = svc?.meta?.lastInputs || {};
+  let larg = inp.larg || 0, alt = inp.alt || 0;
+  if (!larg || !alt) { const d = _parseDimStr(svc?.meta?.dim || ''); if (d) { larg=d.larg; alt=d.alt; } }
+  if (!larg || !alt) { const d = _parseDimStr(svc?.nomeItem || ''); if (d) { larg=d.larg; alt=d.alt; } }
+  return { larg, alt };
+}
+function _ensureVarGrupo(svc) {
+  if (!svc.meta.varGrupo) {
+    svc.meta.varGrupo = 'vg_' + Date.now();
+    svc.meta.varAprovada = false;
+  }
+  return svc.meta.varGrupo;
+}
+function _insertVariacao(novoSvc, origIdx, gId) {
+  novoSvc.meta.varGrupo = gId;
+  novoSvc.meta.varAprovada = false;
+  novoSvc.meta.isVariacao = true;
+  let insertAt = origIdx + 1;
+  for (let j = origIdx + 1; j < _fzServicesList.length; j++) {
+    if (_fzServicesList[j].meta?.varGrupo === gId) insertAt = j + 1; else break;
+  }
+  _fzServicesList.splice(insertAt, 0, novoSvc);
+}
+
+// ── Abrir / fechar painel de variação ──
+function fzOpenVarPanel(i) {
+  if (i === null || _varPanelIdx === i) {
+    _varPanelIdx = null; _varType = null;
+  } else {
+    _varPanelIdx = i; _varType = null;
+    const svc = _fzServicesList[i];
+    const { larg, alt } = _extractDim(svc);
+    _varW = larg; _varH = alt;
+    _varRatioWH = alt > 0 ? larg / alt : 1;
+    _varLock = true;
+  }
+  renderFzSvcList();
+}
+function fzVarSelectType(type) { _varType = type; renderFzSvcList(); }
+function fzVarToggleLock() {
+  const wEl = document.getElementById('fz-var-w');
+  const hEl = document.getElementById('fz-var-h');
+  if (wEl) _varW = parseFloat(wEl.value) || _varW;
+  if (hEl) _varH = parseFloat(hEl.value) || _varH;
+  _varLock = !_varLock;
+  if (_varLock && _varH > 0) _varRatioWH = _varW / _varH;
+  renderFzSvcList();
+}
+function fzVarInputW(val) {
+  _varW = parseFloat(val) || 0;
+  if (_varLock && _varRatioWH && _varW) {
+    _varH = Math.round(_varW / _varRatioWH * 10) / 10;
+    const hEl = document.getElementById('fz-var-h');
+    if (hEl) hEl.value = _varH;
+  }
+}
+function fzVarInputH(val) {
+  _varH = parseFloat(val) || 0;
+  if (_varLock && _varRatioWH && _varH) {
+    _varW = Math.round(_varH * _varRatioWH * 10) / 10;
+    const wEl = document.getElementById('fz-var-w');
+    if (wEl) wEl.value = _varW;
+  }
+}
+
+// ── Aplicar variação de Tamanho ──
+function fzVarApplyTamanho(origIdx) {
+  const svc = _fzServicesList[origIdx];
+  if (!svc) return;
+  const wEl = document.getElementById('fz-var-w');
+  const hEl = document.getElementById('fz-var-h');
+  const larg = parseFloat(wEl?.value) || _varW;
+  const alt  = parseFloat(hEl?.value) || _varH;
+  if (!larg || !alt) { alert('Informe a largura e a altura.'); return; }
+
+  const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
+  const inp = svc.meta.lastInputs || {};
+  const hasInst = inp.instOn !== undefined ? inp.instOn : true;
+  const pinst   = inp.pinst || 0;
+
+  let novoSvc = null;
+  if (cs === 'letreiro_acrilico') {
+    novoSvc = _calcVariacaoAcr10mm(larg, alt, hasInst, pinst);
+  } else if (cs === 'letreiro_pvc') {
+    novoSvc = _calcVariacaoPVC10mm(larg, alt, hasInst, pinst);
+  } else {
+    alert('Variação de tamanho disponível apenas para Letreiro Acrílico e Letreiro PVC.');
+    return;
+  }
+  if (!novoSvc) { alert('Não foi possível calcular a variação.'); return; }
+  novoSvc.meta.varTipo = 'tamanho';
+  const gId = _ensureVarGrupo(svc);
+  _insertVariacao(novoSvc, origIdx, gId);
+  _varPanelIdx = null; _varType = null;
+  renderFzSvcList();
+}
+
+// ── Aplicar variação de Material ──
+function fzVarApplyMaterial(origIdx, targetCalcSvc) {
+  const svc = _fzServicesList[origIdx];
+  if (!svc) return;
+  const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
+  const { larg, alt } = _extractDim(svc);
+  if (!larg || !alt) { alert('Não consegui encontrar as dimensões deste serviço.'); return; }
+
+  const gId = _ensureVarGrupo(svc);
+  const jaExiste = _fzServicesList.some(s => s.meta?.varGrupo === gId && s.meta?.svcsIdx != null && SVCS[s.meta.svcsIdx]?.calcSvc === targetCalcSvc);
+  if (jaExiste) { alert('Já existe uma variação com este material no grupo.'); return; }
+
+  const inp = svc.meta.lastInputs || {};
+  const hasInst = inp.instOn !== undefined ? inp.instOn : true;
+  const pinst   = inp.pinst || 0;
+
+  let novoSvc = targetCalcSvc === 'letreiro_pvc'
+    ? _calcVariacaoPVC10mm(larg, alt, hasInst, pinst)
+    : _calcVariacaoAcr10mm(larg, alt, hasInst, pinst);
+  if (!novoSvc) { alert('Não foi possível calcular a variação.'); return; }
+  novoSvc.meta.varTipo = 'material';
+  _insertVariacao(novoSvc, origIdx, gId);
+  _varPanelIdx = null; _varType = null;
+  renderFzSvcList();
+}
+
+// ── Builder HTML do painel inline de variação ──
+function _buildVarPanelHTML(i, svc) {
+  const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
+  const canMat = cs === 'letreiro_acrilico' || cs === 'letreiro_pvc';
+  const closeBtn = `<button onclick="fzOpenVarPanel(null)" style="background:none;border:none;color:#a1a1aa;font-size:14px;cursor:pointer;line-height:1;padding:0;margin-left:auto">✕</button>`;
+
+  if (!_varType) {
+    // Step 1: escolha do tipo
+    return `<div class="fz-var-panel" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em">Tipo de variação</span>
+        ${closeBtn}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="fz-var-chip" onclick="fzVarSelectType('tamanho')">📐 Tamanho</button>
+        <button class="fz-var-chip${canMat?'':' fz-var-chip-dis'}" ${canMat?`onclick="fzVarSelectType('material')"`:' disabled'}>🧱 Material</button>
+        <button class="fz-var-chip fz-var-chip-dis" disabled title="Em breve">📏 Espessura</button>
+      </div>
+    </div>`;
+  }
+
+  if (_varType === 'tamanho') {
+    const origDim = (_varW && _varH) ? `${_varW}×${_varH} cm` : '—';
+    return `<div class="fz-var-panel" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <button onclick="fzVarSelectType(null)" style="background:none;border:none;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;padding:0">← Voltar</button>
+        <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;flex:1">📐 Variação de Tamanho</span>
+        ${closeBtn}
+      </div>
+      <div style="font-size:8px;color:#71717a;margin-bottom:8px">Tamanho original: <strong>${origDim}</strong></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+        <label style="font-size:9px;color:#52525b;font-weight:700;min-width:14px">L</label>
+        <input id="fz-var-w" type="number" min="1" step="0.5" value="${_varW}" oninput="fzVarInputW(this.value)" style="width:65px;padding:5px 6px;border:1.5px solid #a78bfa;border-radius:6px;font-size:12px;text-align:center;outline:none">
+        <button onclick="fzVarToggleLock()" title="${_varLock?'Destravar proporção (como o Illustrator)':'Travar proporção'}" style="background:none;border:none;font-size:16px;cursor:pointer;padding:0;line-height:1;color:${_varLock?'#7c3aed':'#a1a1aa'}">${_varLock?'🔒':'🔓'}</button>
+        <label style="font-size:9px;color:#52525b;font-weight:700;min-width:14px">A</label>
+        <input id="fz-var-h" type="number" min="1" step="0.5" value="${_varH}" oninput="fzVarInputH(this.value)" style="width:65px;padding:5px 6px;border:1.5px solid #a78bfa;border-radius:6px;font-size:12px;text-align:center;outline:none">
+        <span style="font-size:10px;color:#71717a">cm</span>
+      </div>
+      <button onclick="fzVarApplyTamanho(${i})" style="margin-top:10px;background:#7c3aed;color:#fff;border:none;border-radius:8px;padding:7px 0;font-size:10px;font-weight:700;cursor:pointer;width:100%">Aplicar variação →</button>
+    </div>`;
+  }
+
+  if (_varType === 'material') {
+    const isAcr = cs === 'letreiro_acrilico';
+    return `<div class="fz-var-panel" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <button onclick="fzVarSelectType(null)" style="background:none;border:none;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;padding:0">← Voltar</button>
+        <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;flex:1">🧱 Variação de Material</span>
+        ${closeBtn}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${isAcr
+          ? `<button class="fz-var-chip fz-var-chip-dis" disabled>🔤 Acrílico 10 mm (atual)</button>
+             <button class="fz-var-chip" onclick="fzVarApplyMaterial(${i},'letreiro_pvc')">🧱 PVC 10 mm</button>`
+          : `<button class="fz-var-chip" onclick="fzVarApplyMaterial(${i},'letreiro_acrilico')">🔤 Acrílico 10 mm</button>
+             <button class="fz-var-chip fz-var-chip-dis" disabled>🧱 PVC 10 mm (atual)</button>`
+        }
+      </div>
+    </div>`;
+  }
+
+  return '';
+}
+
+// ── Calcular variação PVC 10mm — usa o mesmo engine da calculadora simplificada/completa ──
+function _calcVariacaoPVC10mm(larg, alt, hasInst, pinst) {
+  try {
+    const adicional1 = 200;
+    const montagem = 30;
+    const fixacao = 30;
+    const it = _newGenItem('Chapa', 'PVC', 'PVC 10 mm', '220x120 cm', null, larg, alt);
+    it.corte_tipo      = 'Router';
+    it.impressao_tipo  = 'Pintura Automotiva';
+    it.instalacao_tipo = hasInst ? 'Comum' : 'Nenhum';
+    it.distancia       = '16-20 km';
+    it.montagem        = montagem;
+    it.fixacao         = fixacao;
+    it.adicional1      = adicional1;
+    it.unidades        = 1;
+    const r  = calcItemGeneric(it);
+    const mk = applyMarginsGen(r.sub, {operacional:30,comissao:100,imposto:10,juros:10});
+    const dimLabel = `${larg}×${alt} cm`;
+    const items = [
+      { label: 'Material PVC 10 mm', val: r.cm },
+      { label: 'Corte Router',        val: r.cc },
+      { label: 'Pintura Automotiva',  val: r.ci },
+      { label: 'Adicional',           val: r.cad1 },
+      ...(hasInst && r.cins > 0 ? [{ label: 'Instalação', val: r.cins }] : []),
+      { label: 'Montagem',            val: r.cmont },
+      { label: 'Fixação',             val: r.cfix },
+      { label: 'Deslocamento',        val: r.cdist },
+    ].filter(x => x.val > 0);
+    const svcEntry = SVCS.find(s => s.id === 'letreiro_pvc_flat') || SVCS.find(s => s.calcSvc === 'letreiro_pvc') || SVCS[0];
+    const svcsIdx = SVCS.indexOf(svcEntry);
+    return {
+      items,
+      vista: mk.vista, prazo: mk.prazo,
+      descricao: `Fornecimento${hasInst?' e instalação':''} de 1 unidade de Letreiro em PVC 10 mm medindo ${larg}×${alt} cm. Inclui pintura automotiva e corte router. Fixação com dupla face e cola.${hasInst?' Deslocamento incluso.':''}`,
+      nomeItem: 'Letreiro em PVC 10 mm',
+      meta: {
+        svcLabel: svcEntry?.label || 'Letreiro em PVC',
+        svcIcon: svcEntry?.icon || '🧱',
+        dim: dimLabel, finish: 'PVC 10 mm · Pintura Automotiva',
+        material: 'PVC 10 mm', svcsIdx,
+        lastCalc: 'completa',
+        lastInputs: {
+          calcType: 'completa', calcSvc: 'letreiro_pvc',
+          larg, alt, instOn: hasInst, pinst: r.cins, desloc: r.cdist,
+          esp: '10mm', impType: 'pintura', adicional1, montagem, fixacao
+        }
+      }
+    };
+  } catch(e) { console.error('_calcVariacaoPVC10mm:', e); return null; }
+}
+
+// ── Calcular variação Acrílico 10mm — usa o mesmo engine da calculadora simplificada/completa ──
+function _calcVariacaoAcr10mm(larg, alt, hasInst, pinst) {
+  try {
+    const adicional1 = 250;
+    const montagem = 30;
+    const fixacao = 30;
+    const it = _newGenItem('Chapa', 'Acrílico', 'Acrílico 10 mm', '200x100 cm', null, larg, alt);
+    it.corte_tipo      = 'Laser';
+    it.impressao_tipo  = 'Pintura Automotiva';
+    it.instalacao_tipo = hasInst ? 'Comum' : 'Nenhum';
+    it.distancia       = '16-20 km';
+    it.montagem        = montagem;
+    it.fixacao         = fixacao;
+    it.adicional1      = adicional1;
+    it.unidades        = 1;
+    const r  = calcItemGeneric(it);
+    const mk = applyMarginsGen(r.sub, {operacional:30,comissao:100,imposto:10,juros:10});
+    const dimLabel = `${larg}×${alt} cm`;
+    const items = [
+      { label: 'Material Acrílico 10 mm', val: r.cm },
+      { label: 'Corte Laser',              val: r.cc },
+      { label: 'Pintura Automotiva',       val: r.ci },
+      { label: 'Adicional',                val: r.cad1 },
+      ...(hasInst && r.cins > 0 ? [{ label: 'Instalação', val: r.cins }] : []),
+      { label: 'Montagem',                 val: r.cmont },
+      { label: 'Fixação',                  val: r.cfix },
+      { label: 'Deslocamento',             val: r.cdist },
+    ].filter(x => x.val > 0);
+    const svcEntry = SVCS.find(s => s.id === 'letreiro_acr') || SVCS.find(s => s.calcSvc === 'letreiro_acrilico') || SVCS[1];
+    const svcsIdx = SVCS.indexOf(svcEntry);
+    return {
+      items,
+      vista: mk.vista, prazo: mk.prazo,
+      descricao: `Fornecimento${hasInst?' e instalação':''} de 1 unidade de Letreiro em Acrílico 10 mm medindo ${larg}×${alt} cm. Inclui pintura automotiva e corte laser. Fixação com dupla face e cola.${hasInst?' Deslocamento incluso.':''}`,
+      nomeItem: 'Letreiro em Acrílico 10 mm',
+      meta: {
+        svcLabel: svcEntry?.label || 'Letreiro em Acrílico',
+        svcIcon: svcEntry?.icon || '🔤',
+        dim: dimLabel, finish: 'Acrílico 10 mm · Pintura Automotiva',
+        material: 'Acrílico 10 mm', svcsIdx,
+        lastCalc: 'completa',
+        lastInputs: {
+          calcType: 'completa', calcSvc: 'letreiro_acrilico',
+          larg, alt, instOn: hasInst, pinst: r.cins, desloc: r.cdist,
+          esp: '10mm', impType: 'pintura', adicional1, montagem, fixacao
+        }
+      }
+    };
+  } catch(e) { console.error('_calcVariacaoAcr10mm:', e); return null; }
 }
 
 // ── Salvar estado da calculadora no item (DOM → meta.lastInputs) ──
@@ -1730,6 +2236,7 @@ function fzAdicionarServico() {
     // Mark as "add mode" so _calcFzPush appends instead of replacing the list
     if (_fzServicesList.length > 0) _fzAddMode = true;
     _addPanelSvcIdx = null; _addPanelEditMode = false; _addPanelEditIdx = null;
+    _apcOpenGroup = null;
     _returnCalcFormsToStep3();
     const grid = document.getElementById('fz-add-svc-grid');
     if (grid) grid.style.display = '';
@@ -1764,7 +2271,7 @@ function _apcSetImp(v){_apcImpressao=v;_apcOpenChip=null;_renderAddPanelConfig()
 function _apcSetLog(v){_apcLogistica=v;_apcOpenChip=null;_renderAddPanelConfig();}
 const _APC_SVC_DEFAULTS = {
   letreiro_acrilico:{mat:'Acrílico',esp:'Acrílico 6 mm',corte:'Laser',imp:'Pintura Automotiva',log:'Instalação'},
-  letreiro_pvc:{mat:'PVC',esp:'PVC 10 mm',corte:'Nenhum',imp:'Nenhum',log:'Instalação'},
+  letreiro_pvc:{mat:'PVC',esp:'PVC 10 mm',corte:'Router',imp:'Pintura Automotiva',log:'Instalação'},
   painel:{mat:'PVC',esp:'PVC 10 mm',corte:'Nenhum',imp:'Digital',log:'Instalação'},
   placa_identificacao:{mat:'PETG',esp:'PETG 3 mm',corte:'Nenhum',imp:'Digital',log:'Instalação'},
   adesivo:{mat:'Adesivo',esp:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital',log:'Instalação'},
@@ -1782,32 +2289,62 @@ const _PVC_FINISH_ESP = ['10mm','20mm','20mm'];
 let _addPanelEditMode = false;
 let _addPanelEditIdx  = null;
 
-let _showMaisOpcoes = false;
+function _apcGrpToggle(gid) {
+  _apcOpenGroup = (_apcOpenGroup === gid) ? null : gid;
+  _addPanelSvcIdx = null;
+  _renderAddPanelGrid();
+}
+
 function _renderAddPanelGrid() {
   const grid = document.getElementById('fz-add-svc-grid');
   if (!grid) return;
-  const mainSvcs = SVCS.map((s,i)=>({s,i})).filter(x=>!x.s.extra);
-  const extraSvcs = SVCS.map((s,i)=>({s,i})).filter(x=>x.s.extra);
-  grid.innerHTML = `
-    <div style="font-size:11px;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Escolha o serviço</div>
-    <div class="fz-pick-grid">
-      ${mainSvcs.map(({s,i})=>`<button class="fz-pick-btn${_addPanelSvcIdx===i?' sel':''}" onclick="addPanelToggleCard(${i})">
-        <span class="fz-pick-btn-icon">${s.icon}</span>
-        <span>${s.label}</span>
-      </button>`).join('')}
-      <button class="fz-pick-btn" onclick="_showMaisOpcoes=!_showMaisOpcoes;_renderAddPanelGrid()" style="opacity:.7">
-        <span class="fz-pick-btn-icon" style="font-size:18px">${_showMaisOpcoes?'−':'+' }</span>
-        <span>${_showMaisOpcoes?'Menos':'Mais'}</span>
-      </button>
-      ${_showMaisOpcoes?extraSvcs.map(({s,i})=>`<button class="fz-pick-btn${_addPanelSvcIdx===i?' sel':''}" onclick="addPanelToggleCard(${i})">
-        <span class="fz-pick-btn-icon">${s.icon}</span>
-        <span>${s.label}</span>
-      </button>`).join(''):''}
-      <button class="fz-pick-btn fz-pick-btn-avancado${document.getElementById('fz-grid-calc-panel')?.style.display!=='none'?' sel':''}" onclick="fzToggleCalcCompleta()">
-        <span class="fz-pick-btn-icon" style="font-size:16px">🧮</span>
-        <span>Calculadora Completa</span>
-      </button>
-    </div>`;
+  const calcSel = document.getElementById('fz-grid-calc-panel')?.style.display !== 'none';
+  let html = '<div style="font-size:11px;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Escolha o serviço</div>';
+  for (let rowStart = 0; rowStart < SVC_GROUPS.length; rowStart += 3) {
+    const rowGroups = SVC_GROUPS.slice(rowStart, rowStart + 3);
+    html += `<div class="fz-pick-grid" style="margin-bottom:0">`;
+    rowGroups.forEach(g => {
+      html += g.soon
+        ? `<button class="fz-pick-btn" style="opacity:.4;cursor:default" disabled>
+            <span class="fz-pick-btn-icon">${g.icon}</span>
+            <span>${g.label}</span>
+            <span style="font-size:9px;opacity:.8;display:block">Em breve</span>
+           </button>`
+        : `<button class="fz-pick-btn${_apcOpenGroup===g.id?' sel':''}" onclick="_apcGrpToggle('${g.id}')">
+            <span class="fz-pick-btn-icon">${g.icon}</span>
+            <span>${g.label}</span>
+           </button>`;
+    });
+    html += `</div>`;
+    if (_apcOpenGroup && rowGroups.some(g => g.id === _apcOpenGroup)) {
+      const openGroup = SVC_GROUPS.find(g => g.id === _apcOpenGroup);
+      html += `<div style="margin:6px 0 2px;padding:10px;background:#f8faff;border:1.5px solid #dbeafe;border-radius:10px">
+        <div class="fz-pick-grid">
+          ${(openGroup?.items||[]).map(it => {
+            const svcIdx = it.svcId ? SVCS.findIndex(s => s.id === it.svcId) : -1;
+            if (it.soon) return `<button class="fz-pick-btn" style="opacity:.4;cursor:default" disabled>
+              <span class="fz-pick-btn-icon">${svcIdx>=0?SVCS[svcIdx].icon:''}</span>
+              <span>${it.label}</span>
+              <span style="font-size:9px;opacity:.8;display:block">Em breve</span>
+            </button>`;
+            return `<button class="fz-pick-btn${_addPanelSvcIdx===svcIdx?' sel':''}" onclick="addPanelToggleCard(${svcIdx})">
+              <span class="fz-pick-btn-icon">${SVCS[svcIdx]?.icon||''}</span>
+              <span>${it.label}</span>
+            </button>`;
+          }).join('')}
+        </div>
+      </div>`;
+    } else {
+      html += `<div style="height:6px"></div>`;
+    }
+  }
+  html += `<div class="fz-pick-grid" style="margin-top:2px">
+    <button class="fz-pick-btn fz-pick-btn-avancado${calcSel?' sel':''}" onclick="fzToggleCalcCompleta()">
+      <span class="fz-pick-btn-icon" style="font-size:16px">🧮</span>
+      <span>Calculadora Completa</span>
+    </button>
+  </div>`;
+  grid.innerHTML = html;
   document.getElementById('fz-add-svc-config').style.display = 'none';
 }
 function fzToggleCalcCompleta() {
@@ -1892,10 +2429,9 @@ function addPanelSelectCard(idx) {
   _apcOpenChip = null;
   if (svc.calcSvc === 'letra_caixa') {
     const _lcMatDesc = {letreiro_aco:'aço inox escovado', letreiro_galv:'galvanizado', letreiro_lato:'latão dourado'}[svc.id] || svc.label;
-    const _cam0 = _lcCamadas[0];
-    _apcNome = `Fornecimento e instalação de serviço de Letra Caixa em ${_lcMatDesc} medindo ${_cam0.larg}×${_cam0.alt} cm. Fixação com dupla face e cola PU.`;
+    _apcNome = `Letra Caixa em ${_lcMatDesc}`;
   } else {
-    _apcNome = svc.label + ' — ' + p.w + '×' + p.h + 'cm';
+    _apcNome = svc.label;
   }
   // Close grid calc panel if open (user selected a service)
   const _gcp = document.getElementById('fz-grid-calc-panel');
@@ -1962,8 +2498,8 @@ function _matPickerConfirm(){
 
 // ── Per-service options for quick config panel ──
 const _APC_SVC_CORTE = {
-  letreiro_acrilico:   ['Nenhum','Router','Laser','Laser Fibra'],
-  letreiro_pvc:        ['Nenhum','Router','Laser'],
+  letreiro_acrilico:   ['Nenhum','Router','Laser'],
+  letreiro_pvc:        ['Nenhum','Router'],
   painel:              ['Nenhum','Router','Laser','Laser Fibra'],
   placa_identificacao: ['Nenhum','Laser','Laser Fibra','Plasma'],
   adesivo:             ['Nenhum','Recorte Plotter'],
@@ -2066,7 +2602,7 @@ function _apcBuildPrice() {
         if (!_addPanelLarg) _addPanelLarg = fin.w;
         if (!_addPanelAlt)  _addPanelAlt  = fin.h;
         const matLabel = fin.label.split('|')[0].trim();
-        return _pricebox(fin.prazo, fin.vista, `${fin.w}×${fin.h}cm`, matLabel);
+        return _pricebox(fin.prazo, fin.vista, `${fin.w}×${fin.h} cm`, matLabel);
       }
     }
     // Letra Caixa: estimate from APC camada state vars
@@ -2095,7 +2631,7 @@ function _apcBuildPrice() {
       const C=totalC+cu_inst;
       const {vista,prazo}=applyMarkup(C);
       const firstCam=_lcCamadas[0];
-      const dimLabel=_lcCamadas.length>1?`${_lcCamadas.length} tipos de letra`:`${firstCam.larg}×${firstCam.alt}cm × ${firstCam.qty} letras`;
+      const dimLabel=_lcCamadas.length>1?`${_lcCamadas.length} tipos de letra`:`${firstCam.larg}×${firstCam.alt} cm × ${firstCam.qty} letras`;
       return _pricebox(prazo,vista,dimLabel,`${mat} ${esp}`);
     }
     // Adesivo: use area-based formula matching Calculadora com Camadas
@@ -2115,7 +2651,7 @@ function _apcBuildPrice() {
       const ajuste=svc.defaultAjuste||0;
       const C=(cu_mat+cu_imp+cu_rec+cu_inst+cu_ret)*qtd+cdist+ajuste;
       const {vista,prazo}=applyMarkup(C);
-      return _pricebox(prazo,vista,`${larg}×${alt}cm${qtd>1?' × '+qtd:''}`,finLabel);
+      return _pricebox(prazo,vista,`${larg}×${alt} cm${qtd>1?' × '+qtd:''}`,finLabel);
     }
     const forma=_apcMaterial==='Adesivo'?'Vinil':'Chapa';
     const mk={operacional:30,comissao:100,imposto:10,juros:10};
@@ -2133,9 +2669,18 @@ function _apcBuildPrice() {
       const _am={'Acrílico 3 mm':100,'Acrílico 6 mm':180,'Acrílico 10 mm':250};
       it.adicional1=_am[it.espessura]||0;
     }
+    if (svc.calcSvc === 'letreiro_pvc') {
+      if (!_apcCorte||_apcCorte==='Nenhum') it.corte_tipo='Router';
+      if (!_apcImpressao||_apcImpressao==='Nenhum') it.impressao_tipo='Pintura Automotiva';
+      it.instalacao_tipo='Comum';
+      it.distancia='16-20 km';
+      it.montagem=30; it.fixacao=30;
+      const _pm={'PVC 5 mm':80,'PVC 10 mm':200,'PVC 20 mm':350};
+      it.adicional1=_pm[it.espessura]||0;
+    }
     const r=calcItemGeneric(it), m2=applyMarginsGen(r.sub,mk);
     const finLabel=(svc.finishes||[])[_addPanelFinishIdx||0]?.label||'';
-    return _pricebox(m2.prazo,m2.vista,`${larg}×${alt}cm`,finLabel);
+    return _pricebox(m2.prazo,m2.vista,`${larg}×${alt} cm`,finLabel);
   } catch(e) { return ''; }
 }
 function _renderAddPanelConfig() {
@@ -2242,11 +2787,11 @@ function _addPanelBuildPrice() {
     const {vista:bv,prazo:bp}=quickEstimate(svc,larg,alt);
     const vF=Math.ceil((bv*fin.mult)*qtd+_addPanelLogisticaVal);
     const pF=Math.ceil((bp*fin.mult)*qtd+_addPanelLogisticaVal*1.10);
-    return `<div class="finish-price"><div class="fp-dim">${svc.label} · ${larg}×${alt}cm${qtdLabel}</div><div class="fp-boxes"><div class="fp-box fp-prazo"><div class="fp-lbl">A Prazo</div><div class="fp-val">${fmt(pF)}</div></div><div class="fp-box fp-vista"><div class="fp-lbl">À Vista</div><div class="fp-val">${fmt(vF)}</div></div></div></div>`;
+    return `<div class="finish-price"><div class="fp-dim">${svc.label} · ${larg}×${alt} cm${qtdLabel}</div><div class="fp-boxes"><div class="fp-box fp-prazo"><div class="fp-lbl">A Prazo</div><div class="fp-val">${fmt(pF)}</div></div><div class="fp-box fp-vista"><div class="fp-lbl">À Vista</div><div class="fp-val">${fmt(vF)}</div></div></div></div>`;
   }
   const {vista,prazo}=applyMarkup(C);
   const espStr=espLabel?` · ${espLabel}`:'';
-  return `<div class="finish-price"><div class="fp-dim">${svc.label} · ${larg}×${alt}cm${espStr}${qtdLabel}</div><div class="fp-boxes"><div class="fp-box fp-prazo"><div class="fp-lbl">A Prazo</div><div class="fp-val">${fmt(prazo)}</div></div><div class="fp-box fp-vista"><div class="fp-lbl">À Vista</div><div class="fp-val">${fmt(vista)}</div></div></div></div>`;
+  return `<div class="finish-price"><div class="fp-dim">${svc.label} · ${larg}×${alt} cm${espStr}${qtdLabel}</div><div class="fp-boxes"><div class="fp-box fp-prazo"><div class="fp-lbl">A Prazo</div><div class="fp-val">${fmt(prazo)}</div></div><div class="fp-box fp-vista"><div class="fp-lbl">À Vista</div><div class="fp-val">${fmt(vista)}</div></div></div></div>`;
 }
 function addPanelSetPreset(pi) {
   _addPanelPresetIdx = pi;
@@ -2282,6 +2827,18 @@ function addPanelSetLog(tipo) {
   _renderAddPanelConfig();
 }
 
+// ── Constrói nomeItem com material e espessura para os serviços que precisam ──
+function _buildNomeItem(svcId, svcLabel, espessura) {
+  if (!espessura) return svcLabel;
+  // Letreiro PVC / Acrílico: label já inclui o material ("Letreiro em PVC"), só adiciona espessura
+  if (['letreiro_pvc_flat','letreiro_acr','letreiro_3d'].includes(svcId)) {
+    const m = espessura.match(/(\d[\d,\.]*\s*mm)/i);
+    return m ? `${svcLabel} ${m[1]}` : `${svcLabel} em ${espessura}`;
+  }
+  // Placa, Painel: label não tem material, adiciona "em [espessura]"
+  return `${svcLabel} em ${espessura}`;
+}
+
 function addPanelFormalizar() {
   if (_addPanelSvcIdx === null) return;
   const svc = SVCS[_addPanelSvcIdx];
@@ -2291,7 +2848,7 @@ function addPanelFormalizar() {
   const fins = FINISHES[svc.calcSvc]||[];
   const fin  = fins[_addPanelFinishIdx]||fins[0]||{mult:1.0,label:'Padrão'};
   const logLabel = {entrega:'Entrega',instalacao:'Instalação'}[_addPanelLogistica]||'';
-  const dimLabel = qtd > 1 ? `${larg}×${alt}cm × ${qtd}un` : `${larg}×${alt}cm`;
+  const dimLabel = qtd > 1 ? `${larg}×${alt} cm × ${qtd}un` : `${larg}×${alt} cm`;
   const meta = {svcLabel:svc.label, svcIcon:svc.icon, dim:dimLabel, finish:fin.label, svcsIdx:_addPanelSvcIdx};
   const area_m2 = (larg*alt)/10000;
   let items, mk;
@@ -2334,15 +2891,32 @@ function addPanelFormalizar() {
     if(_addPanelLogisticaVal>0){const li=items.findIndex(it=>/desloc|instala|entrega/i.test(it.label));if(li>=0)items[li].val=_addPanelLogisticaVal;else items.push({label:logLabel||'Logística',val:_addPanelLogisticaVal});}
     mk=applyMarkup(items.reduce((s,it)=>s+(it.val||0),0));
   }
+  // Compute nomeItem before building description
+  const _apfEsp = svc.finMat?.[_addPanelFinishIdx]?.e || fin.label || '';
+  const _apfNomeItem = ['letreiro_pvc_flat','letreiro_acr','placa','painel'].includes(svc.id) ? _buildNomeItem(svc.id, svc.label, _apfEsp) : '';
+  const _apfLabel = _apfNomeItem || svc.label;
   const _apfInstStr=_addPanelLogistica==='Instalação'||_addPanelLogistica==='Retirada + Instalação'?' e instalação':_addPanelLogistica==='Entrega'?' e entrega':'';
-  const _apfQtdStr=qtd>1?`, ${qtd} unidades`:`, 1 unidade`;
-  const _apfAutoDesc=`Fornecimento${_apfInstStr} de ${svc.label} medindo ${larg}×${alt} cm${_apfQtdStr}.`;
-  const newSvc = {meta, items, vista:mk.vista, prazo:mk.prazo, prazo_entrega:10, descricao:_apfAutoDesc};
+  const _apfQtdStr=qtd===1?'1 unidade':`${qtd} unidades`;
+  // Inclui + Fixação por tipo de serviço
+  let _apfIncluiStr='',_apfFixStr='';
+  if(svc.calcSvc==='letreiro_acrilico'){
+    const _pp=[];if(_addPanelImpOn)_pp.push('pintura automotiva');if(_addPanelCorteOn)_pp.push('corte laser');
+    if(_pp.length)_apfIncluiStr=` Inclui ${_pp.join(' e ')}.`;
+    _apfFixStr=' Fixação com dupla face e cola.';
+  }else if(svc.calcSvc==='letreiro_pvc'){
+    const _pp=[];if(_addPanelImpOn)_pp.push('pintura automotiva');if(_addPanelCorteOn)_pp.push('corte router');
+    if(_pp.length)_apfIncluiStr=` Inclui ${_pp.join(' e ')}.`;
+    _apfFixStr=' Fixação com dupla face e cola.';
+  }
+  const _apfDeslVal=_addPanelLogistica!=='fornecimento'&&(svc.calcSvc==='letreiro_acrilico'||svc.calcSvc==='letreiro_pvc')?15:0;
+  const _apfDeslStr=_apfDeslVal>0?` Deslocamento incluso (${dlbl(_apfDeslVal)}).`:'';
+  const _apfAutoDesc=`Fornecimento${_apfInstStr} de ${_apfQtdStr} de ${_apfLabel} medindo ${larg}×${alt} cm.${_apfIncluiStr}${_apfFixStr}${_apfDeslStr}`;
+  const newSvc = {meta, items, vista:mk.vista, prazo:mk.prazo, prazo_entrega:10, descricao:_apfAutoDesc, nomeItem:_apfNomeItem};
   if (_addPanelEditMode && _addPanelEditIdx !== null) {
     // Edit mode: replace existing service
     const existing = _fzServicesList[_addPanelEditIdx];
     newSvc.descricao = existing?.descricao || _apfAutoDesc;
-    newSvc.nomeItem  = existing?.nomeItem  || '';
+    newSvc.nomeItem  = existing?.nomeItem  || _apfNomeItem;
     newSvc.prazo_entrega = existing?.prazo_entrega ?? 10;
     _fzServicesList[_addPanelEditIdx] = newSvc;
     _fzEditingIdx = _addPanelEditIdx;
@@ -2383,6 +2957,23 @@ function addPanelFormalizar2() {
     it.distancia = 'Sem deslocamento';
   }
   it.unidades = qtd;
+  // Service-specific overrides (letreiro_pvc e letreiro_acrilico: distância padrão 16-20 km, montagem/fixação/adicional)
+  if (svc.calcSvc === 'letreiro_pvc') {
+    if (!_apcCorte||_apcCorte==='Nenhum') it.corte_tipo='Router';
+    if (!_apcImpressao||_apcImpressao==='Nenhum') it.impressao_tipo='Pintura Automotiva';
+    it.instalacao_tipo='Comum'; it.distancia='16-20 km';
+    it.montagem=30; it.fixacao=30;
+    const _pm2={'PVC 5 mm':80,'PVC 10 mm':200,'PVC 20 mm':350};
+    if (!it.adicional1) it.adicional1=_pm2[it.espessura]||0;
+  }
+  if (svc.calcSvc === 'letreiro_acrilico') {
+    if (!_apcCorte||_apcCorte==='Nenhum') it.corte_tipo='Laser';
+    if (!_apcImpressao||_apcImpressao==='Nenhum') it.impressao_tipo='Pintura Automotiva';
+    it.distancia='16-20 km';
+    it.montagem=30; it.fixacao=30;
+    const _am2={'Acrílico 3 mm':100,'Acrílico 6 mm':180,'Acrílico 10 mm':250};
+    if (!it.adicional1) it.adicional1=_am2[it.espessura]||0;
+  }
   _genItems = [it];
   if (!_apcNome) _apcNome = svc.label;
   // Save chip state so genFormalizar can embed it in meta for edit-mode restoration
@@ -2409,7 +3000,13 @@ function addPanelFormalizar2() {
   }
   // Marca como criado pela calculadora simplificada
   const _sf = _fzServicesList[_fzEditingIdx];
-  if (_sf) _sf.meta.lastCalc = 'simplified';
+  if (_sf) {
+    _sf.meta.lastCalc = 'simplified';
+    // Injeta nomeItem com material e espessura para serviços relevantes
+    if (['letreiro_pvc_flat','letreiro_acr','placa','painel'].includes(svc.id)) {
+      _sf.nomeItem = _sf.nomeItem || _buildNomeItem(svc.id, svc.label, _apcEspessura);
+    }
+  }
   // Keep panel open at grid view so user can add more services
   _fzAddMode = true;
   _addPanelSvcIdx = null;
@@ -2478,7 +3075,7 @@ function addPanelOpenAdvanced() {
   const svc = SVCS[_addPanelSvcIdx];
   // Auto-route: adesivos e letra_caixa → Camadas; letreiro_3d/acr → Completa; outros → escolha
   if (['adesivo','letra_caixa'].includes(svc.calcSvc)) { _openCalcAnterior(); return; }
-  if (['letreiro_3d','letreiro_acr'].includes(svc.id)) { _openCalcCompleta(); return; }
+  if (['letreiro_3d','letreiro_acr','letreiro_pvc_flat'].includes(svc.id)) { _openCalcCompleta(); return; }
   const hasOldCalc = ['letreiro_acrilico','letreiro_pvc','placa_identificacao'].includes(svc.calcSvc);
   container.innerHTML = `
     <div style="padding:4px 0 10px">
@@ -2565,9 +3162,10 @@ function _openCalcAnterior() {
 }
 function _openCalcCompleta() {
   const container = document.getElementById('fz-add-calc-container');
-  if (!container || _addPanelSvcIdx === null) return;
+  if (!container) return;
   _returnCalcFormsToStep3();
-  _genInitFromSvc(SVCS[_addPanelSvcIdx]);
+  // Só inicializa do SVCS se tiver um serviço selecionado (em edição de genérico, pula)
+  if (_addPanelSvcIdx !== null) _genInitFromSvc(SVCS[_addPanelSvcIdx]);
   container.innerHTML = '<div id="fz-gen-adv-form"></div>';
   container.style.display = 'block';
   renderGenAdvForm();
@@ -2950,8 +3548,8 @@ function _iaApplyResult(data) {
       const mk = applyMarkup(baseC);
       // Generate auto-description so the fallback never shows a travessão
       const _iaInstStr=logistica==='instalacao'?' e instalação':logistica==='entrega'?' e entrega':'';
-      const _iaQtdStr=qtd>1?`, ${qtd} unidades`:`, 1 unidade`;
-      const _iaAutoDesc=`Fornecimento${_iaInstStr} de ${s.label||svcsEntry.label} medindo ${larg}×${alt} cm${_iaQtdStr}.`;
+      const _iaQtdStr=qtd>1?`${qtd} unidades`:'1 unidade';
+      const _iaAutoDesc=`Fornecimento${_iaInstStr} de ${_iaQtdStr} de ${s.label||svcsEntry.label} medindo ${larg}×${alt} cm.`;
       _fzServicesList.push({meta,items,vista:mk.vista,prazo:mk.prazo,descricao:_iaAutoDesc,confidence:s.confidence??0.7});
     });
     _fzEditingIdx = _fzServicesList.length-1;
@@ -3173,7 +3771,7 @@ function _buildOrcHTML(d){
   <tbody>${d.serviceRows}</tbody>
 </table>
 
-<div class="totals-block">
+${d.hideTotal ? '' : `<div class="totals-block">
   <div class="total-row main">
     <span class="tl">Total faturado para 15 dias no boleto (ou em 3x no cartão de crédito):</span>
     <span class="tv">${R(d.total_prazo)}</span>
@@ -3184,7 +3782,7 @@ function _buildOrcHTML(d){
       <span style="font-size:9pt;font-weight:normal;color:#35597f;opacity:0.8">(${R(d.total_vista/2)} + ${R(d.total_vista/2)})</span>
     </span>
   </div>
-</div>
+</div>`}
 
 <div class="footer-box">
   <div class="fbox"><h4>Formas de Pagamento</h4>
@@ -3219,43 +3817,93 @@ function fzBuildDocHTML() {
     _clienteFone    && `<div style="font-size:12px;color:#52525b">Tel: ${_clienteFone}</div>`,
     _clienteEmail   && `<div style="font-size:12px;color:#52525b">${_clienteEmail}</div>`,
   ].filter(Boolean).join('');
-  const svcsHtml = _fzServicesList.map((svc) => {
-    const C   = svc.items.reduce((s,it)=>s+(parseFloat(it.val)||0),0);
-    const mk  = applyMarkup(C);
+  // Pré-computar grupos de variação para o PDF
+  const _docVgMap = {};
+  _fzServicesList.forEach((svc, i) => {
+    const g = svc.meta.varGrupo;
+    if (g) {
+      if (!_docVgMap[g]) _docVgMap[g] = { items:[], approvedIdx:-1 };
+      _docVgMap[g].items.push(i);
+      if (svc.meta.varAprovada) _docVgMap[g].approvedIdx = i;
+    }
+  });
+  const _docRendered = new Set();
+  const _letters = 'ABCDEFGH';
+
+  const _renderDocCard = (svc, prefix, dimStyle, approved) => {
+    const C = svc.items.reduce((s,it)=>s+(parseFloat(it.val)||0),0);
+    const mk = applyMarkup(C);
     const _nome = svc.nomeItem || '';
     const desc = svc.descricao || '';
-    const descContent = _nome
-      ? (desc ? `<strong>${_nome}:</strong><br>${desc}` : `<strong>${_nome}</strong>`)
-      : desc;
-    return `
-      <div style="border:1px solid #e4e4e7;border-radius:10px;padding:14px;margin-bottom:12px">
-        <div style="font-size:13px;font-weight:700;color:#18181b;margin-bottom:4px">${svc.meta.svcIcon} ${svc.meta.svcLabel}</div>
-        <div style="font-size:11px;color:#71717a;margin-bottom:2px">${svc.meta.dim} · ${svc.meta.finish}</div>
-        ${descContent?`<div style="font-size:11px;color:#52525b;margin-bottom:10px;margin-top:4px">${descContent}</div>`:'<div style="margin-bottom:8px"></div>'}
-        <div style="margin-bottom:10px">
-          ${svc.items.filter(it=>it.val>0).map(it=>`
-            <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f4f4f5;font-size:11px">
-              <span style="color:#52525b">${it.label}</span><span style="font-weight:600">${fr(+it.val)}</span>
-            </div>`).join('')}
-          <div style="display:flex;justify-content:space-between;padding:5px 0 0;font-size:12px;font-weight:700;border-top:1.5px solid #e4e4e7;margin-top:2px">
-            <span>Custo Base</span><span>${fr(C)}</span>
-          </div>
+    const descContent = _nome ? (desc ? `<strong>${_nome}:</strong><br>${desc}` : `<strong>${_nome}</strong>`) : desc;
+    const borderColor = approved === true ? '#86efac' : approved === false ? '#d4d4d8' : '#e4e4e7';
+    const bg = approved === true ? '#f0fdf4' : approved === false ? '#fafafa' : '#fff';
+    const opacity = approved === false ? '0.55' : '1';
+    return `<div style="border:1.5px solid ${borderColor};border-radius:10px;padding:14px;margin-bottom:8px;background:${bg};opacity:${opacity}">
+      ${prefix?`<div style="font-size:8px;font-weight:800;color:${approved===true?'#16a34a':'#7c3aed'};text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">${prefix}${approved===true?' · ✓ Aprovado pelo Cliente':''}</div>`:''}
+      <div style="font-size:13px;font-weight:700;color:#18181b;margin-bottom:4px">${svc.meta.svcIcon} ${svc.meta.svcLabel}</div>
+      <div style="font-size:11px;color:#71717a;margin-bottom:2px">${svc.meta.dim} · ${svc.meta.finish}</div>
+      ${descContent?`<div style="font-size:11px;color:#52525b;margin-bottom:10px;margin-top:4px">${descContent}</div>`:'<div style="margin-bottom:8px"></div>'}
+      <div style="margin-bottom:10px">
+        ${svc.items.filter(it=>it.val>0).map(it=>`
+          <div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #f4f4f5;font-size:11px">
+            <span style="color:#52525b">${it.label}</span><span style="font-weight:600">${fr(+it.val)}</span>
+          </div>`).join('')}
+        <div style="display:flex;justify-content:space-between;padding:5px 0 0;font-size:12px;font-weight:700;border-top:1.5px solid #e4e4e7;margin-top:2px">
+          <span>Custo Base</span><span>${fr(C)}</span>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div style="background:rgba(245,158,11,.07);border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:10px;text-align:center">
-            <div style="font-size:9px;font-weight:700;color:#d97706;text-transform:uppercase;margin-bottom:2px">A Prazo</div>
-            <div style="font-size:20px;font-weight:800;color:#d97706">${fv(mk.prazo)}</div>
-          </div>
-          <div style="background:rgba(37,99,235,.07);border:1.5px solid rgba(37,99,235,.25);border-radius:9px;padding:10px;text-align:center">
-            <div style="font-size:9px;font-weight:700;color:#2563eb;text-transform:uppercase;margin-bottom:2px">À Vista</div>
-            <div style="font-size:20px;font-weight:800;color:#2563eb">${fv(mk.vista)}</div>
-          </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:rgba(245,158,11,.07);border:1.5px solid rgba(245,158,11,.25);border-radius:9px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-weight:700;color:#d97706;text-transform:uppercase;margin-bottom:2px">A Prazo</div>
+          <div style="font-size:20px;font-weight:800;color:#d97706">${fv(mk.prazo)}</div>
         </div>
-      </div>`;
-  }).join('');
-  const tv = _fzServicesList.reduce((s,svc)=>s+(svc.vista||0),0);
-  const tp = _fzServicesList.reduce((s,svc)=>s+(svc.prazo||0),0);
-  const totalHtml = _fzServicesList.length > 1 ? `
+        <div style="background:rgba(37,99,235,.07);border:1.5px solid rgba(37,99,235,.25);border-radius:9px;padding:10px;text-align:center">
+          <div style="font-size:9px;font-weight:700;color:#2563eb;text-transform:uppercase;margin-bottom:2px">À Vista</div>
+          <div style="font-size:20px;font-weight:800;color:#2563eb">${fv(mk.vista)}</div>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  const svcsBlocks = [];
+  _fzServicesList.forEach((svc, i) => {
+    if (_docRendered.has(i)) return;
+    const g = svc.meta.varGrupo;
+    if (g && _docVgMap[g]) {
+      const grp = _docVgMap[g];
+      if (grp.items[0] !== i) { _docRendered.add(i); return; }
+      // Bloco de variações
+      const hasApproved = grp.approvedIdx >= 0;
+      const innerCards = grp.items.map((idx, pos) => {
+        _docRendered.add(idx);
+        const sv = _fzServicesList[idx];
+        const letter = _letters[pos] || (pos+1);
+        const approved = hasApproved ? (sv.meta.varAprovada ? true : false) : null;
+        return _renderDocCard(sv, `Opção ${letter}`, null, approved);
+      }).join('');
+      svcsBlocks.push(`<div style="border:2px solid #c4b5fd;border-radius:12px;padding:10px;margin-bottom:14px;background:linear-gradient(135deg,#faf5ff 0%,#f5f3ff 100%)">
+        <div style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">🔀 Variações — escolha uma opção</div>
+        ${innerCards}
+      </div>`);
+    } else {
+      _docRendered.add(i);
+      svcsBlocks.push(_renderDocCard(svc, null, null, null));
+    }
+  });
+  const svcsHtml = svcsBlocks.join('');
+
+  // Total: apenas itens sem grupo + variação aprovada; oculto se grupo sem aprovação
+  const _hasGroups = _fzServicesList.some(svc => svc.meta.varGrupo);
+  const _allResolved = !_fzServicesList.some(svc => {
+    if (!svc.meta.varGrupo) return false;
+    return !_fzServicesList.some(s => s.meta.varGrupo === svc.meta.varGrupo && s.meta.varAprovada);
+  });
+  const _countable = _fzServicesList.filter(svc => !svc.meta.varGrupo || svc.meta.varAprovada);
+  const tv = _countable.reduce((s,svc)=>s+(svc.vista||0),0);
+  const tp = _countable.reduce((s,svc)=>s+(svc.prazo||0),0);
+  const showTotal = _fzServicesList.length > 1 && (!_hasGroups || _allResolved);
+  const totalHtml = showTotal ? `
     <div style="padding:14px 0 0;border-top:2px solid #18181b;margin-top:4px">
       <div style="font-size:11px;font-weight:700;color:#71717a;text-transform:uppercase;margin-bottom:8px">Total Geral</div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
@@ -3298,17 +3946,63 @@ function _fzBuildTextSummary() {
   linhas.push('📋 *ORÇAMENTO ' + num + '*');
   if (_clienteEmpresa || _clienteContato) linhas.push('Cliente: ' + (_clienteEmpresa || _clienteContato));
   linhas.push('');
-  _fzServicesList.forEach(function(svc, i) {
-    const titulo = svc.nomeItem || svc.meta.svcLabel;
-    linhas.push('*' + (i+1) + '. ' + titulo + '*');
-    linhas.push('   ' + svc.meta.dim + ' · ' + svc.meta.finish);
-    if (svc.descricao) linhas.push('   ' + svc.descricao);
-    linhas.push('   À Vista: ' + fr(svc.vista) + '  |  A Prazo: ' + fr(svc.prazo));
-    linhas.push('');
+
+  // Pré-computar grupos para texto
+  const _txtVgMap = {};
+  _fzServicesList.forEach((svc, i) => {
+    const g = svc.meta.varGrupo;
+    if (g) {
+      if (!_txtVgMap[g]) _txtVgMap[g] = { items:[], approvedIdx:-1 };
+      _txtVgMap[g].items.push(i);
+      if (svc.meta.varAprovada) _txtVgMap[g].approvedIdx = i;
+    }
   });
-  if (_fzServicesList.length > 1) {
-    const tv = _fzServicesList.reduce(function(s,x){return s+(x.vista||0);}, 0);
-    const tp = _fzServicesList.reduce(function(s,x){return s+(x.prazo||0);}, 0);
+  const _txtRendered = new Set();
+  const _letters = 'ABCDEFGH';
+  let itemNum = 1;
+
+  _fzServicesList.forEach(function(svc, i) {
+    if (_txtRendered.has(i)) return;
+    const g = svc.meta.varGrupo;
+    if (g && _txtVgMap[g]) {
+      const grp = _txtVgMap[g];
+      if (grp.items[0] !== i) { _txtRendered.add(i); return; }
+      linhas.push('*' + itemNum + '. 🔀 VARIAÇÕES (escolha uma opção)*');
+      itemNum++;
+      grp.items.forEach(function(idx, pos) {
+        _txtRendered.add(idx);
+        const sv = _fzServicesList[idx];
+        const titulo = sv.nomeItem || sv.meta.svcLabel;
+        const letter = _letters[pos] || (pos+1);
+        const aprov = sv.meta.varAprovada ? ' ✓ *APROVADO*' : '';
+        linhas.push('   *Opção ' + letter + ': ' + titulo + aprov + '*');
+        linhas.push('   ' + sv.meta.dim + ' · ' + sv.meta.finish);
+        if (sv.descricao) linhas.push('   ' + sv.descricao);
+        linhas.push('   À Vista: ' + fr(sv.vista) + '  |  A Prazo: ' + fr(sv.prazo));
+      });
+      linhas.push('');
+    } else {
+      _txtRendered.add(i);
+      const titulo = svc.nomeItem || svc.meta.svcLabel;
+      linhas.push('*' + itemNum + '. ' + titulo + '*');
+      itemNum++;
+      linhas.push('   ' + svc.meta.dim + ' · ' + svc.meta.finish);
+      if (svc.descricao) linhas.push('   ' + svc.descricao);
+      linhas.push('   À Vista: ' + fr(svc.vista) + '  |  A Prazo: ' + fr(svc.prazo));
+      linhas.push('');
+    }
+  });
+
+  // Total apenas se resolvido
+  const _hasGroups = _fzServicesList.some(svc => svc.meta.varGrupo);
+  const _allResolved = !_fzServicesList.some(svc => {
+    if (!svc.meta.varGrupo) return false;
+    return !_fzServicesList.some(s => s.meta.varGrupo === svc.meta.varGrupo && s.meta.varAprovada);
+  });
+  const _countable = _fzServicesList.filter(svc => !svc.meta.varGrupo || svc.meta.varAprovada);
+  if (_countable.length > 1 && (!_hasGroups || _allResolved)) {
+    const tv = _countable.reduce(function(s,x){return s+(x.vista||0);}, 0);
+    const tp = _countable.reduce(function(s,x){return s+(x.prazo||0);}, 0);
     linhas.push('*TOTAL À VISTA: ' + fr(tv) + '*');
     linhas.push('*TOTAL A PRAZO: ' + fr(tp) + '*');
     linhas.push('');
@@ -3381,8 +4075,13 @@ function _fzUpdateSalvarBtn() {
   const btn = document.getElementById('btn-salvar-crm');
   if (!btn) return;
   if (_fzSavedOrcId) {
-    btn.textContent = '📝 Atualizar CRM';
-    btn.title = 'Atualiza o orçamento já salvo com as alterações atuais';
+    if (!_fzServicesList.length) {
+      btn.textContent = '📝 Atualizar Rascunho';
+      btn.title = 'Orçamento salvo como rascunho — adicione serviços e salve novamente para ativar';
+    } else {
+      btn.textContent = '📝 Atualizar CRM';
+      btn.title = 'Atualiza o orçamento já salvo com as alterações atuais';
+    }
   } else {
     btn.textContent = '💾 Salvar no CRM';
     btn.title = '';
@@ -3401,13 +4100,13 @@ function _fzCrmFeedback(ok) {
     btn.textContent = '⚠ Erro ao salvar';
     btn.style.background = '#dc2626';
     btn.disabled = true;
-    setTimeout(() => { btn.textContent = '💾 Salvar no CRM'; btn.style.background = '#16a34a'; btn.disabled = false; }, 4000);
+    setTimeout(() => { btn.style.background = '#16a34a'; btn.disabled = false; _fzUpdateSalvarBtn(); }, 4000);
   }
 }
 
 async function fzSalvarNoCRM() {
   if (!_fzRequireCliente()) return;
-  if (!_fzServicesList.length) { alert('Adicione pelo menos um serviço antes de salvar.'); return; }
+  const _isRascunho = !_fzServicesList.length;
   const btn = document.getElementById('btn-salvar-crm');
   if (btn) { btn.textContent = '⏳ Salvando…'; btn.disabled = true; }
 
@@ -3453,13 +4152,16 @@ async function fzSalvarNoCRM() {
     // UPDATE: localiza o registro existente e atualiza os dados variáveis
     const existIdx = cs.orcamentos.findIndex(o => o.id === _fzSavedOrcId);
     if (existIdx >= 0) {
+      const _prevStatus = cs.orcamentos[existIdx].status;
       Object.assign(cs.orcamentos[existIdx], {
         servicos,
         total_vista: parseFloat(totalVista.toFixed(2)),
         total_prazo: parseFloat(totalPrazo.toFixed(2)),
         prazo_entrega: _fzPrazoGlobal||7,
         cliente:_clienteContato, empresa:_clienteEmpresa,
-        telefone:_clienteFone, email:_clienteEmail
+        telefone:_clienteFone, email:_clienteEmail,
+        // Se era Rascunho e agora tem serviços → promove para Aberto
+        status: (!_isRascunho && _prevStatus === 'Rascunho') ? 'Aberto' : (_isRascunho ? 'Rascunho' : _prevStatus)
       });
       // Atualiza valor no card CRM correspondente
       const crmCard = cs.crm.find(c => c.orcamentoId === _fzSavedOrcId);
@@ -3469,6 +4171,7 @@ async function fzSalvarNoCRM() {
         crmCard.cliente = _clienteContato;
         crmCard.empresa = _clienteEmpresa;
         crmCard.titulo = _clienteContato+(_clienteEmpresa?' — '+_clienteEmpresa:'');
+        crmCard.rascunho = _isRascunho;
       }
     } else {
       // ID não encontrado (apagado externamente) → cria novo
@@ -3487,7 +4190,7 @@ async function fzSalvarNoCRM() {
       cliente:_clienteContato, empresa:_clienteEmpresa,
       telefone:_clienteFone, email:_clienteEmail,
       data:hoje, prazo_entrega:_fzPrazoGlobal||7,
-      status:'Aberto', descricao:'', servicos, responsavel:'Marcelo',
+      status:_isRascunho?'Rascunho':'Aberto', descricao:'', servicos, responsavel:'Marcelo',
       total_vista:parseFloat(totalVista.toFixed(2)),
       total_prazo:parseFloat(totalPrazo.toFixed(2))
     };
@@ -3501,7 +4204,8 @@ async function fzSalvarNoCRM() {
       titulo:_clienteContato+(_clienteEmpresa?' — '+_clienteEmpresa:''),
       cliente:_clienteContato, empresa:_clienteEmpresa,
       valor:novoOrc.total_prazo, valor_vista:novoOrc.total_vista,
-      etapa:1, data:hoje, notas:'', responsavel:'Marcelo'
+      etapa:1, data:hoje, notas:'', responsavel:'Marcelo',
+      rascunho:_isRascunho
     });
 
     // 6. Criar tarefa vinculada
@@ -3540,6 +4244,8 @@ function fzGerarPDF() {
   const R=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const total_prazo=_fzServicesList.reduce((s,svc)=>s+(svc.prazo||0),0);
   const total_vista=_fzServicesList.reduce((s,svc)=>s+(svc.vista||0),0);
+  // Oculta total quando existem itens de variação (alternativas — soma não faz sentido)
+  const _pdfHideTotal = _fzServicesList.some(svc => svc.meta?.varGrupo);
   const serviceRows=_fzServicesList.map((svc,idx)=>{
     const _nomePDF = svc.nomeItem || '';
     const _descPDF = svc.descricao || '';
@@ -3566,6 +4272,7 @@ function fzGerarPDF() {
     serviceRows,
     total_prazo,
     total_vista,
+    hideTotal: _pdfHideTotal,
     descricao:'',
     prazo_texto:'Em até 7 dias úteis, após a aprovação das artes e definição do pagamento.',
     validade_texto:'60 dias.'
@@ -3621,46 +4328,50 @@ const SVCS = [
     finishes:[{label:'3 mm',icon:'⬜',desc:'Fino e leve',mult:1.0},{label:'6 mm',icon:'🔲',desc:'Padrão 3D',mult:1.3},{label:'10 mm',icon:'◼️',desc:'Extra espessura',mult:1.6}],
     finMat:[{m:'PVC',e:'PVC 5 mm'},{m:'PVC',e:'PVC 10 mm'},{m:'PVC',e:'PVC 20 mm'}],
     presets:[{l:'70×35cm',w:70,h:35},{l:'100×50cm',w:100,h:50},{l:'200×100cm',w:200,h:100}] },
-  { id:'letreiro_acr', icon:'🔤', label:'Letreiro Acrílico',      calcSvc:'letreiro_acrilico',   adTipo:null,    presets:[{l:'70×35cm',w:70,h:35},{l:'100×50cm',w:100,h:50},{l:'200×100cm',w:200,h:100}] },
-  { id:'letreiro_aco', icon:'🪞', label:'Letra Caixa Aço Escovado',  calcSvc:'letra_caixa', adTipo:null,
-    finishes:[{label:'Chapa 26',icon:'🔩',desc:'0,5mm · ultra fino',mult:1.0},{label:'Chapa 24',icon:'⚙️',desc:'0,6mm · fino',mult:1.1},{label:'Chapa 22',icon:'🔧',desc:'0,8mm · médio',mult:1.3}],
+  { id:'letreiro_acr', icon:'🔤', label:'Letreiro em Acrílico',    calcSvc:'letreiro_acrilico',   adTipo:null,    presets:[{l:'70×35cm',w:70,h:35},{l:'100×50cm',w:100,h:50},{l:'200×100cm',w:200,h:100}] },
+  { id:'letreiro_pvc_flat', icon:'🧱', label:'Letreiro em PVC', calcSvc:'letreiro_pvc', adTipo:null,
+    finishes:[{label:'5 mm',icon:'⬜',desc:'Fino e leve',mult:1.0},{label:'10 mm',icon:'🔲',desc:'Padrão',mult:1.3},{label:'20 mm',icon:'◼️',desc:'Extra espessura',mult:1.6}],
+    finMat:[{m:'PVC',e:'PVC 5 mm',corte:'Router',imp:'Pintura Automotiva',adicional1:80},{m:'PVC',e:'PVC 10 mm',corte:'Router',imp:'Pintura Automotiva',adicional1:200},{m:'PVC',e:'PVC 20 mm',corte:'Router',imp:'Pintura Automotiva',adicional1:350}],
+    presets:[{l:'70×35cm',w:70,h:35},{l:'100×50cm',w:100,h:50},{l:'200×100cm',w:200,h:100}] },
+  { id:'letreiro_aco', icon:'🪞', label:'Letra Caixa em Aço Escovado', calcSvc:'letra_caixa', adTipo:null,
+    finishes:[{label:'Chapa 26',icon:'🔩',desc:'0,5 mm · ultra fino',mult:1.0},{label:'Chapa 24',icon:'⚙️',desc:'0,6 mm · fino',mult:1.1},{label:'Chapa 22',icon:'🔧',desc:'0,8 mm · médio',mult:1.3}],
     finMat:[{m:'Inox Escovado',e:'Chapa 26 (0,5 mm)',corte:'Laser Fibra',imp:'Nenhum'},{m:'Inox Escovado',e:'Chapa 24 (0,6 mm)',corte:'Laser Fibra',imp:'Nenhum'},{m:'Inox Escovado',e:'Chapa 22 (0,8 mm)',corte:'Laser Fibra',imp:'Nenhum'}],
     presets:[{l:'70×35cm',w:70,h:35},{l:'120×60cm',w:120,h:60},{l:'200×100cm',w:200,h:100}] },
   { id:'painel',       icon:'🖼️', label:'Painel',                 calcSvc:'painel',              adTipo:null,
-    finishes:[{label:'Acrílico 6mm',icon:'💎',desc:'Cristal rígido',mult:1.0},{label:'PVC 10mm',icon:'🟦',desc:'Econômico',mult:0.8},{label:'Inox 1mm',icon:'⚙️',desc:'Chapa 20',mult:1.5}],
+    finishes:[{label:'Acrílico 6 mm',icon:'💎',desc:'Cristal rígido',mult:1.0},{label:'PVC 10 mm',icon:'🟦',desc:'Econômico',mult:0.8},{label:'Inox 1 mm',icon:'⚙️',desc:'Chapa 20',mult:1.5}],
     finMat:[{m:'Acrílico',e:'Acrílico 6 mm',corte:'Laser',imp:'UV Adesivo'},{m:'PVC',e:'PVC 10 mm',corte:'Nenhum',imp:'Digital'},{m:'Inox Escovado',e:'Chapa 20 (1,0 mm)',corte:'Laser Fibra',imp:'UV Adesivo'}],
     defaultFinishIdx:1,
     presets:[{l:'70×40cm',w:70,h:40},{l:'100×50cm',w:100,h:50},{l:'200×100cm',w:200,h:100}] },
-  { id:'placa',        icon:'🏷️', label:'Placa Identificação',    calcSvc:'placa_identificacao', adTipo:null,
-    finishes:[{label:'Acrílico 3mm',icon:'💎',desc:'Fundo cristal',mult:1.0},{label:'PETG 3mm',icon:'🟦',desc:'Flexível e durável',mult:1.0},{label:'Inox 0,5mm',icon:'🔩',desc:'Chapa 26',mult:1.5}],
+  { id:'placa',        icon:'🏷️', label:'Placa de Identificação', calcSvc:'placa_identificacao', adTipo:null,
+    finishes:[{label:'Acrílico 3 mm',icon:'💎',desc:'Fundo cristal',mult:1.0},{label:'PETG 3 mm',icon:'🟦',desc:'Flexível e durável',mult:1.0},{label:'Inox 0,5 mm',icon:'🔩',desc:'Chapa 26',mult:1.5}],
     finMat:[{m:'Acrílico',e:'Acrílico 3 mm',corte:'Laser',imp:'UV Adesivo'},{m:'PETG',e:'PETG 3 mm',corte:'Nenhum',imp:'Digital'},{m:'Inox Escovado',e:'Chapa 26 (0,5 mm)',corte:'Laser Fibra',imp:'UV Adesivo'}],
     defaultFinishIdx:1,
     presets:[{l:'20×8cm',w:20,h:8},{l:'30×10cm',w:30,h:10},{l:'40×12cm',w:40,h:12}] },
-  { id:'homenagem',    icon:'🏅', label:'Placa Homenagem',        calcSvc:'placa_identificacao', adTipo:null,
+  { id:'homenagem',    icon:'🏅', label:'Placa de Homenagem',     calcSvc:'placa_identificacao', adTipo:null,
     defaultFinishIdx:3,
     finishes:[
       // Each finish encodes: material + size + hardcoded prazo/vista + calc defaults
-      {label:'Acrílico 3mm | 15×10cm', icon:'💎', desc:'Padrão',
+      {label:'Acrílico 3 mm | 15×10cm', icon:'💎', desc:'Padrão',
        m:'Acrílico',      e:'Acrílico 3 mm',         w:15, h:10, prazo:160, vista:145,
        corte:'Laser',       imp:'UV Adesivo', instalacao:'Comum', distancia:'5-15 km',
        ov_corte:20, ov_imp:20, adicional1:9,    adicional1_desc:''},
-      {label:'Acrílico 3mm | 20×15cm', icon:'💎', desc:'Padrão',
+      {label:'Acrílico 3 mm | 20×15cm', icon:'💎', desc:'Padrão',
        m:'Acrílico',      e:'Acrílico 3 mm',         w:20, h:15, prazo:220, vista:200,
        corte:'Laser',       imp:'UV Adesivo', instalacao:'Comum', distancia:'5-15 km',
        ov_corte:20, ov_imp:20, adicional1:37.5, adicional1_desc:''},
-      {label:'Inox 0,5mm | 15×10cm',   icon:'⚙️', desc:'Escovado',
+      {label:'Inox 0,5 mm | 15×10cm',   icon:'⚙️', desc:'Escovado',
        m:'Inox Escovado', e:'Chapa 26 (0,5 mm)',      w:15, h:10, prazo:220, vista:200,
        corte:'Laser Fibra', imp:'UV Adesivo', instalacao:'Comum', distancia:'5-15 km',
        ov_corte:20, ov_imp:20, adicional1:41,   adicional1_desc:'estojo de veludo'},
-      {label:'Inox 0,5mm | 20×15cm',   icon:'⚙️', desc:'Escovado',
+      {label:'Inox 0,5 mm | 20×15cm',   icon:'⚙️', desc:'Escovado',
        m:'Inox Escovado', e:'Chapa 26 (0,5 mm)',      w:20, h:15, prazo:280, vista:254,
        corte:'Laser Fibra', imp:'UV Adesivo', instalacao:'Comum', distancia:'5-15 km',
        ov_corte:20, ov_imp:20, adicional1:69,   adicional1_desc:'estojo de veludo'},
-      {label:'Latão 0,5mm | 15×10cm',  icon:'🔶', desc:'Premium',
+      {label:'Latão 0,5 mm | 15×10cm',  icon:'🔶', desc:'Premium',
        m:'Latão Dourado', e:'Chapa 26 (0,56 mm)',     w:15, h:10, prazo:280, vista:254,
        corte:'Laser Fibra', imp:'UV Adesivo', instalacao:'Comum', distancia:'5-15 km',
        ov_corte:20, ov_imp:20, adicional1:64.5, adicional1_desc:'estojo de veludo'},
-      {label:'Latão 0,5mm | 20×15cm',  icon:'🔶', desc:'Premium',
+      {label:'Latão 0,5 mm | 20×15cm',  icon:'🔶', desc:'Premium',
        m:'Latão Dourado', e:'Chapa 26 (0,56 mm)',     w:20, h:15, prazo:340, vista:309,
        corte:'Laser Fibra', imp:'UV Adesivo', instalacao:'Comum', distancia:'5-15 km',
        ov_corte:20, ov_imp:20, adicional1:86,   adicional1_desc:'estojo de veludo'},
@@ -3674,20 +4385,20 @@ const SVCS = [
       {m:'Latão Dourado', e:'Chapa 26 (0,56 mm)', corte:'Laser Fibra', imp:'UV Adesivo'},
     ],
     presets:[{l:'15×10cm',w:15,h:10},{l:'20×15cm',w:20,h:15}] },
-  { id:'ad_faixa',     icon:'📏', label:'Adesivo Faixa',          calcSvc:'adesivo',             adTipo:'faixa',
+  { id:'ad_faixa',     icon:'📏', label:'Faixa em Adesivo',       calcSvc:'adesivo',             adTipo:'faixa',
     defaultAjuste:30, defaultCamadas:[{tipo:'jateado',impressao:true,recorte:true,transfer:false}],
     finishes:[{label:'Vinil Branco',icon:'🏷️',desc:'Sem impressão',mult:1.0},{label:'Jateado',icon:'🔲',desc:'Efeito jateado',mult:1.0},{label:'Colorido',icon:'🎨',desc:'Vinil colorido',mult:1.0}],
     finMat:[{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'}],
     presets:[{l:'75×10cm',w:75,h:10},{l:'100×20cm',w:100,h:20},{l:'200×30cm',w:200,h:30}] },
-  { id:'ad_porta',     icon:'🚪', label:'Adesivo Porta',          calcSvc:'adesivo',             adTipo:'porta', defaultAjuste:30, presets:[{l:'75×30cm',w:75,h:30},{l:'80×220cm',w:80,h:220},{l:'200×220cm',w:200,h:220}] },
-  { id:'ad_geral',     icon:'🪟', label:'Adesivo Geral',          calcSvc:'adesivo',             adTipo:'geral',
+  { id:'ad_porta',     icon:'🚪', label:'Adesivo para Porta',     calcSvc:'adesivo',             adTipo:'porta', defaultAjuste:30, presets:[{l:'75×30cm',w:75,h:30},{l:'80×220cm',w:80,h:220},{l:'200×220cm',w:200,h:220}] },
+  { id:'ad_geral',     icon:'🪟', label:'Adesivo',                calcSvc:'adesivo',             adTipo:'geral',
     defaultAjuste:10, defaultCamadas:[{tipo:'jateado',impressao:true,recorte:false,transfer:false}],
     finishes:[{label:'Vinil Branco',icon:'🏷️',desc:'Sem impressão',mult:1.0},{label:'Jateado',icon:'🔲',desc:'Efeito jateado',mult:1.0},{label:'Colorido',icon:'🎨',desc:'Vinil colorido',mult:1.0}],
     finMat:[{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'}],
     presets:[{l:'30×20cm',w:30,h:20},{l:'100×100cm',w:100,h:100},{l:'350×220cm',w:350,h:220}] },
   // ── Mais opções ──
   { id:'quadro',        icon:'🎨', label:'Quadro Personalizado',    calcSvc:'letreiro_acrilico',   extra:true, adTipo:null,
-    finishes:[{label:'Tela 2cm',icon:'🎨',desc:'Padrão canvas',mult:1.0},{label:'Vidro 4mm',icon:'🔲',desc:'Com vidro',mult:1.3},{label:'Acrílico 6mm',icon:'💎',desc:'Acrílico cristal',mult:1.2}],
+    finishes:[{label:'Tela 2 cm',icon:'🎨',desc:'Padrão canvas',mult:1.0},{label:'Vidro 4 mm',icon:'🔲',desc:'Com vidro',mult:1.3},{label:'Acrílico 6 mm',icon:'💎',desc:'Acrílico cristal',mult:1.2}],
     finMat:[{m:'Acrílico',e:'Acrílico 6 mm',corte:'Laser',imp:'UV Adesivo'},{m:'Acrílico',e:'Acrílico 6 mm',corte:'Laser',imp:'UV Adesivo'},{m:'Acrílico',e:'Acrílico 6 mm',corte:'Laser',imp:'UV Adesivo'}],
     presets:[{l:'30×40cm',w:30,h:40},{l:'40×60cm',w:40,h:60},{l:'60×80cm',w:60,h:80}] },
   { id:'letreiro_misto',icon:'✨', label:'Letreiro Misto',          calcSvc:'letreiro_acrilico',   extra:true, adTipo:null,
@@ -3695,15 +4406,15 @@ const SVCS = [
     finMat:[{m:'Acrílico',e:'Acrílico 6 mm',corte:'Laser',imp:'Pintura Automotiva'},{m:'PVC',e:'PVC 5 mm',corte:'Laser',imp:'Pintura Automotiva'}],
     presets:[{l:'70×35cm',w:70,h:35},{l:'100×50cm',w:100,h:50},{l:'200×100cm',w:200,h:100}] },
   { id:'letreiro_3d_cx', icon:'🔳', label:'Letra Caixa 3D',         calcSvc:'letra_caixa',         extra:true, adTipo:null,
-    finishes:[{label:'PVC 10mm',icon:'🔳',desc:'Leve e resistente',mult:1.0},{label:'PVC 15mm',icon:'🔲',desc:'Espessura extra',mult:1.2},{label:'PVC 20mm',icon:'◼️',desc:'Máxima profundidade',mult:1.5}],
+    finishes:[{label:'PVC 10 mm',icon:'🔳',desc:'Leve e resistente',mult:1.0},{label:'PVC 15 mm',icon:'🔲',desc:'Espessura extra',mult:1.2},{label:'PVC 20 mm',icon:'◼️',desc:'Máxima profundidade',mult:1.5}],
     finMat:[{m:'PVC',e:'PVC 10 mm',corte:'Laser',imp:'Pintura Automotiva'},{m:'PVC',e:'PVC 15 mm',corte:'Laser',imp:'Pintura Automotiva'},{m:'PVC',e:'PVC 20 mm',corte:'Laser',imp:'Pintura Automotiva'}],
     presets:[{l:'70×35cm',w:70,h:35},{l:'120×60cm',w:120,h:60},{l:'200×100cm',w:200,h:100}] },
-  { id:'letreiro_galv', icon:'⬛', label:'Letra Caixa Galvanizado', calcSvc:'letra_caixa', extra:true, adTipo:null,
-    finishes:[{label:'Chapa 26',icon:'⬛',desc:'0,5mm · ultra fino',mult:1.0},{label:'Chapa 24',icon:'⬛',desc:'0,6mm · fino',mult:1.2},{label:'Chapa 22',icon:'⬛',desc:'0,8mm · médio',mult:1.5}],
+  { id:'letreiro_galv', icon:'⬛', label:'Letra Caixa em Galvanizado', calcSvc:'letra_caixa', extra:true, adTipo:null,
+    finishes:[{label:'Chapa 26',icon:'⬛',desc:'0,5 mm · ultra fino',mult:1.0},{label:'Chapa 24',icon:'⬛',desc:'0,6 mm · fino',mult:1.2},{label:'Chapa 22',icon:'⬛',desc:'0,8 mm · médio',mult:1.5}],
     finMat:[{m:'Galvanizado',e:'Chapa 26 (0,5 mm)',corte:'Laser Fibra',imp:'Pintura Automotiva'},{m:'Galvanizado',e:'Chapa 24 (0,6 mm)',corte:'Laser Fibra',imp:'Pintura Automotiva'},{m:'Galvanizado',e:'Chapa 22 (0,8 mm)',corte:'Laser Fibra',imp:'Pintura Automotiva'}],
     presets:[{l:'70×35cm',w:70,h:35},{l:'120×60cm',w:120,h:60},{l:'200×100cm',w:200,h:100}] },
-  { id:'letreiro_lato', icon:'🥇', label:'Letra Caixa Latão Dourado',       calcSvc:'letra_caixa', extra:true, adTipo:null,
-    finishes:[{label:'Chapa 26',icon:'🥇',desc:'0,56mm · ultra fino',mult:1.0},{label:'Chapa 24',icon:'🥇',desc:'0,64mm · fino',mult:1.2},{label:'Chapa 22',icon:'🥇',desc:'0,81mm · médio',mult:1.4}],
+  { id:'letreiro_lato', icon:'🥇', label:'Letra Caixa em Latão Dourado',     calcSvc:'letra_caixa', extra:true, adTipo:null,
+    finishes:[{label:'Chapa 26',icon:'🥇',desc:'0,56 mm · ultra fino',mult:1.0},{label:'Chapa 24',icon:'🥇',desc:'0,64 mm · fino',mult:1.2},{label:'Chapa 22',icon:'🥇',desc:'0,81 mm · médio',mult:1.4}],
     finMat:[{m:'Latão Dourado',e:'Chapa 26 (0,56 mm)',corte:'Laser Fibra',imp:'Pintura Automotiva'},{m:'Latão Dourado',e:'Chapa 24 (0,64 mm)',corte:'Laser Fibra',imp:'Pintura Automotiva'},{m:'Latão Dourado',e:'Chapa 22 (0,81 mm)',corte:'Laser Fibra',imp:'Pintura Automotiva'}],
     presets:[{l:'70×35cm',w:70,h:35},{l:'120×60cm',w:120,h:60},{l:'200×100cm',w:200,h:100}] },
 ];
@@ -3760,24 +4471,124 @@ const FINISHES = {
   ],
 };
 
-function renderSvcGrid() {
-  const rows = [[0,1,2],[3,4,5],[6,7,8]];
-  document.getElementById('svc-grid').innerHTML = rows.map((idxs, ri) => `
-    <div class="svc-row-wrap">
-      <div class="svc-row">
-        ${idxs.map(i => {
-          const s = SVCS[i];
-          return `<div class="svc-card${_selectedSvcIdx===i?' sel':''}" onclick="selectCard(${i})">
-            <div class="svc-icon">${s.icon}</div>
-            <div class="svc-lbl">${s.label}</div>
-          </div>`;
-        }).join('')}
-      </div>
-      <div class="svc-inline-detail" id="detail-row-${ri}" style="display:none"></div>
-    </div>
-  `).join('');
+// ── GROUP DEFINITIONS ──
+const SVC_GROUPS = [
+  { id:'letreiro',     icon:'🔤', label:'Letreiro',
+    items:[
+      {svcId:'letreiro_3d',       label:'Impressão 3D'},
+      {svcId:'letreiro_acr',      label:'Acrílico'},
+      {svcId:'letreiro_pvc_flat', label:'PVC'},
+      {svcId:'letreiro_misto',    label:'Misto', soon:true},
+    ]},
+  { id:'adesivo',      icon:'🪟', label:'Adesivo',
+    items:[
+      {svcId:'ad_faixa', label:'Faixa'},
+      {svcId:'ad_porta', label:'Porta'},
+      {svcId:'ad_geral', label:'Geral'},
+    ]},
+  { id:'painel_placa', icon:'🖼️', label:'Painel e Placa',
+    items:[
+      {svcId:'painel',    label:'Painel'},
+      {svcId:'placa',     label:'Placa Identificação'},
+      {svcId:'homenagem', label:'Placa Homenagem'},
+    ]},
+  { id:'letra_caixa',  icon:'🪞', label:'Letra Caixa',
+    items:[
+      {svcId:'letreiro_aco',    label:'Aço Escovado'},
+      {svcId:'letreiro_galv',   label:'Galvanizado', soon:true},
+      {svcId:'letreiro_lato',   label:'Latão Dourado', soon:true},
+      {svcId:'letreiro_3d_cx',  label:'Impressão 3D', soon:true},
+    ]},
+  { id:'lona',         icon:'🖐️', label:'Lona',
+    items:[
+      {label:'Banner',          soon:true},
+      {label:'Lona Front Light', soon:true},
+      {label:'Lona Back Light',  soon:true},
+    ]},
+  { id:'fachada',      icon:'🏗️', label:'Fachada', soon:true,
+    items:[]},
+  { id:'quadro',       icon:'🎨', label:'Quadro Personalizado', soon:true,
+    items:[]},
+];
+
+let _openGroupId = null;
+let _apcOpenGroup = null;
+
+function _grpToggle(gid) {
+  _openGroupId = (_openGroupId === gid) ? null : gid;
+  _selectedSvcIdx = null;
+  _selectedPresetIdx = null; _selectedFinishIdx = null;
+  _detLarg = null; _detAlt = null;
+  renderSvcGrid();
+}
+
+function _renderSubChips() {
+  const group = SVC_GROUPS.find(g => g.id === _openGroupId);
+  if (!group || !group.items.length) return '<span style="font-size:12px;color:#71717a;opacity:.6">Em breve</span>';
+  return group.items.map(it => {
+    const svcIdx = it.svcId ? SVCS.findIndex(s => s.id === it.svcId) : -1;
+    if (it.soon) {
+      return `<button class="sub-chip soon" disabled>${svcIdx>=0?(SVCS[svcIdx].icon+' '):''}${it.label} <span class="soon-tag">Em breve</span></button>`;
+    }
+    return `<button class="sub-chip${_selectedSvcIdx===svcIdx?' sel':''}" onclick="_grpSelectSvc(${svcIdx})">${SVCS[svcIdx]?.icon||''} ${it.label}</button>`;
+  }).join('');
+}
+
+function _grpSelectSvc(idx) {
+  const same = _selectedSvcIdx === idx;
+  _selectedSvcIdx = same ? null : idx;
+  _selectedPresetIdx = null; _selectedFinishIdx = null;
+  _detLarg = null; _detAlt = null;
+  _detLogistica = 'instalacao'; _detLogisticaVal = 0; _detQtd = 1;
+  _detAcabCorte = false; _detAcabPintura = false; _detAcabAdic = false;
+  // Re-render sub chips
+  const subChips = document.getElementById('grp-sub-chips');
+  if (subChips) subChips.innerHTML = _renderSubChips();
+  // Show/hide detail
+  const dp = document.getElementById('grp-detail-panel');
+  if (!dp) return;
   if (_selectedSvcIdx !== null) {
-    renderInlineDetail(Math.floor(_selectedSvcIdx/3), _selectedSvcIdx);
+    dp.innerHTML = `<div class="svc-inline-detail" id="detail-row-g" style="display:none"></div>`;
+    renderInlineDetail('g', _selectedSvcIdx);
+  } else {
+    dp.innerHTML = '';
+  }
+}
+
+function renderSvcGrid() {
+  const el = document.getElementById('svc-grid');
+  if (!el) return;
+  let html = '';
+  for (let rowStart = 0; rowStart < SVC_GROUPS.length; rowStart += 3) {
+    const rowGroups = SVC_GROUPS.slice(rowStart, rowStart + 3);
+    html += `<div class="grp-grid" style="margin-bottom:0">`;
+    rowGroups.forEach(g => {
+      html += g.soon
+        ? `<button class="grp-card" style="opacity:.4;cursor:default" disabled>
+            <span class="grp-icon">${g.icon}</span>
+            <span class="grp-lbl">${g.label}</span>
+            <span class="grp-arrow" style="font-size:8px;background:#e4e4e7;border-radius:3px;padding:1px 4px;color:#71717a">Em breve</span>
+           </button>`
+        : `<button class="grp-card${_openGroupId===g.id?' sel':''}" onclick="_grpToggle('${g.id}')">
+            <span class="grp-icon">${g.icon}</span>
+            <span class="grp-lbl">${g.label}</span>
+            <span class="grp-arrow">${_openGroupId===g.id?'▲':'▼'}</span>
+           </button>`;
+    });
+    html += `</div>`;
+    // Insert sub-panel after the row that contains the open group
+    if (_openGroupId && rowGroups.some(g => g.id === _openGroupId)) {
+      html += `<div class="grp-sub-wrap">
+        <div class="grp-sub-chips" id="grp-sub-chips">${_renderSubChips()}</div>
+      </div>`;
+    } else {
+      html += `<div style="height:8px"></div>`;
+    }
+  }
+  html += `<div id="grp-detail-panel">${_selectedSvcIdx!==null?`<div class="svc-inline-detail" id="detail-row-g" style="display:none"></div>`:''}</div>`;
+  el.innerHTML = html;
+  if (_selectedSvcIdx !== null) {
+    renderInlineDetail('g', _selectedSvcIdx);
   }
 }
 
@@ -3968,7 +4779,7 @@ function detBuildPrice(svcIdx, ri=0) {
   const qtdLabel = qtd > 1 ? ` · ${qtd} un` : '';
   return `
     <div class="finish-price">
-      <div class="fp-dim">${svc.label} · ${larg}×${alt}cm${qtdLabel} · ${fin.label}</div>
+      <div class="fp-dim">${svc.label} · ${larg}×${alt} cm${qtdLabel} · ${fin.label}</div>
       <div class="fp-boxes">
         <div class="fp-box fp-prazo"><div class="fp-lbl">A Prazo</div><div class="fp-val">${fmt(pF)}</div></div>
         <div class="fp-box fp-vista"><div class="fp-lbl">À Vista</div><div class="fp-val">${fmt(vF)}</div></div>
@@ -4184,12 +4995,43 @@ function _adCalcRun(){
   const C=(cu_unit*qtd)+desloc+modif;
   const {oper,com,imp,vista,prazo}=applyMarkup(C);
   const mRate=_adCamadas.reduce((s,c)=>{const m=_AD_MATERIAIS.find(x=>x.id===c.tipo)||_AD_MATERIAIS[0];return s+m.preco_m2;},0);
-  const _adInstStr=instOn?' e instalação':'';
-  const _adQtdStr=qtd>1?`, ${qtd} unidades`:`, 1 unidade`;
-  const _adCamStr=_adCamadas.map((c,ci)=>{const m=_AD_MATERIAIS.find(x=>x.id===c.tipo)||_AD_MATERIAIS[0];const ex=[c.impressao?'com impressão digital':'',c.recorte?'com recorte eletrônico':'',c.transfer?'com transfer':''].filter(Boolean).join(', ');return _adCamadas.length>1?`Camada ${ci+1}: ${m.label}${ex?', '+ex:''}`:ex;}).filter(Boolean).join(' | ');
-  const descF=`Fornecimento${_adInstStr} de ${tl} medindo ${larg}×${alt} cm${_adQtdStr}${_adCamStr?'. '+_adCamStr:''}${deslocOn&&desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':'.'}`;
+  // ── Descrição automática (padrão unificado) ──
+  // _svcLabelMap → card/lista (sem "vinílico")
+  const _svcLabelMap={faixa:'Faixa em Adesivo',porta:'Adesivo para Porta',geral:'Adesivo'};
+  // Mapeamento de material para nome descritivo (usado na descrição)
+  const _AD_MAT_NOME={vinil_branco:'branco',vinil_colorido:'colorido',jateado:'jateado',microperfurado:'microperfurado',transparente:'transparente'};
+  const _matNome=c=>_AD_MAT_NOME[c.tipo]||'';
+  // Label para a descrição — camada única integra o material; múltiplas ficam entre parênteses
+  let _tipoLabel, _camadasExtra='';
+  if(_adCamadas.length===1){
+    const _suf=_matNome(_adCamadas[0]);
+    _tipoLabel={
+      faixa:`Faixa em Adesivo vinílico${_suf?' '+_suf:''}`,
+      porta:`Adesivo vinílico${_suf?' '+_suf:''} para Porta`,
+      geral:`Adesivo vinílico${_suf?' '+_suf:''}`
+    }[_adTipo]||`Adesivo vinílico${_matNome(_adCamadas[0])?' '+_matNome(_adCamadas[0]):''}`;
+  }else{
+    _tipoLabel={faixa:'Faixa em Adesivo vinílico',porta:'Adesivo vinílico para Porta',geral:'Adesivo vinílico'}[_adTipo]||'Adesivo vinílico';
+    _camadasExtra=' ('+_adCamadas.map((c,ci)=>`Camada ${ci+1}: vinílico ${_matNome(c)}`).join(' · ')+')';
+  }
+  const _instStr=instOn?' e instalação':'';
+  const _qtdStr=qtd===1?'1 unidade':`${qtd} unidades`;
+  // Serviços inclusos — agrupados por tipo (de-dup entre camadas)
+  const _hasImp=_adCamadas.some(c=>c.impressao);
+  const _hasTrf=_adCamadas.some(c=>c.transfer);
+  const _hasRec=_adCamadas.some(c=>c.recorte);
+  const _incluiParts=[];
+  if(_hasImp)_incluiParts.push('impressão digital');
+  if(_hasTrf)_incluiParts.push('transfer');
+  if(_hasRec)_incluiParts.push('recorte eletrônico');
+  if(retOn)   _incluiParts.push('retirada de adesivo antigo');
+  const _incluiStr=_incluiParts.length
+    ?` Inclui ${_incluiParts.length===1?_incluiParts[0]:_incluiParts.slice(0,-1).join(', ')+' e '+_incluiParts.at(-1)}.`
+    :'';
+  const _deslocStr=deslocOn&&desloc>0?` Deslocamento incluso (${dlbl(desloc)}).`:'';
+  const descF=`Fornecimento${_instStr} de ${_qtdStr} de ${_tipoLabel} medindo ${larg}×${alt} cm${_camadasExtra}.${_incluiStr}${_deslocStr}`;
   const de=document.getElementById('ad-desc');if(de)de.value=descF;
-  _adResu={items:[{label:'Material (camadas)',val:cu_mat*qtd},{label:'Impressão digital',val:cu_imp*qtd},{label:'Recorte Eletrônico',val:cu_rec*qtd},{label:'Transfer',val:cu_trf*qtd},{label:'Instalação',val:instOn?cu_inst*qtd:0},{label:'Retirada',val:retOn?cu_ret*qtd:0},{label:'Deslocamento',val:desloc},{label:'Ajuste',val:modif}].filter(it=>it.val>0),meta:{svcLabel:{faixa:'Faixa de Adesivo',porta:'Adesivo para Porta',geral:'Adesivo'}[_adTipo]||'Adesivo',svcIcon:'🪟',dim:`${larg}×${alt}cm${qtd>1?' × '+qtd+'un':''}`,finish:`${_adCamadas.length} camada${_adCamadas.length>1?'s':''}`},vista,prazo};
+  _adResu={items:[{label:'Material (camadas)',val:cu_mat*qtd},{label:'Impressão digital',val:cu_imp*qtd},{label:'Recorte Eletrônico',val:cu_rec*qtd},{label:'Transfer',val:cu_trf*qtd},{label:'Instalação',val:instOn?cu_inst*qtd:0},{label:'Retirada',val:retOn?cu_ret*qtd:0},{label:'Deslocamento',val:desloc},{label:'Ajuste',val:modif}].filter(it=>it.val>0),meta:{svcLabel:_svcLabelMap[_adTipo]||'Adesivo vinílico',svcIcon:'🪟',dim:`${larg}×${alt} cm${qtd>1?' × '+qtd+' un':''}`,finish:`${_adCamadas.length} camada${_adCamadas.length>1?'s':''}`,lastCalc:'anterior',lastInputs:{calcType:'anterior',calcSvc:'adesivo',tipo:_adTipo,camadas:JSON.parse(JSON.stringify(_adCamadas)),larg,alt,qtd,instOn,pinst,desloc,ajuste:modif}},vista,prazo};
   document.getElementById('ad-resultado').innerHTML=`<div class="bk-title">📊 Breakdown</div><div style="font-size:11px;color:#71717a;margin-bottom:10px">${larg}×${alt}cm — ${qtd}un — ${fmtN(area_m2)}m²/un</div>${bkRow(`Material camadas (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$${mRate}/m²`,cu_mat*qtd)}${cu_imp>0?bkRow(`Impressão digital (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$20/m²`,cu_imp*qtd):''}${cu_rec>0?bkRow(`Recorte Eletrônico (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$20/m²`,cu_rec*qtd):''}${cu_trf>0?bkRow(`Transfer (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$15/m²`,cu_trf*qtd):''}${instOn&&pinst>0?bkRow(`Instalação (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$${pinst}/m²`,cu_inst*qtd):''}${retOn&&pret>0?bkRow(`Retirada (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$${pret}/m²`,cu_ret*qtd):''}${desloc>0?`<div class="bk-row"><span class="bk-lbl">Deslocamento (${dlbl(desloc)})</span><span class="bk-val">${fmt(desloc)}</span></div>`:''}${modif!==0?bkRow('Ajuste manual','valor manual',modif):''}<div class="bk-total-row"><span>Custo Total (C)</span><span>${fmt(C)}</span></div>${markupRows(oper,com,imp)}${priceBoxes(vista,prazo,qtd)}`;
   makeBreakdownEditable('ad-resultado','adesivo');
 }
@@ -4438,8 +5280,8 @@ function _calcFzPush(meta,items,vista,prazo,desc){
   _fzMeta=_fzServicesList[_fzEditingIdx].meta;
   goStep(4);
 }
-function letreiroFormalizar(){if(!_letResu)return;const desc=document.getElementById('l_desc_preview')?.value||'';_letResu.meta.lastCalc='anterior';_calcFzPush(_letResu.meta,_letResu.items,_letResu.vista,_letResu.prazo,desc);_saveCalcState(_fzEditingIdx);}
-function pvcFormalizar(){if(!_pvcResu)return;const desc=document.getElementById('pv_desc_preview')?.value||'';_pvcResu.meta.lastCalc='anterior';_calcFzPush(_pvcResu.meta,_pvcResu.items,_pvcResu.vista,_pvcResu.prazo,desc);_saveCalcState(_fzEditingIdx);}
+function letreiroFormalizar(){if(!_letResu)return;const desc=document.getElementById('l_desc_preview')?.value||'';_letResu.meta.lastCalc='anterior';_calcFzPush(_letResu.meta,_letResu.items,_letResu.vista,_letResu.prazo,desc);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_letResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
+function pvcFormalizar(){if(!_pvcResu)return;const desc=document.getElementById('pv_desc_preview')?.value||'';_pvcResu.meta.lastCalc='anterior';_calcFzPush(_pvcResu.meta,_pvcResu.items,_pvcResu.vista,_pvcResu.prazo,desc);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_pvcResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
 function placaFormalizar(){if(!_placaResu)return;const desc=document.getElementById('p_desc_preview')?.value||'';_placaResu.meta.lastCalc='anterior';_calcFzPush(_placaResu.meta,_placaResu.items,_placaResu.vista,_placaResu.prazo,desc);_saveCalcState(_fzEditingIdx);}
 function adFormalizar(){if(!_adResu)return;const desc=document.getElementById('ad-desc')?.value||'';_adResu.meta.lastCalc='anterior';_calcFzPush(_adResu.meta,_adResu.items,_adResu.vista,_adResu.prazo,desc);_saveCalcState(_fzEditingIdx);}
 
@@ -4556,9 +5398,9 @@ function lcCalcRun() {
   const descEl = document.getElementById('lc-desc');
   const _lcInstStr=instOn?' e instalação':'';
   const _lcExtras=['corte a laser fibra',conf.pintura?'pintura automotiva':'',_lcIluminacao?'iluminação inclusa':''].filter(Boolean);
-  const _lcExtStr=_lcExtras.length?'. '+_lcExtras.map((e,i)=>i===0?e.charAt(0).toUpperCase()+e.slice(1):e).join(', '):'.';
-  if (descEl) descEl.value = `Fornecimento${_lcInstStr} de Letreiro Caixa em ${_lcMat} medindo ${_lcLarg}×${_lcAlt} cm, 1 unidade${_lcExtStr}${cdist>0?' Deslocamento incluso ('+dlbl(cdist)+').':''}`;
-  _lcResu = {items:bkLines.filter(x=>x.val>0),meta:{svcLabel:'Letreiro Caixa '+_lcMat,svcIcon:'🪞',dim:_lcLarg+'×'+_lcAlt+' cm',finish:_lcMat},vista,prazo};
+  const _lcIncluiStr=_lcExtras.length?` Inclui ${_lcExtras.length===1?_lcExtras[0]:_lcExtras.slice(0,-1).join(', ')+' e '+_lcExtras.at(-1)}.`:'';
+  if (descEl) descEl.value = `Fornecimento${_lcInstStr} de 1 unidade de Letra Caixa em ${_lcMat} medindo ${_lcLarg}×${_lcAlt} cm.${_lcIncluiStr} Fixação com dupla face e cola PU.${cdist>0?' Deslocamento incluso ('+dlbl(cdist)+').':''}`;
+  _lcResu = {items:bkLines.filter(x=>x.val>0),meta:{svcLabel:'Letra Caixa em '+_lcMat,svcIcon:'🪞',dim:_lcLarg+'×'+_lcAlt+' cm',finish:_lcMat},vista,prazo,_nomeItem:'Letra Caixa em '+_lcMat};
   const res = document.getElementById('lc-resultado');
   if (!res) return;
   res.innerHTML = '<div class="bk-title">📊 Breakdown</div>'
@@ -4572,6 +5414,8 @@ function lcFormalizar() {
   const desc = document.getElementById('lc-desc')?.value || '';
   _lcResu.meta.lastCalc = 'anterior';
   _calcFzPush(_lcResu.meta, _lcResu.items, _lcResu.vista, _lcResu.prazo, desc);
+  const _sv = _fzServicesList[_fzEditingIdx];
+  if (_sv && !_sv.nomeItem) _sv.nomeItem = _lcResu._nomeItem || '';
   _saveCalcState(_fzEditingIdx);
 }
 
@@ -4857,6 +5701,15 @@ function _genInitFromSvc(svc){
     const _adicMap={'Acrílico 3 mm':100,'Acrílico 6 mm':180,'Acrílico 10 mm':250};
     if (!it.adicional1) it.adicional1 = _adicMap[it.espessura] || 0;
   }
+  if (svc?.calcSvc === 'letreiro_pvc') {
+    if (!_apcCorte || _apcCorte === 'Nenhum') it.corte_tipo = 'Router';
+    if (!_apcImpressao || _apcImpressao === 'Nenhum') it.impressao_tipo = 'Pintura Automotiva';
+    it.distancia = '16-20 km';
+    if (!it.montagem) it.montagem = 30;
+    if (!it.fixacao) it.fixacao = 30;
+    const _pvcAdicMap = {'PVC 5 mm':80,'PVC 10 mm':200,'PVC 20 mm':350};
+    if (!it.adicional1) it.adicional1 = _pvcAdicMap[it.espessura] || 0;
+  }
   _genItems = [it];
 }
 function genAddItem(){_genItems.push(_newGenItem());renderGenAdvForm();}
@@ -5035,18 +5888,30 @@ function genFormalizar(){
   const _gfMat=fi.espessura
     ?(fi.espessura.toLowerCase().startsWith(fi.material.toLowerCase())?fi.espessura:`${fi.material} ${fi.espessura}`)
     :fi.material;
-  const _gfQtdStr=_gfUnid>1?`, ${_gfUnid} unidades`:`, 1 unidade`;
-  const _gfExtras=[];
-  if(fi.corte_tipo&&fi.corte_tipo!=='Nenhum')_gfExtras.push('com corte '+fi.corte_tipo.toLowerCase().replace(/plott?er/,'eletrônico'));
+  const _gfQtdStr=_gfUnid===1?'1 unidade':`${_gfUnid} unidades`;
+  // Label da descrição: letreiro usa nomeItem com espessura; serviços com nome usa svcLabel; genérico usa _gfMat
+  const _gfCalcSvc=panelSvc?.calcSvc||'';
+  let _gfDescLabel=_gfMat;
+  if(_gfCalcSvc==='letreiro_acrilico'||_gfCalcSvc==='letreiro_pvc'){
+    _gfDescLabel=panelSvc?(_buildNomeItem(panelSvc.id,panelSvc.label,fi.espessura)||_gfMat):_gfMat;
+  } else if(svcLabel&&!svcLabel.startsWith('Fornecimento')&&svcLabel!==_gfMat){
+    _gfDescLabel=svcLabel;
+  }
+  // Inclui section
+  const _gfInclui=[];
   if(fi.impressao_tipo&&fi.impressao_tipo!=='Nenhum'){
     const _il=fi.impressao_tipo.toLowerCase();
-    // Add "impressão" prefix for bare technology names (Digital, UV, Látex, etc.)
-    _gfExtras.push(/^(digital|uv|uv adesivo|látex|latex|eco|solvente)/.test(_il)?'com impressão '+_il:'com '+_il);
+    _gfInclui.push(/^(digital|uv|uv adesivo|látex|latex|eco|solvente)/.test(_il)?'impressão '+_il:_il);
   }
-  const _gfExtStr=_gfExtras.length?', '+_gfExtras.join(', '):'';
-  const _gfName=svcLabel&&svcLabel!==_gfMat?`${svcLabel} em ${_gfMat}`:_gfMat;
-  // Description uses only the material (service name goes in the row label, not in the text)
-  const autoDesc=`Fornecimento${_gfInstStr} de ${_gfMat} medindo ${fi.largura}×${fi.altura} cm${_gfQtdStr}${_gfExtStr}.`;
+  if(fi.corte_tipo&&fi.corte_tipo!=='Nenhum'){
+    _gfInclui.push('corte '+fi.corte_tipo.toLowerCase().replace(/plott?er/,'eletrônico'));
+  }
+  const _gfIncluiStr=_gfInclui.length?` Inclui ${_gfInclui.join(' e ')}.`:'';
+  // Fixação para letreiros
+  const _gfFixStr=(_gfCalcSvc==='letreiro_acrilico'||_gfCalcSvc==='letreiro_pvc')?' Fixação com dupla face e cola.':'';
+  // Deslocamento
+  const _gfDeslStr=(fi.distancia&&fi.distancia!=='Sem deslocamento')?' Deslocamento incluso ('+fi.distancia+').':'';
+  const autoDesc=`Fornecimento${_gfInstStr} de ${_gfQtdStr} de ${_gfDescLabel} medindo ${fi.largura}×${fi.altura} cm.${_gfIncluiStr}${_gfFixStr}${_gfDeslStr}`;
   // Capture chip state for edit-mode restoration
   const _apcState=window._pendingApcState||null;
   window._pendingApcState=null;
@@ -5116,10 +5981,24 @@ function _letreiroCalcRun(){
   const l_espLabel=conf0.label;
   const C=totalMat+totalCorte+totalImp+totalMontagem+totalFixacao+totalAdic+(instOn?c_inst:0)+desloc;
   const {oper,com,imp,vista,prazo}=applyMarkup(C);
-  const camadasDesc=_letCamadas.length>1?` Camadas: ${_letCamadas.map((c,ci)=>{const r=ACR_IMP[c.impType]||ACR_IMP.pintura;return`C${ci+1}: ${r.label.toLowerCase()}`;}).join(', ')}.`:'';
-  const _letQtdStr=qtd0>1?`, ${qtd0} unidades`:`, 1 unidade`;
+  const _letInstStr=instOn?' e instalação':'';
+  const _letQtdStr=qtd0===1?'1 unidade':`${qtd0} unidades`;
+  const _letNomeStr=nome?` "${nome}"`:'';
+  // Inclui: impressão + corte por camada
+  const _acrImpLbl={pintura:'pintura automotiva',digital:'impressão digital',uv:'impressão UV'};
+  let _letIncluiStr='';
+  if(_letCamadas.length===1){
+    const _c=_letCamadas[0],_parts=[];
+    if(_c.impVal>0)_parts.push(_acrImpLbl[_c.impType]||_c.impType);
+    if(_c.corteVal>0)_parts.push('corte laser');
+    if(_parts.length)_letIncluiStr=` Inclui ${_parts.join(' e ')}.`;
+  }else{
+    const _cd=_letCamadas.map((c,ci)=>{const _p=[];if(c.impVal>0)_p.push(_acrImpLbl[c.impType]||c.impType);if(c.corteVal>0)_p.push('corte laser');return _p.length?`Camada ${ci+1}: ${_p.join(' e ')}`:null;}).filter(Boolean).join('; ');
+    if(_cd)_letIncluiStr=` Inclui ${_cd}.`;
+  }
+  const _letFixStr=' Fixação com dupla face e cola.';
   const _letDeslStr=desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':'';
-  const descF=instOn?`Fornecimento e instalação de Letreiro em ${l_espLabel} ${nStr}medindo ${larg0}×${alt0} cm${_letQtdStr}.${camadasDesc}${_letDeslStr}`:`Fornecimento de Letreiro em ${l_espLabel} ${nStr}medindo ${larg0}×${alt0} cm${_letQtdStr}.${camadasDesc}${_letDeslStr}`;
+  const descF=`Fornecimento${_letInstStr} de ${_letQtdStr} de Letreiro em ${l_espLabel}${_letNomeStr} medindo ${larg0}×${alt0} cm.${_letIncluiStr}${_letFixStr}${_letDeslStr}`;
   const dp=document.getElementById('l_desc_preview');if(dp)dp.value=descF;
   const camadasBk=_letCamadas.map((cam,i)=>{
     const r=ACR_IMP[cam.impType]||ACR_IMP.pintura;const q=cam.qtd||1;
@@ -5131,7 +6010,7 @@ function _letreiroCalcRun(){
       +(cam.adic>0?bkRow(`C${i+1}: Adicional`,'',cam.adic):'');
   }).join('');
   document.getElementById('letreiro-resultado').innerHTML=`<div class="bk-title">📊 Breakdown</div><div style="font-size:11px;color:#71717a;margin-bottom:8px">${l_espLabel} — ${_letCamadas.length} camada(s)</div>${camadasBk}${instOn&&c_inst>0?bkRow('Instalação',`R$${c_inst}`,c_inst):''}${bkRow('Deslocamento',dlbl(desloc),desloc)}<div class="bk-total-row"><span>Custo Total (C)</span><span>${fmt(C)}</span></div>${markupRows(oper,com,imp)}${priceBoxes(vista,prazo,qtd0)}`;
-  _letResu={items:[..._letCamadas.flatMap((cam,i)=>[{label:`C${i+1}: Material`,val:(cam.paprov||0)*(cam.qtd||1)},{label:`C${i+1}: Corte+Imp`,val:((cam.corteVal||0)+(cam.impVal||0))*(cam.qtd||1)},{label:`C${i+1}: Montagem+Fix`,val:((cam.montagem||0)+(cam.fixacao||0))*(cam.qtd||1)},{label:`C${i+1}: Adicional`,val:cam.adic||0}]),{label:'Instalação',val:instOn?c_inst:0},{label:'Deslocamento',val:desloc}].filter(it=>it.val>0),meta:{svcLabel:'Letreiro Acrílico',svcIcon:'🔤',dim:`${larg0}×${alt0}cm`,finish:l_espLabel+(_letCamadas.length>1?` ${_letCamadas.length} camadas`:'')},vista,prazo};
+  _letResu={items:[..._letCamadas.flatMap((cam,i)=>[{label:`C${i+1}: Material`,val:(cam.paprov||0)*(cam.qtd||1)},{label:`C${i+1}: Corte+Imp`,val:((cam.corteVal||0)+(cam.impVal||0))*(cam.qtd||1)},{label:`C${i+1}: Montagem+Fix`,val:((cam.montagem||0)+(cam.fixacao||0))*(cam.qtd||1)},{label:`C${i+1}: Adicional`,val:cam.adic||0}]),{label:'Instalação',val:instOn?c_inst:0},{label:'Deslocamento',val:desloc}].filter(it=>it.val>0),meta:{svcLabel:'Letreiro em Acrílico',svcIcon:'🔤',dim:`${larg0}×${alt0} cm`,finish:l_espLabel+(_letCamadas.length>1?` ${_letCamadas.length} camadas`:''),lastCalc:'anterior'},vista,prazo,_nomeItem:`Letreiro em Acrílico ${l_espLabel}`};
   makeBreakdownEditable('letreiro-resultado','letreiro_acrilico');
 }
 
@@ -5195,10 +6074,24 @@ function _pvcCalcRun(){
   const pv_espLabel=conf0.label;
   const C=totalMat+totalCorte+totalImp+totalMontagem+totalFixacao+totalAdic+(instOn?c_inst:0)+desloc;
   const {oper,com,imp,vista,prazo}=applyMarkup(C);
-  const pvcCamadasDesc=_pvcCamadas.length>1?` Camadas: ${_pvcCamadas.map((c,ci)=>{const r=PVC_IMP[c.impType]||PVC_IMP.pintura;return`C${ci+1}: ${r.label.toLowerCase()}`;}).join(', ')}.`:'';
-  const _pvcQtdStr=qtd0>1?`, ${qtd0} unidades`:`, 1 unidade`;
+  const _pvcInstStr=instOn?' e instalação':'';
+  const _pvcQtdStr=qtd0===1?'1 unidade':`${qtd0} unidades`;
+  const _pvcNomeStr=nome?` "${nome}"`:'';
+  const _pvcImpLbl={pintura:'pintura automotiva',digital:'impressão digital',uv:'impressão UV'};
+  const _pvcCorteLbl={router:'corte router',laser:'corte laser'};
+  let _pvcIncluiStr='';
+  if(_pvcCamadas.length===1){
+    const _c=_pvcCamadas[0],_parts=[];
+    if(_c.impVal>0)_parts.push(_pvcImpLbl[_c.impType]||_c.impType);
+    if(_c.corteVal>0)_parts.push(_pvcCorteLbl[_c.corteType]||'corte router');
+    if(_parts.length)_pvcIncluiStr=` Inclui ${_parts.join(' e ')}.`;
+  }else{
+    const _cd=_pvcCamadas.map((c,ci)=>{const _p=[];if(c.impVal>0)_p.push(_pvcImpLbl[c.impType]||c.impType);if(c.corteVal>0)_p.push(_pvcCorteLbl[c.corteType]||'corte router');return _p.length?`Camada ${ci+1}: ${_p.join(' e ')}`:null;}).filter(Boolean).join('; ');
+    if(_cd)_pvcIncluiStr=` Inclui ${_cd}.`;
+  }
+  const _pvcFixStr=' Fixação com dupla face e cola.';
   const _pvcDeslStr=desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':'';
-  const descF=instOn?`Fornecimento e instalação de Letreiro em ${pv_espLabel} ${nStr}medindo ${larg0}×${alt0} cm${_pvcQtdStr}.${pvcCamadasDesc}${_pvcDeslStr}`:`Fornecimento de Letreiro em ${pv_espLabel} ${nStr}medindo ${larg0}×${alt0} cm${_pvcQtdStr}.${pvcCamadasDesc}${_pvcDeslStr}`;
+  const descF=`Fornecimento${_pvcInstStr} de ${_pvcQtdStr} de Letreiro em ${pv_espLabel}${_pvcNomeStr} medindo ${larg0}×${alt0} cm.${_pvcIncluiStr}${_pvcFixStr}${_pvcDeslStr}`;
   const dp=document.getElementById('pv_desc_preview');if(dp)dp.value=descF;
   const pvcCamadasBk=_pvcCamadas.map((cam,i)=>{
     const r=PVC_IMP[cam.impType]||PVC_IMP.pintura;const q=cam.qtd||1;
@@ -5210,14 +6103,14 @@ function _pvcCalcRun(){
       +(cam.adic>0?bkRow(`C${i+1}: Adicional`,'',cam.adic):'');
   }).join('');
   document.getElementById('pvc-resultado').innerHTML=`<div class="bk-title">📊 Breakdown</div><div style="font-size:11px;color:#71717a;margin-bottom:8px">${pv_espLabel} — ${_pvcCamadas.length} camada(s)</div>${pvcCamadasBk}${instOn&&c_inst>0?bkRow('Instalação',`R$${c_inst}`,c_inst):''}${bkRow('Deslocamento',dlbl(desloc),desloc)}<div class="bk-total-row"><span>Custo Total (C)</span><span>${fmt(C)}</span></div>${markupRows(oper,com,imp)}${priceBoxes(vista,prazo,qtd0)}`;
-  _pvcResu={items:[..._pvcCamadas.flatMap((cam,i)=>[{label:`C${i+1}: Material`,val:(cam.paprov||0)*(cam.qtd||1)},{label:`C${i+1}: Corte+Imp`,val:((cam.corteVal||0)+(cam.impVal||0))*(cam.qtd||1)},{label:`C${i+1}: Montagem+Fix`,val:((cam.montagem||0)+(cam.fixacao||0))*(cam.qtd||1)},{label:`C${i+1}: Adicional`,val:cam.adic||0}]),{label:'Instalação',val:instOn?c_inst:0},{label:'Deslocamento',val:desloc}].filter(it=>it.val>0),meta:{svcLabel:'Letreiro PVC',svcIcon:'🔡',dim:`${larg0}×${alt0}cm`,finish:pv_espLabel+(_pvcCamadas.length>1?` ${_pvcCamadas.length} camadas`:'')},vista,prazo};
+  _pvcResu={items:[..._pvcCamadas.flatMap((cam,i)=>[{label:`C${i+1}: Material`,val:(cam.paprov||0)*(cam.qtd||1)},{label:`C${i+1}: Corte+Imp`,val:((cam.corteVal||0)+(cam.impVal||0))*(cam.qtd||1)},{label:`C${i+1}: Montagem+Fix`,val:((cam.montagem||0)+(cam.fixacao||0))*(cam.qtd||1)},{label:`C${i+1}: Adicional`,val:cam.adic||0}]),{label:'Instalação',val:instOn?c_inst:0},{label:'Deslocamento',val:desloc}].filter(it=>it.val>0),meta:{svcLabel:'Letreiro em PVC',svcIcon:'🔡',dim:`${larg0}×${alt0} cm`,finish:pv_espLabel+(_pvcCamadas.length>1?` ${_pvcCamadas.length} camadas`:''),lastCalc:'anterior'},vista,prazo,_nomeItem:`Letreiro em PVC ${pv_espLabel}`};
   makeBreakdownEditable('pvc-resultado','letreiro_pvc');
 }
 
 // ══════════════════════════════════════════
 // PLACA IDENTIFICAÇÃO
 // ══════════════════════════════════════════
-const PLACA_MATS={'3mm':[{id:'acrilico',label:'Acrílico 3mm',preco_chapa:285,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 3mm',preco_chapa:130,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 3mm',preco_chapa:90,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 3mm',preco_chapa:85,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço 0,5mm',preco_chapa:300,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}],'5mm':[{id:'acrilico',label:'Acrílico 5mm',preco_chapa:550,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 5mm',preco_chapa:170,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 5mm',preco_chapa:120,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 5mm',preco_chapa:115,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço 1mm',preco_chapa:580,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}]};
+const PLACA_MATS={'3mm':[{id:'acrilico',label:'Acrílico 3 mm',preco_chapa:285,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 3 mm',preco_chapa:130,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 3 mm',preco_chapa:90,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 3 mm',preco_chapa:85,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço 0,5 mm',preco_chapa:300,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}],'5mm':[{id:'acrilico',label:'Acrílico 5 mm',preco_chapa:550,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 5 mm',preco_chapa:170,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 5 mm',preco_chapa:120,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 5 mm',preco_chapa:115,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço 1 mm',preco_chapa:580,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}]};
 let _placaEsp='3mm',_placaMatId='acrilico',_placaTimer=null,_placaImpType='digital';
 function placaInit(){_placaEsp='3mm';_placaMatId='acrilico';_placaImpType='digital';_placaCamadas=[{impType:'digital',impVal:0,corteType:'laser',corteVal:0,adic:0,larg:0,alt:0,qtd:0}];_placaRenderMatBtns();placaRenderCamadas();placaSetEsp('3mm');setTimeout(()=>_placaUpdateCorteImp(),30);}
 function _placaRenderMatBtns(){const mats=PLACA_MATS[_placaEsp];const c=document.getElementById('placa-mat-btns');if(!c)return;c.innerHTML=mats.map(m=>`<button class="tbtn-sm${m.id===_placaMatId?' sel':''}" onclick="placaSetMat('${m.id}')" style="flex:none;padding:6px 10px">${m.label}</button>`).join('');}
@@ -5258,7 +6151,7 @@ function _placaCalcRun(){
   const placaCamadasDesc=_placaCamadas.length>1?` Camadas: ${_placaCamadas.map((c,i)=>(`C${i+1}: ${c.impType==='uv'?'UV':'Digital'}`)).join(', ')}.`:'';
   const _placaImpLC=impDesc.charAt(0).toLowerCase()+impDesc.slice(1);
   const _placaQtdStr=qtd>1?`, ${qtd} unidades`:`, 1 unidade`;
-  const descF=`Fornecimento${instStr} de Placa de Identificação em ${matLabel} medindo ${larg}×${alt} cm${_placaQtdStr}, com ${_placaImpLC}.${placaCamadasDesc}${desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':''}`;
+  const descF=`Fornecimento${instStr} de ${qtd===1?'1 unidade':`${qtd} unidades`} de Placa de Identificação em ${matLabel} medindo ${larg}×${alt} cm. Inclui ${_placaImpLC}.${placaCamadasDesc}${desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':''}`;
   const dp=document.getElementById('p_desc_preview');if(dp)dp.value=descF;
   const C=cu_mat+(c_c+c_i+c_v+c_l+c_ad+(instOn?c_inst:0)+c_f)*qtd+desloc;
   const {oper,com,imp,vista,prazo}=applyMarkup(C);
