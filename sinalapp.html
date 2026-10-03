@@ -15,7 +15,7 @@
 <style>
 :root{--bg:#f4f4f5;--bg2:#ffffff;--bg3:#f8fafc;--border:#e4e4e7;--accent:#2563eb;--accent2:#eff6ff;--green:#16a34a;--red:#dc2626;--yellow:#ca8a04;--text:#35597F;--text2:#52525b;--text3:#a1a1aa;--radius:8px;--shadow:0 1px 4px rgba(0,0,0,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;font-size:14px;min-height:100vh}
+body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
 a{color:var(--accent);text-decoration:none}
 button{cursor:pointer;border:none;border-radius:var(--radius);font-size:13px;font-family:inherit;transition:all .15s}
 input,select,textarea{background:#fff;border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:inherit;width:100%;outline:none}
@@ -2804,7 +2804,7 @@ function renderLancamentos(){
   if(!filteredRows.length) return qeSection+filterPanel+selToolbar+`<div class="empty">Nenhum resultado para os filtros aplicados. <button onclick="_lancClearFilters()" style="font-size:12px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">Limpar filtros</button></div>`;
   const _thS='cursor:pointer;user-select:none;white-space:nowrap;padding-right:14px;position:relative';
   const _arr=col=>_lancSortCol===col?(_lancSortDir===1?' ▲':' ▼'):'';
-  return qeSection+filterPanel+selToolbar+`<table><thead><tr>
+  return qeSection+filterPanel+selToolbar+`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table><thead><tr>
     ${_lancSelectMode?`<th style="width:28px"><input type="checkbox" id="lanc_chk_all" onchange="document.querySelectorAll('.lanc-chk').forEach(c=>{if(c.dataset.virtual!=='1'){c.checked=this.checked;c.checked?_lancSelected.add(c.dataset.id):_lancSelected.delete(c.dataset.id);}});_updateLancDeleteBtn()"></th>`:''}
     <th style="${_thS}" onclick="_lancSort('data')">Data${_arr('data')}</th>
     <th style="${_thS}" onclick="_lancSort('categoria')">Categoria${_arr('categoria')}</th>
@@ -2847,13 +2847,13 @@ function renderLancamentos(){
     `<button class="btn-icon" onclick="editLancamento('${f.id}')">✏️</button>
     <button class="btn-icon" onclick="deleteLancamento('${f.id}')">🗑</button>`)}</td>
   </tr>`;}).join('')}
-  </tbody></table>`;
+  </tbody></table></div>`;
 }
 
 function renderPagamentos(){
   const orcs=S.orcamentos.filter(o=>o.status==='Fechado'||o.total_prazo>0);
   if(!orcs.length) return `<div class="empty">Nenhum orçamento fechado ainda.</div>`;
-  return `<table><thead><tr><th>Nº</th><th>Empresa</th><th>Cliente</th><th>Condição</th><th>Total</th><th>Pago</th><th>Saldo</th><th>Status Pgto</th><th></th></tr></thead><tbody>
+  return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table><thead><tr><th>Nº</th><th>Empresa</th><th>Cliente</th><th>Condição</th><th>Total</th><th>Pago</th><th>Saldo</th><th>Status Pgto</th><th></th></tr></thead><tbody>
   ${orcs.slice().reverse().map(o=>{
     const _cCard=S.crm.find(c=>c.orcamentoId===o.id);
     const empresa=_cCard?.empresa||o.empresa||'—';
@@ -2877,7 +2877,7 @@ function renderPagamentos(){
       <td style="white-space:nowrap">${_cCard?`<button class="btn-icon" title="Ver card no funil" onclick="openCRMCard('${_cCard.id}')">↗</button>`:''}
       <button class="btn btn-primary btn-sm" onclick="openPagamento('${o.id}','${o.cliente}',${saldo},${totalCond},'${cond}')">+ Pgto</button></td>
     </tr>`;}).join('')}
-  </tbody></table>`;
+  </tbody></table></div>`;
 }
 
 // ── LANCAMENTO HELPERS ─────────────────────────────────────────────────────
