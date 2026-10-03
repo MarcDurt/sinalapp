@@ -865,8 +865,23 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 // STATE
 // ══════════════════════════════════════════
 let _currentStep = 1;
-let _clienteEmpresa = '', _clienteContato = '', _clienteFone = '', _clienteEmail = '';
+let _clienteEmpresa = '', _clienteContato = '', _clienteFone = '', _clienteEmail = '', _clienteCnpj = '';
 let _clienteNome = ''; // empresa || contato
+// Ler prefill vindo do CRM (novoOrcamentoParaCliente)
+(function _readClientePrefill(){
+  try {
+    const raw = localStorage.getItem('sinalapp_cliente_prefill');
+    if (!raw) return;
+    const p = JSON.parse(raw);
+    if (!p._clientePrefill) return;
+    if (p.empresa)  { _clienteEmpresa = p.empresa;  _clienteNome = p.empresa; }
+    if (p.cliente)  { _clienteContato = p.cliente;  if (!_clienteNome) _clienteNome = p.cliente; }
+    if (p.telefone) _clienteFone = p.telefone;
+    if (p.email)    _clienteEmail = p.email;
+    if (p.cnpj)     _clienteCnpj = p.cnpj;
+    localStorage.removeItem('sinalapp_cliente_prefill');
+  } catch(e) {}
+})();
 let _selectedSvcIdx = null, _selectedPresetIdx = null, _selectedFinishIdx = null;
 let _fzClientOpen = true; // collapsible client section state (open by default)
 let _fzIaText = ''; // persists IA textarea content across re-renders
@@ -1248,16 +1263,15 @@ function buildFzItems(svc, preset, finish) {
       {label:'Parafusos / Espaçadores',      val: 5},
       {label:'Deslocamento',                 val: 30},
     ];
-  } else { // adesivo
-    const matPm2 = {'Vinil':50,'Vinil Branco':50,'Jateado':50,'Microperfurado':80,'Impresso':80,'Espelhado':120};
-    const pm2 = matPm2[finish.label] || 50;
-    const items = [
-      {label:`Material — ${finish.label}`,   val: Math.round(Math.max(15, area * pm2))},
-      {label:'Instalação',                   val: Math.round(Math.max(15, area * 30))},
+  } else { // adesivo — usa _AD_MATERIAIS (mesma base da Calculadora de Camadas)
+    const _adMatMap = {'Vinil Branco':'vinil_branco','Jateado':'jateado','Microperfurado':'microperfurado','Colorido':'vinil_colorido'};
+    const _adMat = _AD_MATERIAIS.find(m=>m.id===(_adMatMap[finish.label]||'vinil_branco'))||_AD_MATERIAIS[0];
+    return [
+      {label:`Material — ${finish.label}`,   val: Math.round(Math.max(10, area * _adMat.preco_m2))},
+      {label:'Impressão digital',            val: Math.round(Math.max(10, area * 20))},
+      {label:'Instalação',                   val: Math.round(Math.max(15, area * 50))},
       {label:'Deslocamento',                 val: 30},
     ];
-    if (!['Vinil','Vinil Branco','Jateado'].includes(finish.label)) items.splice(1, 0, {label:'Laminação', val: Math.round(Math.max(10, area * 20))});
-    return items;
   }
 }
 
@@ -1293,7 +1307,7 @@ function _fzClientUpdateBar() {
   }
   document.querySelectorAll('.fz-client-icon').forEach(ic => {
     const t = ic.getAttribute('title');
-    const active = t==='Empresa'?!!_clienteEmpresa:t==='Cliente'?!!_clienteContato:t==='Telefone'?!!_clienteFone:!!_clienteEmail;
+    const active = t==='Empresa'?!!_clienteEmpresa:t==='Responsável'?!!_clienteContato:t==='Telefone'?!!_clienteFone:t==='E-mail'?!!_clienteEmail:!!_clienteCnpj;
     ic.classList.toggle('off', !active);
   });
 }
@@ -1318,6 +1332,7 @@ function renderFzClientSummary() {
   _fzIaText = document.getElementById('fz-ia-input')?.value || _fzIaText;
   const hasEmp = !!_clienteEmpresa, hasCon = !!_clienteContato;
   const hasFon = !!_clienteFone,    hasEml = !!_clienteEmail;
+  const hasCnpj = !!_clienteCnpj;
   const anyFilled = hasEmp || hasCon || hasFon || hasEml;
   const ic = (emoji, active, title) =>
     `<span class="fz-client-icon${active?'':' off'}" title="${title}">${emoji}</span>`;
@@ -1336,18 +1351,20 @@ function renderFzClientSummary() {
       <span style="font-size:13px;font-weight:600;color:#374151;flex:1">${barLabel}</span>
       <div style="display:flex;gap:5px;align-items:center">
         ${ic('🏢', hasEmp, 'Empresa')}
-        ${ic('👤', hasCon, 'Cliente')}
+        ${ic('👤', hasCon, 'Responsável')}
         ${ic('📞', hasFon, 'Telefone')}
         ${ic('✉️', hasEml, 'E-mail')}
+        ${ic('🪪', hasCnpj, 'CNPJ')}
       </div>
       <span style="font-size:10px;color:#a1a1aa;margin-left:4px">${_fzClientOpen?'▲':'▼'}</span>
     </button>
     ${_fzClientOpen ? `<div class="fz-client-body">
       <div class="fz-ci-grid">
-        ${inp('Empresa',  _clienteEmpresa, '_clienteEmpresa', ';_clienteNome=_clienteEmpresa||_clienteContato')}
-        ${inp('Cliente',  _clienteContato, '_clienteContato', ';_clienteNome=_clienteEmpresa||_clienteContato')}
-        ${inp('Telefone', _clienteFone,    '_clienteFone')}
-        ${inp('E-mail',   _clienteEmail,   '_clienteEmail')}
+        ${inp('Empresa',     _clienteEmpresa, '_clienteEmpresa', ';_clienteNome=_clienteEmpresa||_clienteContato')}
+        ${inp('Responsável', _clienteContato, '_clienteContato', ';_clienteNome=_clienteEmpresa||_clienteContato')}
+        ${inp('Telefone',    _clienteFone,    '_clienteFone')}
+        ${inp('E-mail',      _clienteEmail,   '_clienteEmail')}
+        ${inp('CNPJ',        _clienteCnpj,    '_clienteCnpj')}
       </div>
       <div style="margin-top:10px;border-top:1px solid #f0f0f0;padding-top:10px">
         <div style="font-size:11px;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Descrever Orçamento <span style="background:#eff6ff;color:#2563eb;font-size:10px;padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px">✦ IA</span></div>
@@ -1516,9 +1533,13 @@ function renderFzSvcList() {
                 : (descPreview ? `<div style="font-size:9px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
               }
             </div>
-            <div style="min-width:0;display:flex;flex-direction:column;gap:1px">
+            <div style="min-width:0;display:flex;flex-direction:column;gap:4px">
               ${breakdown?`<div style="font-size:9px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
               ${dimInfo?`<div style="font-size:9px;color:#a1a1aa">${dimInfo}</div>`:''}
+              <div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;margin-top:2px">
+                <span style="font-size:9px;color:#94a3b8;white-space:nowrap">Unid. PDF:</span>
+                <input type="number" min="1" value="${svc.qtd_pdf||1}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].qtd_pdf=Math.max(1,+this.value||1)" style="width:44px;padding:2px 4px;border:1.5px solid #cbd5e1;border-radius:5px;font-size:10px;font-weight:600;color:#35597F;background:#f8fafc;text-align:center">
+              </div>
             </div>
           </div>
           <div class="fz-svc-row-prices">
@@ -2911,13 +2932,14 @@ function addPanelFormalizar() {
   const _apfDeslVal=_addPanelLogistica!=='fornecimento'&&(svc.calcSvc==='letreiro_acrilico'||svc.calcSvc==='letreiro_pvc')?15:0;
   const _apfDeslStr=_apfDeslVal>0?` Deslocamento incluso (${dlbl(_apfDeslVal)}).`:'';
   const _apfAutoDesc=`Fornecimento${_apfInstStr} de ${_apfQtdStr} de ${_apfLabel} medindo ${larg}×${alt} cm.${_apfIncluiStr}${_apfFixStr}${_apfDeslStr}`;
-  const newSvc = {meta, items, vista:mk.vista, prazo:mk.prazo, prazo_entrega:10, descricao:_apfAutoDesc, nomeItem:_apfNomeItem};
+  const newSvc = {meta, items, vista:mk.vista, prazo:mk.prazo, prazo_entrega:10, descricao:_apfAutoDesc, nomeItem:_apfNomeItem, qtd_pdf:qtd||1};
   if (_addPanelEditMode && _addPanelEditIdx !== null) {
     // Edit mode: replace existing service
     const existing = _fzServicesList[_addPanelEditIdx];
     newSvc.descricao = existing?.descricao || _apfAutoDesc;
     newSvc.nomeItem  = existing?.nomeItem  || _apfNomeItem;
     newSvc.prazo_entrega = existing?.prazo_entrega ?? 10;
+    newSvc.qtd_pdf = existing?.qtd_pdf ?? (qtd||1);
     _fzServicesList[_addPanelEditIdx] = newSvc;
     _fzEditingIdx = _addPanelEditIdx;
   } else if (_fzAddMode || !_fzServicesList.length) {
@@ -3001,6 +3023,7 @@ function addPanelFormalizar2() {
   // Marca como criado pela calculadora simplificada
   const _sf = _fzServicesList[_fzEditingIdx];
   if (_sf) {
+    _sf.qtd_pdf = qtd; // pré-preenche Unid. PDF com a quantidade do painel
     _sf.meta.lastCalc = 'simplified';
     // Injeta nomeItem com material e espessura para serviços relevantes
     if (['letreiro_pvc_flat','letreiro_acr','placa','painel'].includes(svc.id)) {
@@ -3527,6 +3550,7 @@ function _iaApplyResult(data) {
   if (data.cliente) { _clienteContato=data.cliente; if(!_clienteNome)_clienteNome=data.cliente; }
   if (data.fone)    _clienteFone=_normalizePhone(data.fone);
   if (data.email)   _clienteEmail=data.email;
+  if (data.cnpj)    _clienteCnpj=data.cnpj;
   // Re-render client summary to show filled fields
   renderFzClientSummary();
   // Add identified services
@@ -3736,7 +3760,8 @@ function _buildOrcHTML(d){
       <div class="ci-left">
         <table><tbody>
           ${d.empresa?`<tr><td class="lbl">Empresa:</td><td class="val">${d.empresa}</td></tr>`:''}
-          <tr><td class="lbl">Cliente:</td><td class="val">${d.cliente||'—'}</td></tr>
+          <tr><td class="lbl">Responsável:</td><td class="val">${d.cliente||'—'}</td></tr>
+          ${d.cnpj?`<tr><td class="lbl">CNPJ:</td><td class="val">${d.cnpj}</td></tr>`:''}
           ${d.telefone?`<tr><td class="lbl">Telefone:</td><td class="val">${d.telefone}</td></tr>`:''}
           ${d.email?`<tr><td class="lbl">E-mail:</td><td class="val">${d.email}</td></tr>`:''}
         </tbody></table>
@@ -4159,7 +4184,7 @@ async function fzSalvarNoCRM() {
         total_prazo: parseFloat(totalPrazo.toFixed(2)),
         prazo_entrega: _fzPrazoGlobal||7,
         cliente:_clienteContato, empresa:_clienteEmpresa,
-        telefone:_clienteFone, email:_clienteEmail,
+        telefone:_clienteFone, email:_clienteEmail, cnpj:_clienteCnpj,
         // Se era Rascunho e agora tem serviços → promove para Aberto
         status: (!_isRascunho && _prevStatus === 'Rascunho') ? 'Aberto' : (_isRascunho ? 'Rascunho' : _prevStatus)
       });
@@ -4188,7 +4213,7 @@ async function fzSalvarNoCRM() {
     const novoOrc = {
       id:newId, numero,
       cliente:_clienteContato, empresa:_clienteEmpresa,
-      telefone:_clienteFone, email:_clienteEmail,
+      telefone:_clienteFone, email:_clienteEmail, cnpj:_clienteCnpj,
       data:hoje, prazo_entrega:_fzPrazoGlobal||7,
       status:_isRascunho?'Rascunho':'Aberto', descricao:'', servicos, responsavel:'Marcelo',
       total_vista:parseFloat(totalVista.toFixed(2)),
@@ -4255,7 +4280,7 @@ function fzGerarPDF() {
     return `<tr>
       <td class="col-num">${idx+1}</td>
       <td class="col-desc">${desc}</td>
-      <td class="col-units">1</td>
+      <td class="col-units">${svc.qtd_pdf||1}</td>
       <td class="col-price">${R(svc.prazo||0)}</td>
       <td class="col-price">${R(svc.prazo||0)}</td>
       <td class="col-price col-vista">${R(svc.vista||0)}</td>
@@ -4267,6 +4292,7 @@ function fzGerarPDF() {
     cliente:_clienteContato,
     telefone:_clienteFone,
     email:_clienteEmail,
+    cnpj:_clienteCnpj,
     data:new Date().toLocaleDateString('pt-BR'),
     responsavel:'Marcelo Duarte',
     serviceRows,
@@ -4293,6 +4319,7 @@ function s1Validate() {
   _clienteContato = document.getElementById('c_contato').value.trim();
   _clienteFone    = document.getElementById('c_fone').value.trim();
   _clienteEmail   = document.getElementById('c_email').value.trim();
+  _clienteCnpj    = (document.getElementById('c_cnpj')||{value:''}).value.trim();
   _clienteNome    = _clienteEmpresa || _clienteContato;
 }
 
@@ -4836,7 +4863,7 @@ function detFormalizar(svcIdx) {
   }
   const C = items.reduce((s,it)=>s+(it.val||0),0);
   const mk = applyMarkup(C);
-  const newSvc = { meta, items, vista: mk.vista, prazo: mk.prazo, descricao: '' };
+  const newSvc = { meta, items, vista: mk.vista, prazo: mk.prazo, descricao: '', qtd_pdf: qtd||1 };
   if (_fzAddMode) {
     _fzServicesList.push(newSvc); _fzEditingIdx = _fzServicesList.length - 1; _fzAddMode = false;
   } else {
@@ -5260,14 +5287,15 @@ function placaSetImpCamada(i,t){_placaCamadas[i].impType=t;if(i===0){_placaImpTy
 function _updatePlacaVernizLaminRow(){const t=_placaCamadas[0]?.impType||'digital';const vr=document.getElementById('placa-verniz-row');if(vr)vr.style.display=t==='uv'?'block':'none';const lr=document.getElementById('placa-lamin-row');if(lr)lr.style.display=t==='digital'?'block':'none';}
 
 // Formalizar from calc
-function _calcFzPush(meta,items,vista,prazo,desc){
-  const newSvc={meta,items,vista,prazo,prazo_entrega:10,descricao:desc||''};
+function _calcFzPush(meta,items,vista,prazo,desc,qtd){
+  const newSvc={meta,items,vista,prazo,prazo_entrega:10,descricao:desc||'',qtd_pdf:Math.max(1,+qtd||1)};
   if(_addPanelEditMode && _addPanelEditIdx!==null){
     // Edit mode: replace existing service
     const existing=_fzServicesList[_addPanelEditIdx];
     newSvc.descricao=desc||existing?.descricao||'';
     newSvc.nomeItem=existing?.nomeItem||'';
     newSvc.prazo_entrega=existing?.prazo_entrega??10;
+    newSvc.qtd_pdf=existing?.qtd_pdf??Math.max(1,+qtd||1);
     _fzServicesList[_addPanelEditIdx]=newSvc;
     _fzEditingIdx=_addPanelEditIdx;
     _addPanelEditMode=false; _addPanelEditIdx=null;
@@ -5280,10 +5308,10 @@ function _calcFzPush(meta,items,vista,prazo,desc){
   _fzMeta=_fzServicesList[_fzEditingIdx].meta;
   goStep(4);
 }
-function letreiroFormalizar(){if(!_letResu)return;const desc=document.getElementById('l_desc_preview')?.value||'';_letResu.meta.lastCalc='anterior';_calcFzPush(_letResu.meta,_letResu.items,_letResu.vista,_letResu.prazo,desc);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_letResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
-function pvcFormalizar(){if(!_pvcResu)return;const desc=document.getElementById('pv_desc_preview')?.value||'';_pvcResu.meta.lastCalc='anterior';_calcFzPush(_pvcResu.meta,_pvcResu.items,_pvcResu.vista,_pvcResu.prazo,desc);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_pvcResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
-function placaFormalizar(){if(!_placaResu)return;const desc=document.getElementById('p_desc_preview')?.value||'';_placaResu.meta.lastCalc='anterior';_calcFzPush(_placaResu.meta,_placaResu.items,_placaResu.vista,_placaResu.prazo,desc);_saveCalcState(_fzEditingIdx);}
-function adFormalizar(){if(!_adResu)return;const desc=document.getElementById('ad-desc')?.value||'';_adResu.meta.lastCalc='anterior';_calcFzPush(_adResu.meta,_adResu.items,_adResu.vista,_adResu.prazo,desc);_saveCalcState(_fzEditingIdx);}
+function letreiroFormalizar(){if(!_letResu)return;const desc=document.getElementById('l_desc_preview')?.value||'';const _lQtd=parseInt(document.getElementById('l_qtd')?.value)||1;_letResu.meta.lastCalc='anterior';_calcFzPush(_letResu.meta,_letResu.items,_letResu.vista,_letResu.prazo,desc,_lQtd);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_letResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
+function pvcFormalizar(){if(!_pvcResu)return;const desc=document.getElementById('pv_desc_preview')?.value||'';const _pvQtd=parseInt(document.getElementById('pv_qtd')?.value)||1;_pvcResu.meta.lastCalc='anterior';_calcFzPush(_pvcResu.meta,_pvcResu.items,_pvcResu.vista,_pvcResu.prazo,desc,_pvQtd);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_pvcResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
+function placaFormalizar(){if(!_placaResu)return;const desc=document.getElementById('p_desc_preview')?.value||'';const _pQtd=parseInt(document.getElementById('p_qtd')?.value)||1;_placaResu.meta.lastCalc='anterior';_calcFzPush(_placaResu.meta,_placaResu.items,_placaResu.vista,_placaResu.prazo,desc,_pQtd);_saveCalcState(_fzEditingIdx);}
+function adFormalizar(){if(!_adResu)return;const desc=document.getElementById('ad-desc')?.value||'';const _adQtdV=parseInt(document.getElementById('ad_qtd')?.value)||1;_adResu.meta.lastCalc='anterior';_calcFzPush(_adResu.meta,_adResu.items,_adResu.vista,_adResu.prazo,desc,_adQtdV);_saveCalcState(_fzEditingIdx);}
 
 // ══════════════════════════════════════════
 // LETRA CAIXA — Calculator
@@ -5917,7 +5945,7 @@ function genFormalizar(){
   window._pendingApcState=null;
   // lastCalc é definido pelo chamador: addPanelFormalizar2 sobrescreve para 'simplified' após esta linha
   const meta={dim:`${fi.largura}×${fi.altura} cm`,material:_gfMat,svc:'generic',svcLabel,svcIcon,_apcState,svcsIdx:_addPanelSvcIdx??-1,lastCalc:'completa'};
-  _calcFzPush(meta,items,mk.vista,mk.prazo,autoDesc);
+  _calcFzPush(meta,items,mk.vista,mk.prazo,autoDesc,fi.unidades||1);
   _saveCalcState(_fzEditingIdx);
 }
 
@@ -6176,6 +6204,7 @@ function _placaCalcRun(){
   if (d.cliente) { _clienteContato = d.cliente; if (!_clienteNome) _clienteNome = d.cliente; }
   if (d.telefone) _clienteFone = d.telefone;
   if (d.email) _clienteEmail = d.email;
+  if (d.cnpj)  _clienteCnpj = d.cnpj;
   // Preenche serviços
   if (d.servicos && d.servicos.length) {
     _fzServicesList = d.servicos;
@@ -6198,6 +6227,24 @@ function _placaCalcRun(){
     const t = e.target;
     if (t && t.tagName === 'INPUT' && t.type !== 'checkbox' && t.type !== 'radio' && t.type !== 'file') {
       setTimeout(() => { if (document.activeElement === t) t.select(); }, 0);
+    }
+  }, true);
+})();
+</script>
+<script>
+// ── UX GLOBAL: scroll + seleção automática ───────────────────────────────────
+(function(){
+  // 1. Desabilita alteração de valor por scroll do mouse em inputs numéricos
+  document.addEventListener('wheel', function(e){
+    if(document.activeElement && document.activeElement.type==='number'){
+      document.activeElement.blur();
+    }
+  }, {passive:true});
+  // 2. Seleciona todo o conteúdo ao clicar/focar em qualquer input de texto/número
+  document.addEventListener('focus', function(e){
+    var t=e.target;
+    if(t && t.tagName==='INPUT' && t.type!=='checkbox' && t.type!=='radio' && t.type!=='file'){
+      t.select();
     }
   }, true);
 })();
