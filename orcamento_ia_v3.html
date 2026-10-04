@@ -1527,20 +1527,20 @@ function renderFzSvcList() {
           <div class="fz-svc-row-info" style="display:grid;grid-template-columns:52% 1fr;gap:8px;min-width:0;align-items:start">
             <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
               <div style="display:flex;align-items:center;gap:4px;width:100%">
-                <input class="fz-nome-item-inp" value="${(svc.nomeItem||svc.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:10px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
+                <input class="fz-nome-item-inp" value="${(svc.nomeItem||svc.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:13px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
                 ${confDot}
               </div>
               ${active
-                ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:9px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
-                : (descPreview ? `<div style="font-size:9px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
+                ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:11px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
+                : (descPreview ? `<div style="font-size:11px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
               }
             </div>
             <div style="min-width:0;display:flex;flex-direction:column;gap:4px">
-              ${breakdown?`<div style="font-size:9px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
-              ${dimInfo?`<div style="font-size:9px;color:#a1a1aa">${dimInfo}</div>`:''}
+              ${breakdown?`<div style="font-size:11px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
+              ${dimInfo?`<div style="font-size:11px;color:#a1a1aa">${dimInfo}</div>`:''}
               <div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;margin-top:2px">
-                <span style="font-size:9px;color:#94a3b8;white-space:nowrap">Unid. PDF:</span>
-                <input type="number" min="1" value="${svc.qtd_pdf||1}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].qtd_pdf=Math.max(1,+this.value||1)" style="width:44px;padding:2px 4px;border:1.5px solid #cbd5e1;border-radius:5px;font-size:10px;font-weight:600;color:#35597F;background:#f8fafc;text-align:center">
+                <span style="font-size:11px;color:#94a3b8;white-space:nowrap">Unid. PDF:</span>
+                <input type="number" min="1" value="${svc.qtd_pdf||1}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].qtd_pdf=Math.max(1,+this.value||1)" style="width:62px;padding:2px 4px;border:1.5px solid #cbd5e1;border-radius:5px;font-size:12px;font-weight:600;color:#35597F;background:#f8fafc;text-align:center">
               </div>
             </div>
           </div>
@@ -5822,7 +5822,7 @@ function _renderGenItem(it,i,BRL){
     <div style="margin-bottom:6px">${lbl(`Custo Instalação (auto: ${BRL(r.cinsa)})`)}${_ovInpHtml(i,'ov_instalacao',r.cinsa,BRL)}</div>
     ${sec('Logística & Extras')}
     <div style="${g2}">
-      <div>${lbl('Distância')}<select style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px" onchange="_genItems[${i}].distancia=this.value;renderGenAdvForm()">${GEN_DISTANCIA_TIPOS.map(o=>`<option value="${o.v}"${o.v===it.distancia?' selected':''}>${o.v} (R$${o.p})</option>`).join('')}</select></div>
+      <div>${lbl('Deslocamento')}<select style="width:100%;padding:6px 8px;border:1px solid #e2e8f0;border-radius:6px;font-size:12px" onchange="_genItems[${i}].distancia=this.value;renderGenAdvForm()">${GEN_DISTANCIA_TIPOS.map(o=>`<option value="${o.v}"${o.v===it.distancia?' selected':''}>${o.v} (R$${o.p})</option>`).join('')}</select></div>
       <div>${lbl('Montagem R$')}${ninp('montagem',it.montagem)}</div>
     </div>
     <div style="${g2}">

@@ -174,7 +174,6 @@ tr:last-child td{border-bottom:none}
   <button class="nav-btn" onclick="goTab('crm')">Funil</button>
   <button class="nav-btn" onclick="goTab('tarefas')">Tarefas</button>
   <button class="nav-btn" onclick="goTab('financeiro')">Financeiro</button>
-  <button class="nav-btn" onclick="goTab('relatorios')">Relatórios</button>
   <button class="nav-btn" onclick="openImportModal()" style="margin-left:auto;color:#7dd3fc;border-bottom-color:transparent" title="Importar orçamento de Claude">📥 Importar</button><button class="nav-btn" onclick="openConfigApp()" title="Configurações do app" style="color:rgba(255,255,255,0.5);border-bottom-color:transparent;padding:14px 10px">⚙️</button>
 </nav>
 
@@ -307,6 +306,7 @@ const MATERIAIS_DB = [
 const CORTE_TIPOS = [
   {v:'Nenhum',pm:0},
   {v:'Adesivo',pm:15},
+  {v:'Recorte Plotter',pm:15},
   {v:'Router',pm:35},
   {v:'Laser',pm:45},
   {v:'Plasma',pm:60},
@@ -321,17 +321,19 @@ const LASER_ACRILICO = {
 };
 
 const IMPRESSAO_TIPOS = [
-  {v:'Nenhum',pm2:0},{v:'Digital',pm2:30},{v:'Pintura Automotiva',pm2:40},
+  {v:'Nenhum',pm2:0},{v:'Digital',pm2:40},{v:'Impressão Digital',pm2:40},
+  {v:'Pintura Automotiva',pm2:70},
   {v:'UV Adesivo',pm2:75},{v:'UV',pm2:120},{v:'UV com Branco',pm2:150},
 ];
 const INSTALACAO_TIPOS = [
-  {v:'Nenhum',pm2:0},{v:'Comum',pm2:30},{v:'Escada',pm2:100},
+  {v:'Nenhum',pm2:0},{v:'Comum',pm2:50},{v:'Escada',pm2:100},
   {v:'Andaime',pm2:250},{v:'Rapel',pm2:550},
 ];
-const DISTANCIA_TIPOS = [
+const DESLOCAMENTO_TIPOS = [
   {v:'Mínimo (até 4 km)',p:15},{v:'5-15 km',p:30},{v:'16-20 km',p:50},
   {v:'21-30 km',p:80},{v:'31-50 km',p:100},{v:'Sem deslocamento',p:0},
 ];
+const DISTANCIA_TIPOS = DESLOCAMENTO_TIPOS; // alias para compatibilidade
 
 // --- STATE -------------------------------------------------------------------
 let S = {
@@ -623,7 +625,7 @@ function goTab(t){
   currentTab=t;
   localStorage.setItem('sinalapp_tab',t);
   document.querySelectorAll('.nav-btn').forEach((b,i)=>{
-    b.classList.toggle('active',['dashboard','orcamentos','crm','tarefas','financeiro','relatorios'][i]===t);
+    b.classList.toggle('active',['dashboard','orcamentos','crm','tarefas','financeiro'][i]===t);
   });
   render();
 }
@@ -637,7 +639,6 @@ function render(){
   else if(currentTab==='orcamentos') app.innerHTML=renderOrcamentos();
   else if(currentTab==='crm'){ app.innerHTML=renderCRM(); requestAnimationFrame(adjustKanbanHeight); }
   else if(currentTab==='financeiro') app.innerHTML=renderFinanceiro();
-  else if(currentTab==='relatorios') app.innerHTML=renderRelatorios();
   else if(currentTab==='tarefas') app.innerHTML=renderTarefas();
   else if(currentTab==='calcular'){ app.innerHTML=renderCalculadora(); setTimeout(()=>calcSelectService('adesivo'),80); }
   attachHandlers();
@@ -1478,10 +1479,10 @@ function renderItemForm(sv,i,it,j,ic,formas){
           ${(it.ov_instalacao_m2!==null&&it.ov_instalacao_m2!==undefined)?`<button class="reset-btn" onclick="updItem(${i},${j},'ov_instalacao_m2',null);recalc()">↺ Auto</button>`:''}
         </div>
       </div>
-      <div class="form-row"><label>Distância</label>
+      <div class="form-row"><label>Deslocamento</label>
         <div style="display:flex;gap:6px;align-items:center">
           <select style="flex:1" onchange="updItem(${i},${j},'distancia',this.value);recalc()">
-            ${DISTANCIA_TIPOS.map(d=>`<option ${it.distancia===d.v?'selected':''}>${d.v}</option>`).join('')}
+            ${DESLOCAMENTO_TIPOS.map(d=>`<option ${it.distancia===d.v?'selected':''}>${d.v}</option>`).join('')}
           </select>
           ${inlineOv(i,j,'distancia',ic.custo_distancia,it.ov_distancia)}
         </div>
@@ -2490,7 +2491,6 @@ function showCRMModal(card,isNew){
         </div>`;
       })()}
     </div>
-    ${(()=>{if(!card.orcamentoId)return'';const _ov=S.orcamentos.find(o=>o.id===card.orcamentoId);if(!_ov)return'';return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">📋 Orçamento vinculado</div><div style="display:flex;align-items:center;gap:10px;padding:4px 0"><span style="font-size:13px;font-weight:600;color:var(--text1)">Orç. #'+_ov.numero+' — '+_ov.cliente+(_ov.empresa?' ('+_ov.empresa+')':'')+'</span><button onclick="this.closest(\'[class=modal-bg]\').remove();viewOrcamento(\''+card.orcamentoId+'\')" style="font-size:11px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:2px 10px;cursor:pointer;font-weight:600">👁 Ver</button></div></div>';})()}
     ${(()=>{if(!card.orcamentoId)return'';const _fins=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='receita');if(!_fins.length)return'';return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">💰 Lançamentos Financeiros</div><div style="display:flex;flex-direction:column;gap:4px">'+_fins.map(f=>{const tl={'entrada':'Entrada','entrega':'Entrega','outro':'Boleto'}[f.tipo_pagamento]||f.categoria||'';return'<div style="display:flex;align-items:center;gap:8px;padding:3px 0"><span style="font-size:13px;font-weight:700;color:var(--green)">'+BRL(f.valor)+'</span><span style="font-size:11px;color:var(--text2);flex:1">'+(f.data||'')+(tl?' · '+tl:'')+'</span><button onclick="editLancamento(\''+f.id+'\')" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--text2);white-space:nowrap;flex-shrink:0">✏️ Editar</button></div>';}).join('')+'</div></div>';})()}
     ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">'+lt.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:'+(TASK_STATUS_COLOR[t.status]||'var(--text2)')+';flex-shrink:0;display:inline-block"></span><button onclick="irParaTarefa(\''+t.id+'\')" style="flex:1;font-size:12px;text-align:left;background:none;border:none;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline">'+t.titulo+'</button>'+(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>'<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">'+m+'</span>').join('')+((t.checklist||[]).length?'<span style="font-size:10px;color:var(--text2)">'+t.checklist.filter(x=>x.done).length+'/'+t.checklist.length+'</span>':'')+'</div>').join('')+'</div></div>';})()}
     <div style="padding:10px 0 4px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);margin-top:4px">
@@ -2597,11 +2597,12 @@ function deleteCRMCard(id,btn){
 
 // --- FINANCEIRO ---------------------------------------------------------------
 let finTab='lancamentos';
+let _finRelOpen=false;
 function renderFinanceiro(){
   const mesAtual=new Date().toISOString().slice(0,7);
   const rec=S.financeiro.filter(f=>f.tipo==='receita');
   const desp=S.financeiro.filter(f=>f.tipo==='despesa');
-  const prevStored=S.financeiro.filter(f=>f.tipo==='previsao');
+  const prevStored=S.financeiro.filter(f=>f.tipo==='previsao'||f.tipo==='previsao_receita');
   const totalRec=rec.reduce((a,f)=>a+(f.valor||0),0);
   const totalDesp=desp.reduce((a,f)=>a+(f.valor||0),0);
   const saldo=totalRec-totalDesp;
@@ -2625,7 +2626,7 @@ function renderFinanceiro(){
     const total=card.valor_fechado||card.valor||_orcPrev?.total_prazo||0;
     if(!total)return;
     const pago=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='receita').reduce((a,f)=>a+(f.valor||0),0);
-    const prevSalvo=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='previsao').reduce((a,f)=>a+(f.valor||0),0);
+    const prevSalvo=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&(f.tipo==='previsao'||f.tipo==='previsao_receita')).reduce((a,f)=>a+(f.valor||0),0);
     const pendente=Math.max(0,total-pago-prevSalvo);
     if(pendente>0)totalPrev+=pendente;
   });
@@ -2658,11 +2659,17 @@ function renderFinanceiro(){
       <div class="stat-delta" style="color:var(--red)">Despesas: ${BRL(despMes)}</div>
     </div>
   </div>
+  <div class="card" style="margin-bottom:12px">
+    <button onclick="_finRelOpen=!_finRelOpen;render()" style="width:100%;text-align:left;padding:4px 0;background:none;border:none;cursor:pointer;font-size:14px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:8px">
+      📊 Relatórios <span style="font-size:12px;font-weight:400;color:var(--text3);margin-left:4px">${_finRelOpen?'▲':'▼'}</span>
+    </button>
+    ${_finRelOpen?_renderRelatoriosContent():''}
+  </div>
   <div class="card">
     <div class="section-header" style="margin-bottom:16px">
       <div class="flex-wrap">
         <button class="page-tab ${finTab==='lancamentos'?'active':''}" onclick="finTab='lancamentos';render()">Lançamentos</button>
-        <button class="page-tab ${finTab==='pagamentos'?'active':''}" onclick="finTab='pagamentos';render()">Pagamentos de Orçamentos</button>
+        <button class="page-tab ${finTab==='pagamentos'?'active':''}" onclick="finTab='pagamentos';render()">Recebimentos</button>
       </div>
     </div>
     ${finTab==='lancamentos'?renderLancamentos():renderPagamentos()}
@@ -2763,8 +2770,10 @@ function renderLancamentos(){
       <div>
         <div style="font-size:10px;color:var(--text3);margin-bottom:4px;font-weight:600">TIPO</div>
         <div style="display:flex;flex-wrap:wrap;gap:4px">
-          ${['','receita','despesa','previsao'].map(t=>{
-            const lbl={'':`Todos`,'receita':'Receita','despesa':'Despesa','previsao':'Previsão'}[t];
+          ${['','receita','previsao_receita','despesa','previsao_despesa','previsao'].map(t=>{
+            const lbl={'':`Todos`,'receita':'Receita','previsao_receita':'Previsão Receita','despesa':'Despesa','previsao_despesa':'Previsão Despesa','previsao':'Previsão (legado)'}[t];
+            // Ocultar 'previsao' legado se não houver registros com esse tipo
+            if(t==='previsao'&&!S.financeiro.some(x=>x.tipo==='previsao'))return'';
             return`<button onclick="_lancSetF('tipo','${t}')" style="${btnBase};${f.tipo===t?btnAct:btnInact}">${lbl}</button>`;
           }).join('')}
         </div>
@@ -2821,10 +2830,10 @@ function renderLancamentos(){
       const autoDesc=[f.empresa,f.cliente,tipoLbl,'Orç. #'+f.numero].filter(Boolean).join(' | ');
       return `<tr style="opacity:.85">
       ${_lancSelectMode?'<td></td>':''}
-      <td>${f.data||'—'}</td>
+      <td>${_fmtShort(f.data)}</td>
       <td style="color:var(--text3)">—</td>
       <td style="font-size:12px">${autoDesc}</td>
-      <td><span class="badge" style="background:var(--accent)20;color:var(--accent);border:1px solid var(--accent)40">Previsão</span></td>
+      <td><span class="badge" style="background:var(--accent)20;color:var(--accent);border:1px solid var(--accent)40">Previsão Receita</span></td>
       <td style="font-weight:700;color:var(--accent)">${BRL(f.valor)}</td>
       <td>${_lancSelectMode?'':((_fCard?`<button class="btn-icon" title="Ver card no funil" onclick="openCRMCard('${_fCard.id}')">↗</button>`:'')+
       `<button class="btn-icon" title="Editar previsão" onclick="_editVirtualPrev('${f.crmCardId}','${f.tipo_pagamento}',${f.valor||0},'${f.data||''}')">✏️</button>
@@ -2840,11 +2849,18 @@ function renderLancamentos(){
     const displayDesc=f.descricao||autoDesc||'—';
     return `<tr>
     ${_lancSelectMode?`<td><input type="checkbox" class="lanc-chk" data-id="${f.id}" ${_lancSelected.has(f.id)?'checked':''} onchange="this.checked?_lancSelected.add('${f.id}'):_lancSelected.delete('${f.id}');_updateLancDeleteBtn()"></td>`:''}
-    <td>${f.data||'—'}</td>
+    <td>${_fmtShort(f.data)}</td>
     <td style="color:var(--text2)">${f.categoria||'—'}</td>
     <td style="font-size:12px">${displayDesc}</td>
-    <td><span class="badge ${f.tipo==='receita'?'badge-green':f.tipo==='previsao'?'':'badge-red'}" ${f.tipo==='previsao'?'style="background:var(--accent)20;color:var(--accent);border:1px solid var(--accent)40"':''}>${f.tipo==='receita'?'Receita':f.tipo==='previsao'?'Previsão':'Despesa'}</span></td>
-    <td style="font-weight:700;color:${f.tipo==='receita'?'var(--green)':f.tipo==='previsao'?'var(--accent)':'var(--red)'}">${BRL(f.valor)}</td>
+    <td>${(()=>{
+      const t=f.tipo;
+      const cat=(f.categoria||'').toLowerCase();
+      if(t==='receita') return '<span class="badge badge-green">Receita</span>';
+      if(t==='despesa') return '<span class="badge badge-red">Despesa</span>';
+      if(t==='previsao_despesa'||(t==='previsao'&&cat.includes('despesa'))) return '<span class="badge" style="background:#f59e0b20;color:#b45309;border:1px solid #f59e0b40">Previsão Despesa</span>';
+      return '<span class="badge" style="background:var(--accent)20;color:var(--accent);border:1px solid var(--accent)40">Previsão Receita</span>';
+    })()}</td>
+    <td style="font-weight:700;color:${f.tipo==='receita'?'var(--green)':f.tipo==='despesa'?'var(--red)':(f.tipo==='previsao_despesa'||(f.tipo==='previsao'&&(f.categoria||'').toLowerCase().includes('despesa')))?'#b45309':'var(--accent)'}">${BRL(f.valor)}</td>
     <td style="white-space:nowrap">${_lancSelectMode?'':((_fCard?`<button class="btn-icon" title="Ver card no funil" onclick="openCRMCard('${_fCard.id}')">↗</button>`:'')+
     `<button class="btn-icon" onclick="editLancamento('${f.id}')">✏️</button>
     <button class="btn-icon" onclick="deleteLancamento('${f.id}')">🗑</button>`)}</td>
@@ -2852,21 +2868,71 @@ function renderLancamentos(){
   </tbody></table></div>`;
 }
 
+let _pagSortCol='numero',_pagSortDir=-1;
+let _pagFilters={busca:'',status:''};
 function renderPagamentos(){
-  const orcs=S.orcamentos.filter(o=>o.status==='Fechado'||o.total_prazo>0);
-  if(!orcs.length) return `<div class="empty">Nenhum orçamento fechado ainda.</div>`;
-  return `<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table><thead><tr><th>Nº</th><th>Empresa</th><th>Cliente</th><th>Condição</th><th>Total</th><th>Pago</th><th>Saldo</th><th>Status Pgto</th><th></th></tr></thead><tbody>
-  ${orcs.slice().reverse().map(o=>{
+  let orcs=S.orcamentos.filter(o=>o.status==='Fechado'||o.total_prazo>0);
+  if(!orcs.length) return `<div class="empty">Nenhum recebimento ainda.</div>`;
+  // Enriquecer com dados calculados para filtro/sort
+  const rows=orcs.map(o=>{
     const _cCard=S.crm.find(c=>c.orcamentoId===o.id);
     const empresa=_cCard?.empresa||o.empresa||'—';
     const cond=_cCard?.condicao_pag||o.condicao_pag||'prazo';
     const totalCond=_cCard?.valor_fechado||_cCard?.valor||(o.valor_fechado)||(cond==='vista'?(o.total_vista||0):(o.total_prazo||0));
     const condLabel=(_cCard?.valor_fechado||o.valor_fechado)?(cond==='vista'?'50/50':'Faturado'):(cond==='vista'?'50/50':'Boleto/15d');
     const pago=S.financeiro.filter(f=>f.orcamentoId===o.id&&f.tipo==='receita').reduce((a,f)=>a+(f.valor||0),0);
-    const previsto=S.financeiro.filter(f=>f.orcamentoId===o.id&&f.tipo==='previsao').reduce((a,f)=>a+(f.valor||0),0);
+    const previsto=S.financeiro.filter(f=>f.orcamentoId===o.id&&(f.tipo==='previsao'||f.tipo==='previsao_receita')).reduce((a,f)=>a+(f.valor||0),0);
     const saldo=totalCond-pago;
-    const pgStatus=pago<=0&&previsto<=0?'Não pago':saldo<=0?'Pago':pago>0||previsto>0?'Parcial':'Não pago';
+    const pgStatus=saldo<=0?'Pago':pago>0||previsto>0?'Parcial':'Não pago';
+    return{o,_cCard,empresa,cond,totalCond,condLabel,pago,previsto,saldo,pgStatus};
+  });
+  // Filtros
+  const f=_pagFilters;
+  let filtered=rows.filter(r=>{
+    if(f.status&&r.pgStatus!==f.status)return false;
+    if(f.busca){const h=[r.empresa,r.o.cliente,r.o.numero+''].join(' ').toLowerCase();if(!h.includes(f.busca.toLowerCase()))return false;}
+    return true;
+  });
+  // Sort
+  filtered.sort((a,b)=>{
+    let ka,kb;
+    if(_pagSortCol==='numero'){ka=a.o.numero||0;kb=b.o.numero||0;}
+    else if(_pagSortCol==='cliente'){ka=a.o.cliente||'';kb=b.o.cliente||'';}
+    else if(_pagSortCol==='empresa'){ka=a.empresa||'';kb=b.empresa||'';}
+    else if(_pagSortCol==='total'){ka=a.totalCond;kb=b.totalCond;}
+    else if(_pagSortCol==='pago'){ka=a.pago;kb=b.pago;}
+    else if(_pagSortCol==='saldo'){ka=a.saldo;kb=b.saldo;}
+    else if(_pagSortCol==='status'){ka=a.pgStatus;kb=b.pgStatus;}
+    else{ka=a.o.numero||0;kb=b.o.numero||0;}
+    if(typeof ka==='number') return _pagSortDir*(ka-kb);
+    return _pagSortDir*String(ka).localeCompare(String(kb),'pt-BR');
+  });
+  const btnBase='font-size:11px;padding:3px 10px;border-radius:20px;cursor:pointer;border:1px solid var(--border)';
+  const btnAct='background:var(--accent);color:#fff;border-color:var(--accent)';
+  const btnInact='background:var(--bg3);color:var(--text2)';
+  const thS='cursor:pointer;user-select:none;white-space:nowrap;padding-right:14px;position:relative';
+  const arr=col=>_pagSortCol===col?(_pagSortDir===1?' ▲':' ▼'):'';
+  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">
+    <input type="search" placeholder="Buscar empresa / cliente..." value="${f.busca}" oninput="_pagFilters.busca=this.value;render()" style="font-size:12px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:4px 10px;min-width:180px">
+    <div style="display:flex;gap:4px">
+      ${['','Pago','Parcial','Não pago'].map(s=>`<button onclick="_pagFilters.status='${s}';render()" style="${btnBase};${f.status===s?btnAct:btnInact}">${s||'Todos'}</button>`).join('')}
+    </div>
+    ${f.busca||f.status?`<button onclick="_pagFilters={busca:'',status:''};render()" style="font-size:11px;color:var(--red);background:none;border:none;cursor:pointer">✕ Limpar</button>`:''}
+  </div>`;
+  return filterBar+`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table><thead><tr>
+    <th style="${thS}" onclick="_pagSortCol='numero';_pagSortDir*=-1;render()">Nº${arr('numero')}</th>
+    <th style="${thS}" onclick="_pagSortCol='empresa';_pagSortDir*=-1;render()">Empresa${arr('empresa')}</th>
+    <th style="${thS}" onclick="_pagSortCol='cliente';_pagSortDir*=-1;render()">Cliente${arr('cliente')}</th>
+    <th>Condição</th>
+    <th style="${thS}" onclick="_pagSortCol='total';_pagSortDir*=-1;render()">Total${arr('total')}</th>
+    <th style="${thS}" onclick="_pagSortCol='pago';_pagSortDir*=-1;render()">Pago${arr('pago')}</th>
+    <th style="${thS}" onclick="_pagSortCol='saldo';_pagSortDir*=-1;render()">Saldo${arr('saldo')}</th>
+    <th style="${thS}" onclick="_pagSortCol='status';_pagSortDir*=-1;render()">Status${arr('status')}</th>
+    <th></th>
+  </tr></thead><tbody>
+  ${filtered.map(({o,_cCard,empresa,totalCond,condLabel,pago,saldo,pgStatus})=>{
     const pgBadge={'Pago':'badge-green','Parcial':'badge-yellow','Não pago':'badge-red'}[pgStatus]||'badge-gray';
+    const cond=_cCard?.condicao_pag||o.condicao_pag||'prazo';
     return `<tr>
       <td>#${o.numero}</td>
       <td style="font-size:12px">${empresa}</td>
@@ -2883,10 +2949,11 @@ function renderPagamentos(){
 }
 
 // ── LANCAMENTO HELPERS ─────────────────────────────────────────────────────
+function _fmtShort(d){if(!d)return'—';const m=d.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1].slice(2)}`:d;}
 const _CAT_RECEITA=['Entrada','Entrega','Faturado'];
 const _CAT_DESPESA=['Material','Impressão','Corte/Usinagem','Ferramentas e Equipamentos','Transporte e Deslocamento','Serviços Terceiros','Aluguel','Energia e Utilidades','Marketing e Divulgação','Impostos e Taxas'];
 function _lBuildCatOpts(tipo,sel=''){
-  const std=tipo==='receita'?_CAT_RECEITA:_CAT_DESPESA;
+  const std=(tipo==='receita'||tipo==='previsao_receita')?_CAT_RECEITA:_CAT_DESPESA;
   const custom=(S.categoriasCustom||[]).filter(c=>c.tipo===tipo||c.tipo==='ambos').map(c=>c.nome);
   const all=[...std,...custom,'Outros'];
   const hasSel=all.includes(sel);
@@ -2900,19 +2967,18 @@ function _lCatChange(sel){
   if(outrosRow) outrosRow.style.display=v==='Outros'?'':'none';
   const tipoVal=document.getElementById('l_tipo')?.value;
   const impostoEl=document.getElementById('l_imposto');
-  if(impostoEl) impostoEl.style.display=(v==='Impostos e Taxas'&&tipoVal==='despesa')?'':'none';
+  if(impostoEl) impostoEl.style.display=(v==='Impostos e Taxas'&&(tipoVal==='despesa'||tipoVal==='previsao_despesa'))?'':'none';
 }
 function _lTipoChange(){
   const tipo=document.getElementById('l_tipo')?.value||'receita';
+  const isDesp=tipo==='despesa'||tipo==='previsao_despesa';
   const catSel=document.getElementById('l_cat');
   if(catSel){catSel.innerHTML=_lBuildCatOpts(tipo);_lCatChange(catSel);}
   const rRow=document.getElementById('l_rateio_row');
-  if(rRow) rRow.style.display=tipo==='despesa'?'':'none';
+  if(rRow) rRow.style.display=isDesp?'':'none';
   // Atualiza seção vinculada conforme tipo
   const tipoPgtoRow=document.getElementById('l_tipo_pgto_row');
-  if(tipoPgtoRow) tipoPgtoRow.style.display=tipo==='despesa'?'none':'';
-  const confLabel=document.getElementById('l_confirmado_label');
-  if(confLabel) confLabel.textContent=tipo==='despesa'?'Já realizado (despesa confirmada)':'Já recebido (receita confirmada)';
+  if(tipoPgtoRow) tipoPgtoRow.style.display=isDesp?'none':'';
 }
 function _lImpostoModo(modo){
   const btnF=document.getElementById('l_imp_btn_fixo');
@@ -3034,7 +3100,7 @@ function _qeAddRow(){
   tr.innerHTML=`
     <td><input type="date" value="${today()}" style="${inp};width:112px"></td>
     <td><select onchange="const r=this.closest('tr');r.querySelectorAll('td')[3].querySelector('select').innerHTML=_lBuildCatOpts(this.value);" style="${inp}">
-      <option value="despesa">Despesa</option><option value="receita">Receita</option>
+      <option value="receita">Receita</option><option value="previsao_receita">Prev. Receita</option><option value="despesa">Despesa</option><option value="previsao_despesa">Prev. Despesa</option>
     </select></td>
     <td><input type="number" min="0" step="0.01" placeholder="0,00" class="qe-val" style="${inp};width:78px"></td>
     <td>
@@ -3089,10 +3155,14 @@ function _orcsFechados(){
 function openLancamento(editId=null){
   const editing=editId?(S.financeiro.find(x=>x.id===editId)||null):null;
   const initTipo=editing
-    ?(editing.tipo==='despesa'||(editing.tipo==='previsao'&&(editing.categoria||'').toLowerCase().includes('despesa'))?'despesa':'receita')
+    ?(editing.tipo==='despesa'?'despesa'
+      :editing.tipo==='previsao_despesa'?'previsao_despesa'
+      :editing.tipo==='previsao_receita'?'previsao_receita'
+      :(editing.tipo==='previsao'&&(editing.categoria||'').toLowerCase().includes('despesa'))?'previsao_despesa'
+      :editing.tipo==='previsao'?'previsao_receita'
+      :'receita')
     :'receita';
   const initModo=editing?.orcamentoId?'vinculado':'avulso';
-  const confirmadoInit=editing?editing.tipo!=='previsao':true;
   const fechados=_orcsFechados();
   const orcOpts=fechados.length
     ?fechados.map(o=>`<option value="${o.id}"${editing?.orcamentoId===o.id?' selected':''}>#${o.numero} ${o.empresa||o.cliente||''}</option>`).join('')
@@ -3109,7 +3179,7 @@ function openLancamento(editId=null){
   const vValor=editing&&initModo==='vinculado'?(editing.valor||''):'';
   const vObs=(editing&&initModo==='vinculado'?(editing.descricao||''):'').replace(/"/g,'&quot;');
   const vTipoPgto=editing?.tipo_pagamento||'entrada';
-  const tipoOpts=`<option value="receita"${initTipo==='receita'?' selected':''}>Receita</option><option value="despesa"${initTipo==='despesa'?' selected':''}>Despesa</option>`;
+  const tipoOpts=`<option value="receita"${initTipo==='receita'?' selected':''}>Receita</option><option value="previsao_receita"${initTipo==='previsao_receita'?' selected':''}>Previsão de Receita</option><option value="despesa"${initTipo==='despesa'?' selected':''}>Despesa</option><option value="previsao_despesa"${initTipo==='previsao_despesa'?' selected':''}>Previsão de Despesa</option>`;
   const tipoPgtoOpts=['entrada','entrega','outro'].map(v=>`<option value="${v}"${vTipoPgto===v?' selected':''}>${{entrada:'Entrada',entrega:'Entrega',outro:'Boleto / Faturamento'}[v]}</option>`).join('');
   const modal=document.createElement('div');
   modal.className='modal-bg';
@@ -3196,10 +3266,6 @@ function openLancamento(editId=null){
         <div class="form-row"><label>Data</label><input id="l_data_v" type="date" value="${vData}"></div>
         <div class="form-row"><label>Valor (R$)</label><input id="l_valor_v" type="number" min="0" step="0.01" placeholder="0,00" value="${vValor}"></div>
         <div class="form-row form-full"><label>Observação <span style="font-size:10px;color:var(--text3)">(opcional)</span></label><input id="l_obs_v" placeholder="Opcional..." value="${vObs}"></div>
-        <div class="form-row form-full" style="display:flex;align-items:center;gap:10px">
-          <input id="l_confirmado" type="checkbox" ${confirmadoInit?'checked':''} style="width:18px;height:18px;cursor:pointer;flex-shrink:0">
-          <label id="l_confirmado_label" for="l_confirmado" style="margin:0;cursor:pointer;font-weight:normal;font-size:13px">${initTipo==='despesa'?'Já realizado (despesa confirmada)':'Já recebido (receita confirmada)'}</label>
-        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -3244,7 +3310,9 @@ function salvarLancamento(btn,editId=null){
     if(!orcId){toast('Selecione um orçamento','error');return;}
     const valor=+g('#l_valor_v');
     if(!valor){toast('Informe o valor','error');return;}
-    const tipoSel=g('#l_tipo'); // 'receita' | 'despesa'
+    const tipoSel=g('#l_tipo'); // 'receita'|'previsao_receita'|'despesa'|'previsao_despesa'
+    const isDesp=tipoSel==='despesa'||tipoSel==='previsao_despesa';
+    const isPrevisao=tipoSel==='previsao_receita'||tipoSel==='previsao_despesa';
     const orc=S.orcamentos.find(o=>o.id===orcId);
     const card=S.crm.find(c=>c.orcamentoId===orcId);
     const tipoPgto=g('#l_tipo_pgto');
@@ -3253,24 +3321,21 @@ function salvarLancamento(btn,editId=null){
     const cliente=card?.cliente||orc?.cliente||'';
     const obs=g('#l_obs_v');
     const autoDesc=[empresa,cliente,tipoLabel,'Orç. #'+(orc?.numero||'')].filter(Boolean).join(' | ');
-    const confirmado=m.querySelector('#l_confirmado')?.checked!==false;
-    // tipo final: confirmado → usa tipoSel (receita ou despesa); não confirmado → previsao
-    const tipoFinal=confirmado?tipoSel:'previsao';
-    const catFinal=tipoSel==='despesa'
-      ?(confirmado?'Despesa de Orçamento':'Previsão de Despesa')
-      :(confirmado?'Pagamento de Orçamento':'Pagamento Previsto');
-    // autoDesc: para despesa não usa label de parcela (entrada/entrega/boleto)
-    const autoDescV=tipoSel==='despesa'
+    const tipoFinal=tipoSel; // armazena o tipo diretamente
+    const catFinal=isDesp
+      ?(isPrevisao?'Previsão de Despesa':'Despesa')
+      :(isPrevisao?'Pagamento Previsto':'Recebimento');
+    const autoDescV=isDesp
       ?[empresa,cliente,'Orç. #'+(orc?.numero||'')].filter(Boolean).join(' | ')
       :autoDesc;
     const entryV={id:editId||genId(),tipo:tipoFinal,
       data:g('#l_data_v'),valor,
-      tipo_pagamento:tipoSel==='receita'?tipoPgto:'',
+      tipo_pagamento:!isDesp?tipoPgto:'',
       categoria:catFinal,descricao:obs||autoDescV,
       crmCardId:card?.id||'',orcamentoId:orcId};
     if(editId){const idx=S.financeiro.findIndex(x=>x.id===editId);if(idx>=0)S.financeiro[idx]=entryV;}
-    else{S.financeiro.push(entryV);if(tipoSel==='receita'&&confirmado&&orc)orc.status='Fechado';}
-    const toastMsg=tipoFinal==='despesa'?'Despesa registrada!':tipoFinal==='previsao'?(tipoSel==='despesa'?'Previsão de despesa salva!':'Previsão registrada!'):'Receita registrada!';
+    else{S.financeiro.push(entryV);if(tipoSel==='receita'&&orc)orc.status='Fechado';}
+    const toastMsg=tipoSel==='despesa'?'Despesa registrada!':tipoSel==='previsao_despesa'?'Previsão de despesa salva!':tipoSel==='previsao_receita'?'Previsão de receita salva!':'Receita registrada!';
     saveState();btn.closest('.modal-bg').remove();render();toast(toastMsg);
   } else {
     const valor=+g('#l_valor');
@@ -3372,7 +3437,7 @@ function salvarPagamento(orcId,btn){
   S.financeiro.push({id:genId(),tipo:'receita',
     data:m.querySelector('#pg_data').value,valor,
     tipo_pagamento:tipoPgto,
-    categoria:'Pagamento de Orçamento',
+    categoria:'Recebimento',
     descricao:obs||autoDesc,
     crmCardId:_crmCard?.id||'',
     orcamentoId:orcId});
@@ -3421,8 +3486,9 @@ function _editVirtualPrev(crmCardId, tipoPagamento, valor, data){
       if(dv) dv.value=data||'';
       const vv=document.getElementById('l_valor_v');
       if(vv) vv.value=valor||'';
-      const cb=document.getElementById('l_confirmado');
-      if(cb) cb.checked=false; // mantém como previsão por padrão
+      // Mantém como previsão de receita por padrão
+      const tipoSel=document.getElementById('l_tipo');
+      if(tipoSel) tipoSel.value='previsao_receita';
     },20);
   },30);
 }
@@ -3642,7 +3708,7 @@ function _renderImpPreview(container){
     <th style="padding:4px 6px"></th>
   </tr></thead>
   <tbody>${_impRows.map((r,i)=>{
-    const cats=[...['Pagamento de Orçamento','Pagamento Previsto','Freelance','Serviço','Produto','Adiantamento','Outro'],...(S.categoriasCustom||[]).filter(c=>c.tipo!=='despesa').map(c=>c.nome)];
+    const cats=[...['Recebimento','Pagamento Previsto','Freelance','Serviço','Produto','Adiantamento','Outro'],...(S.categoriasCustom||[]).filter(c=>c.tipo!=='despesa').map(c=>c.nome)];
     const catOpts=cats.map(c=>`<option value="${c}" ${r.categoria===c?'selected':''}>${c}</option>`).join('');
     return`<tr id="imp_row_${i}" style="${r._delete?'opacity:.3':r._dup?'background:rgba(245,158,11,.07)':''}">
     <td style="padding:2px 6px;text-align:center">${r._dup&&!r._delete?'⚠️':r._delete?'✗':'✓'}</td>
@@ -3697,11 +3763,8 @@ function importarPlanilhaConfirmar(btn){
 }
 
 // --- RELATÓRIOS ---------------------------------------------------------------
-function renderRelatorios(){
+function _renderRelatoriosContent(){
   const now=new Date();
-  const mesAtual=now.toISOString().slice(0,7);
-
-  // Last 12 months
   const meses=[];
   for(let i=11;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
@@ -3710,9 +3773,8 @@ function renderRelatorios(){
     const rec=S.financeiro.filter(f=>f.tipo==='receita'&&f.data&&f.data.startsWith(key)).reduce((a,f)=>a+(f.valor||0),0);
     const desp=S.financeiro.filter(f=>f.tipo==='despesa'&&f.data&&f.data.startsWith(key)).reduce((a,f)=>a+(f.valor||0),0);
     const orcs=S.orcamentos.filter(o=>o.data&&o.data.startsWith(key));
-    meses.push({key,lbl,rec,desp,saldo:rec-desp,orcs:orcs.length,vol:orcs.reduce((a,o)=>a+(o.total_prazo||0),0)});
+    meses.push({key,lbl,rec,desp,saldo:rec-desp,orcs:orcs.length});
   }
-  // Top clientes
   const clMap={};
   S.orcamentos.forEach(o=>{
     if(!o.cliente)return;
@@ -3721,8 +3783,6 @@ function renderRelatorios(){
     clMap[o.cliente].total+=(o.total_prazo||0);
   });
   const topClientes=Object.entries(clMap).sort((a,b)=>b[1].total-a[1].total).slice(0,5);
-
-  // Despesas por categoria
   const catMap={};
   S.financeiro.filter(f=>f.tipo==='despesa').forEach(f=>{
     const cat=f.categoria||'Outros';
@@ -3730,55 +3790,43 @@ function renderRelatorios(){
     catMap[cat]+=f.valor||0;
   });
   const topCats=Object.entries(catMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
-
-  const totalRec12=meses.reduce((a,m)=>a+m.rec,0);
-  const totalDesp12=meses.reduce((a,m)=>a+m.desp,0);
-  const fechados=S.orcamentos.filter(o=>o.status==='Fechado').length;
-  const taxa=S.orcamentos.length?Math.round(fechados/S.orcamentos.length*100):0;
-
-  return `
-  <div class="section-header"><h2>Relatórios</h2></div>
-  <div class="grid g4" style="margin-bottom:20px">
-    <div class="card"><div class="stat-lbl">Receita (12 meses)</div><div class="stat-val" style="color:var(--green)">${BRL(totalRec12)}</div></div>
-    <div class="card"><div class="stat-lbl">Despesas (12 meses)</div><div class="stat-val" style="color:var(--red)">${BRL(totalDesp12)}</div></div>
-    <div class="card"><div class="stat-lbl">Lucro Líquido</div><div class="stat-val" style="color:${totalRec12-totalDesp12>=0?'var(--green)':'var(--red)'}">${BRL(totalRec12-totalDesp12)}</div></div>
-    <div class="card"><div class="stat-lbl">Taxa de Conversão</div><div class="stat-val">${taxa}%</div><div class="stat-delta" style="color:var(--text2)">${fechados}/${S.orcamentos.length} orçamentos</div></div>
-  </div>
-  <div class="grid g2" style="margin-bottom:20px">
-    <div class="card">
-      <h3 style="margin-bottom:12px">Fluxo Mensal (12 meses)</h3>
-      <table><thead><tr><th>Mês</th><th>Receita</th><th>Despesa</th><th>Saldo</th><th>Orçamentos</th></tr></thead><tbody>
+  return `<div class="grid g2" style="margin-top:16px">
+    <div>
+      <h3 style="margin-bottom:12px;font-size:13px;font-weight:700">Fluxo Mensal (12 meses)</h3>
+      <div style="overflow-x:auto"><table><thead><tr><th>Mês</th><th>Receita</th><th>Despesa</th><th>Saldo</th><th>Orç.</th></tr></thead><tbody>
       ${meses.map(m=>`<tr>
-        <td>${m.lbl}</td>
+        <td style="white-space:nowrap">${m.lbl}</td>
         <td style="color:var(--green)">${m.rec>0?BRL(m.rec):'—'}</td>
         <td style="color:var(--red)">${m.desp>0?BRL(m.desp):'—'}</td>
         <td style="color:${m.saldo>=0?'var(--green)':'var(--red)'};font-weight:600">${BRL(m.saldo)}</td>
         <td>${m.orcs}</td>
       </tr>`).join('')}
-      </tbody></table>
+      </tbody></table></div>
     </div>
-    <div class="card">
-      <h3 style="margin-bottom:12px">Top 5 Clientes</h3>
+    <div>
+      <h3 style="margin-bottom:12px;font-size:13px;font-weight:700">Top 5 Clientes</h3>
       ${topClientes.length===0?`<div class="empty" style="padding:24px">Sem dados ainda.</div>`:`
-      <table><thead><tr><th>Cliente</th><th>Orçamentos</th><th>Volume</th></tr></thead><tbody>
+      <div style="overflow-x:auto"><table><thead><tr><th>Cliente</th><th>Orç.</th><th>Volume</th></tr></thead><tbody>
       ${topClientes.map(([nome,d])=>`<tr>
-        <td>${nome}</td>
-        <td>${d.n}</td>
+        <td>${nome}</td><td>${d.n}</td>
         <td style="font-weight:700;color:var(--green)">${BRL(d.total)}</td>
       </tr>`).join('')}
-      </tbody></table>`}
-      <hr class="divider">
-      <h3 style="margin-bottom:12px">Despesas por Categoria</h3>
+      </tbody></table></div>`}
+      <h3 style="margin:16px 0 12px;font-size:13px;font-weight:700">Despesas por Categoria</h3>
       ${topCats.length===0?`<div style="color:var(--text3);text-align:center;padding:16px">Sem despesas</div>`:`
       ${topCats.map(([cat,val])=>`
         <div style="margin-bottom:8px">
-          <div class="flex" style="justify-content:space-between;margin-bottom:4px;font-size:12px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:12px">
             <span>${cat}</span><span style="color:var(--red)">${BRL(val)}</span>
           </div>
           <div class="progress-bar"><div class="progress-fill" style="background:var(--red);width:${Math.round(val/Math.max(...topCats.map(x=>x[1]))*100)}%"></div></div>
         </div>`).join('')}`}
     </div>
   </div>`;
+}
+function renderRelatorios(){
+  // Mantido para compatibilidade; redireciona para financeiro
+  goTab('financeiro');_finRelOpen=true;return'';
 }
 
 // --- OVERRIDE FIELD HELPER ---------------------------------------------------
@@ -4523,9 +4571,9 @@ function renderFormTarefa(){
       </div>
     </div>
     ${(()=>{const _tc=t.crmCardId?S.crm.find(c=>c.id===t.crmCardId):null;const _to=t.orcamentoId?S.orcamentos.find(o=>o.id===t.orcamentoId):null;if(!_tc&&!_to)return'';let _th='<div style="padding:12px 0;border-top:1px solid var(--border);margin-bottom:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">🔗 Vinculações</div><div style="display:flex;flex-wrap:wrap;gap:8px">';if(_to){_th+='<button type="button" onclick="viewOrcamento(\''+_to.id+'\')" style="font-size:12px;background:var(--accent2);color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600">👁 Orç. #'+_to.numero+' — '+(_to.cliente||'')+(_to.empresa?' ('+_to.empresa+')':'')+'</button>';}if(_tc){_th+='<button type="button" onclick="openCRMCard(\''+_tc.id+'\')" style="font-size:12px;background:#1e3a5f;color:#93c5fd;border:1px solid #2d4a70;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600">↗ Funil: '+(_tc.titulo||_tc.cliente||ETAPAS[_tc.etapa||0])+'</button>';}return _th+'</div></div>';})()}
-    <div style="margin-top:16px;display:flex;gap:8px">
-      <button class="btn btn-primary" onclick="salvarTarefa()">💾 Salvar</button>
-      <button class="btn" onclick="tarefaTab='lista';render()">Cancelar</button>
+    <div style="margin-top:16px;display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-secondary" onclick="tarefaTab='lista';render()" style="padding:10px 28px;font-size:14px">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTarefa()" style="padding:10px 28px;font-size:14px">💾 Salvar</button>
     </div>
   </div>`;
 }
@@ -5467,10 +5515,31 @@ async function _executePdfImport(replace=false,silent=false){
 // ── BASE DE PREÇOS ──────────────────────────────────────────────────────────
 function _getBP(){
   if(!S.basePrecos)S.basePrecos=_defaultBasePrecos();
+  // Migração: preenche novas seções ausentes sem perder dados salvos
+  const _def=_defaultBasePrecos();
+  ['chapas','barras','cantoneiras','corte_tipos','impressao_tipos','instalacao_tipos','deslocamento_tipos'].forEach(k=>{
+    if(!S.basePrecos[k])S.basePrecos[k]=_def[k];
+  });
+  if(!S.basePrecos.servicos_ref||!S.basePrecos.servicos_ref.length)S.basePrecos.servicos_ref=_def.servicos_ref;
+  // Migração: renomear Letreiro 3D PVC → Impressão 3D e popular preco_ref
+  const _svcRename={'Letreiro 3D PVC 5 mm':'Letreiro Impressão 3D 3 mm','Letreiro 3D PVC 10 mm':'Letreiro Impressão 3D 6 mm','Letreiro 3D PVC 20 mm':'Letreiro Impressão 3D 10 mm'};
+  const _svcRef={'Letreiro em Acrílico 3 mm':700,'Letreiro em Acrílico 6 mm':1027,'Letreiro em Acrílico 10 mm':1385,'Letreiro Impressão 3D 3 mm':581,'Letreiro Impressão 3D 6 mm':879,'Letreiro Impressão 3D 10 mm':1225,'Letreiro em PVC 5 mm':581,'Letreiro em PVC 10 mm':879,'Letreiro em PVC 20 mm':1225,'Faixa em Adesivo Vinil Branco':160,'Faixa em Adesivo Jateado':160,'Faixa em Adesivo Colorido':170,'Adesivo para Porta':492,'Adesivo Geral Vinil Branco':291,'Adesivo Geral Jateado':291,'Adesivo Geral Colorido':339};
+  (S.basePrecos.servicos_ref||[]).forEach(r=>{
+    if(_svcRename[r.nome])r.nome=_svcRename[r.nome];
+    if(!r.preco_ref&&_svcRef[r.nome])r.preco_ref=_svcRef[r.nome];
+    if(r.nome==='Adesivo para Porta'&&!r.obs)r.obs='Microperfurado: R$594';
+  });
+  // Migração: adiciona campo atualizado às chapas existentes usando datas do padrão
+  if(S.basePrecos.chapas){
+    const _dm={};_def.chapas.forEach(r=>{_dm[r.material+'|'+r.esp+'|'+r.tamanho+'|'+r.cor]=r.atualizado||'';});
+    S.basePrecos.chapas.forEach(r=>{if(r.atualizado===undefined)r.atualizado=_dm[r.material+'|'+r.esp+'|'+r.tamanho+'|'+r.cor]||'';});
+  }
+  ['barras','cantoneiras','adesivos'].forEach(k=>{(S.basePrecos[k]||[]).forEach(r=>{if(r.atualizado===undefined)r.atualizado='';});});
   return S.basePrecos;
 }
 function _defaultBasePrecos(){
   return {
+    // Usado internamente pelas calculadoras (compatibilidade)
     acrilico:{chapa_w:200,chapa_h:100,espessuras:[
       {esp:'1mm',label:'Acrílico 1 mm',preco_chapa:150,taxa_corte:20},
       {esp:'2mm',label:'Acrílico 2 mm',preco_chapa:250,taxa_corte:30},
@@ -5495,37 +5564,211 @@ function _defaultBasePrecos(){
       {esp:'25mm',label:'PVC 25 mm',preco_chapa:620,taxa_corte:35},
       {esp:'30mm',label:'PVC 30 mm',preco_chapa:750,taxa_corte:35},
     ]},
-    letra_caixa:[
-      {material:'Inox Escovado',espessuras:[
-        {esp:'Chapa 26 (0,5 mm)',preco_chapa:300,chapa_w:200,chapa_h:120,pintura:false},
-        {esp:'Chapa 24 (0,6 mm)',preco_chapa:280,chapa_w:200,chapa_h:120,pintura:false},
-        {esp:'Chapa 22 (0,8 mm)',preco_chapa:380,chapa_w:200,chapa_h:120,pintura:false},
-      ]},
-      {material:'Galvanizado',espessuras:[
-        {esp:'Chapa 26 (0,5 mm)',preco_chapa:350,chapa_w:300,chapa_h:120,pintura:true},
-        {esp:'Chapa 24 (0,6 mm)',preco_chapa:430,chapa_w:300,chapa_h:120,pintura:true},
-        {esp:'Chapa 22 (0,8 mm)',preco_chapa:380,chapa_w:300,chapa_h:120,pintura:true},
-      ]},
-      {material:'Latão Dourado',espessuras:[
-        {esp:'Chapa 26 (0,56 mm)',preco_chapa:430,chapa_w:120,chapa_h:60,pintura:true},
-        {esp:'Chapa 24 (0,64 mm)',preco_chapa:490,chapa_w:120,chapa_h:60,pintura:true},
-        {esp:'Chapa 22 (0,81 mm)',preco_chapa:600,chapa_w:120,chapa_h:60,pintura:true},
-      ]},
+    // ── CHAPAS (banco de preços por material) ────────────────────
+    chapas:[
+      // Acrílico (200x100 cm, Padrão) — v = valor verificado
+      {material:'Acrílico',esp:'Acrílico 1 mm',tamanho:'200x100 cm',cor:'Padrão',preco:150,atualizado:''},
+      {material:'Acrílico',esp:'Acrílico 2 mm',tamanho:'200x100 cm',cor:'Padrão',preco:250,atualizado:''},
+      {material:'Acrílico',esp:'Acrílico 3 mm',tamanho:'200x100 cm',cor:'Padrão',preco:285,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 4 mm',tamanho:'200x100 cm',cor:'Padrão',preco:400,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 5 mm',tamanho:'200x100 cm',cor:'Padrão',preco:550,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 6 mm',tamanho:'200x100 cm',cor:'Padrão',preco:580,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 8 mm',tamanho:'200x100 cm',cor:'Padrão',preco:870,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 10 mm',tamanho:'200x100 cm',cor:'Padrão',preco:980,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 12 mm',tamanho:'200x100 cm',cor:'Padrão',preco:1590,atualizado:''},
+      {material:'Acrílico',esp:'Acrílico 15 mm',tamanho:'200x100 cm',cor:'Padrão',preco:1900,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 18 mm',tamanho:'200x100 cm',cor:'Padrão',preco:1950,atualizado:''},
+      {material:'Acrílico',esp:'Acrílico 20 mm',tamanho:'200x100 cm',cor:'Padrão',preco:2200,atualizado:'v'},
+      {material:'Acrílico',esp:'Acrílico 24 mm',tamanho:'200x100 cm',cor:'Padrão',preco:2310,atualizado:''},
+      // PVC (220x120 cm)
+      {material:'PVC',esp:'PVC 3 mm',tamanho:'220x120 cm',cor:'Padrão',preco:130,atualizado:'v'},
+      {material:'PVC',esp:'PVC 5 mm',tamanho:'220x120 cm',cor:'Padrão',preco:170,atualizado:'v'},
+      {material:'PVC',esp:'PVC 10 mm',tamanho:'220x120 cm',cor:'Padrão',preco:350,atualizado:'v'},
+      {material:'PVC',esp:'PVC 15 mm',tamanho:'220x120 cm',cor:'Padrão',preco:420,atualizado:''},
+      {material:'PVC',esp:'PVC 20 mm',tamanho:'220x120 cm',cor:'Padrão',preco:500,atualizado:'v'},
+      {material:'PVC',esp:'PVC 25 mm',tamanho:'220x120 cm',cor:'Padrão',preco:620,atualizado:''},
+      {material:'PVC',esp:'PVC 30 mm',tamanho:'220x120 cm',cor:'Padrão',preco:750,atualizado:''},
+      // ACM
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'300x122 cm',cor:'Padrão',preco:260,atualizado:'v'},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'300x122 cm',cor:'Colorido',preco:540,atualizado:''},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'300x122 cm',cor:'Especial',preco:570,atualizado:''},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'500x122 cm',cor:'Padrão',preco:600,atualizado:''},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'500x122 cm',cor:'Colorido',preco:630,atualizado:''},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'500x122 cm',cor:'Especial',preco:660,atualizado:''},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'500x150 cm',cor:'Padrão',preco:750,atualizado:'v'},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'500x150 cm',cor:'Colorido',preco:720,atualizado:''},
+      {material:'ACM',esp:'ACM 3 mm',tamanho:'500x150 cm',cor:'Especial',preco:750,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'300x122 cm',cor:'Padrão',preco:780,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'300x122 cm',cor:'Colorido',preco:810,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'300x122 cm',cor:'Especial',preco:840,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'500x122 cm',cor:'Padrão',preco:870,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'500x122 cm',cor:'Colorido',preco:900,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'500x122 cm',cor:'Especial',preco:0,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'500x150 cm',cor:'Padrão',preco:0,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'500x150 cm',cor:'Colorido',preco:0,atualizado:''},
+      {material:'ACM',esp:'ACM 4 mm',tamanho:'500x150 cm',cor:'Especial',preco:0,atualizado:''},
+      // Galvanizado (300x120 cm)
+      {material:'Galvanizado',esp:'Chapa 16, 1,5 mm',tamanho:'300x120 cm',cor:'Padrão',preco:400,atualizado:'18/08/2023'},
+      {material:'Galvanizado',esp:'Chapa 24, 0,6 mm',tamanho:'300x120 cm',cor:'Padrão',preco:430,atualizado:'v'},
+      {material:'Galvanizado',esp:'Chapa 26, 0,5 mm',tamanho:'300x120 cm',cor:'Padrão',preco:350,atualizado:'v'},
+      {material:'Galvanizado',esp:'Chapa 28, 0,4 mm',tamanho:'300x120 cm',cor:'Padrão',preco:160,atualizado:'v'},
+      // Inox Escovado
+      {material:'Inox Escovado',esp:'Chapa 14, 2 mm',tamanho:'200x120 cm',cor:'Padrão',preco:1450,atualizado:'v'},
+      {material:'Inox Escovado',esp:'Chapa 14, 2 mm',tamanho:'300x120 cm',cor:'Padrão',preco:2230,atualizado:'v'},
+      {material:'Inox Escovado',esp:'Chapa 20, 1 mm',tamanho:'200x120 cm',cor:'Padrão',preco:580,atualizado:'25/03/2025'},
+      {material:'Inox Escovado',esp:'Chapa 20, 1 mm',tamanho:'300x120 cm',cor:'Padrão',preco:880,atualizado:'25/03/2025'},
+      {material:'Inox Escovado',esp:'Chapa 22, 0,8 mm',tamanho:'200x120 cm',cor:'Padrão',preco:380,atualizado:'11/07/2023'},
+      {material:'Inox Escovado',esp:'Chapa 22, 0,8 mm',tamanho:'300x120 cm',cor:'Padrão',preco:680,atualizado:'11/07/2023'},
+      {material:'Inox Escovado',esp:'Chapa 24, 0,6 mm',tamanho:'200x120 cm',cor:'Padrão',preco:280,atualizado:'11/07/2023'},
+      {material:'Inox Escovado',esp:'Chapa 24, 0,6 mm',tamanho:'300x120 cm',cor:'Padrão',preco:600,atualizado:'11/07/2023'},
+      {material:'Inox Escovado',esp:'Chapa 26, 0,5 mm',tamanho:'200x120 cm',cor:'Padrão',preco:300,atualizado:'11/07/2023'},
+      {material:'Inox Escovado',esp:'Chapa 26, 0,5 mm',tamanho:'300x120 cm',cor:'Padrão',preco:550,atualizado:'11/07/2023'},
+      // Inox Polido
+      {material:'Inox Polido',esp:'Chapa 20, 1 mm',tamanho:'200x120 cm',cor:'Padrão',preco:500,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 20, 1 mm',tamanho:'300x120 cm',cor:'Padrão',preco:800,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 22, 0,8 mm',tamanho:'200x120 cm',cor:'Padrão',preco:380,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 22, 0,8 mm',tamanho:'300x120 cm',cor:'Padrão',preco:680,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 24, 0,6 mm',tamanho:'200x120 cm',cor:'Padrão',preco:280,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 24, 0,6 mm',tamanho:'300x120 cm',cor:'Padrão',preco:600,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 26, 0,5 mm',tamanho:'200x120 cm',cor:'Padrão',preco:300,atualizado:'11/07/2023'},
+      {material:'Inox Polido',esp:'Chapa 26, 0,5 mm',tamanho:'300x120 cm',cor:'Padrão',preco:550,atualizado:'11/07/2023'},
+      // Latão Dourado (120x60 cm)
+      {material:'Latão Dourado',esp:'Chapa 20, 1,07 mm',tamanho:'120x60 cm',cor:'Padrão',preco:790,atualizado:'06/06/2023'},
+      {material:'Latão Dourado',esp:'Chapa 22, 0,81 mm',tamanho:'120x60 cm',cor:'Padrão',preco:600,atualizado:'06/06/2023'},
+      {material:'Latão Dourado',esp:'Chapa 24, 0,64 mm',tamanho:'120x60 cm',cor:'Padrão',preco:490,atualizado:'06/06/2023'},
+      {material:'Latão Dourado',esp:'Chapa 26, 0,56 mm',tamanho:'120x60 cm',cor:'Padrão',preco:430,atualizado:'31/03/2023'},
+      // MDF (183x275 cm)
+      {material:'MDF',esp:'MDF 9 mm',tamanho:'183x275 cm',cor:'Padrão',preco:170,atualizado:'v'},
+      // PS (200x100 cm)
+      {material:'PS',esp:'PS 2 mm',tamanho:'200x100 cm',cor:'Padrão',preco:70,atualizado:'29/07'},
+      {material:'PS',esp:'PS 2 mm',tamanho:'200x100 cm',cor:'Colorido',preco:100,atualizado:'29/07'},
     ],
-    impressao:[
-      {tipo:'Digital',label:'Impressão Digital',taxa:40},
-      {tipo:'Pintura',label:'Pintura Automotiva',taxa:70},
-      {tipo:'UV',label:'Impressão UV',taxa:150},
+    // ── PERFIS ──────────────────────────────────────────────────
+    barras:[
+      {forma:'Metalon 20x20 mm',esp:'Chapa 14, 2 mm',tamanho:'600 cm',preco:40,atualizado:''},
+      {forma:'Metalon 20x20 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:40,atualizado:''},
+      {forma:'Metalon 30x30 mm',esp:'Chapa 14, 2 mm',tamanho:'600 cm',preco:90,atualizado:''},
+      {forma:'Metalon 30x30 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:120,atualizado:''},
+      {forma:'Metalon 50x30 mm',esp:'Chapa 14, 2 mm',tamanho:'600 cm',preco:150,atualizado:''},
+      {forma:'Metalon 50x30 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:180,atualizado:''},
     ],
+    cantoneiras:[
+      {material:'Ferro 15 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:240,atualizado:''},
+      {material:'Ferro 15 mm',esp:'Chapa 18, 1,2 mm',tamanho:'600 cm',preco:270,atualizado:''},
+      {material:'Ferro 20 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:300,atualizado:''},
+      {material:'Ferro 20 mm',esp:'Chapa 18, 1,2 mm',tamanho:'600 cm',preco:330,atualizado:''},
+      {material:'Alumínio 15 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:360,atualizado:''},
+      {material:'Alumínio 15 mm',esp:'Chapa 18, 1,2 mm',tamanho:'600 cm',preco:390,atualizado:''},
+      {material:'Alumínio 20 mm',esp:'Chapa 16, 1,5 mm',tamanho:'600 cm',preco:420,atualizado:''},
+      {material:'Alumínio 20 mm',esp:'Chapa 18, 1,2 mm',tamanho:'600 cm',preco:450,atualizado:''},
+    ],
+    // ── ADESIVOS ────────────────────────────────────────────────
     adesivos:[
-      {tipo:'Vinil',taxa_m2:50},
-      {tipo:'Vinil Branco',taxa_m2:50},
-      {tipo:'Jateado',taxa_m2:50},
-      {tipo:'Microperfurado',taxa_m2:80},
-      {tipo:'Impresso',taxa_m2:80},
-      {tipo:'Espelhado',taxa_m2:120},
+      {tipo:'Vinil Branco',taxa_m2:20,atualizado:''},
+      {tipo:'Vinil Colorido',taxa_m2:45,atualizado:''},
+      {tipo:'Adesivo Jateado',taxa_m2:20,atualizado:''},
+      {tipo:'Microperfurado',taxa_m2:50,atualizado:''},
+      {tipo:'Transparente',taxa_m2:20,atualizado:''},
     ],
-    servicos_ref:[],
+    // ── CORTE ───────────────────────────────────────────────────
+    corte_tipos:[
+      {tipo:'Adesivo / Recorte Plotter',pm:15},
+      {tipo:'Router',pm:35},
+      {tipo:'Laser',pm:45},
+      {tipo:'Plasma',pm:60},
+      {tipo:'Laser Fibra',pm:150},
+    ],
+    laser_acrilico:[
+      {esp:'Acrílico 1 mm',pm:20},{esp:'Acrílico 2 mm',pm:30},{esp:'Acrílico 3 mm',pm:40},
+      {esp:'Acrílico 4 mm',pm:50},{esp:'Acrílico 5 mm',pm:60},{esp:'Acrílico 6 mm',pm:70},
+      {esp:'Acrílico 8 mm',pm:85},{esp:'Acrílico 10 mm',pm:100},{esp:'Acrílico 12 mm',pm:130},
+      {esp:'Acrílico 15 mm',pm:180},{esp:'Acrílico 18 mm',pm:210},{esp:'Acrílico 20 mm',pm:250},
+      {esp:'Acrílico 24 mm',pm:300},
+    ],
+    // ── IMPRESSÃO ───────────────────────────────────────────────
+    impressao_tipos:[
+      {tipo:'Digital / Impressão Digital',pm2:40},
+      {tipo:'Pintura Automotiva',pm2:70},
+      {tipo:'UV Adesivo',pm2:75},
+      {tipo:'UV',pm2:120},
+      {tipo:'UV com Branco',pm2:150},
+    ],
+    // ── INSTALAÇÃO ──────────────────────────────────────────────
+    instalacao_tipos:[
+      {tipo:'Comum',pm2:50},
+      {tipo:'Escada',pm2:100},
+      {tipo:'Andaime',pm2:250},
+      {tipo:'Rapel',pm2:550},
+    ],
+    // ── DESLOCAMENTO ────────────────────────────────────────────
+    deslocamento_tipos:[
+      {faixa:'Mínimo (até 4 km)',preco:15},
+      {faixa:'5-15 km',preco:30},
+      {faixa:'16-20 km',preco:50},
+      {faixa:'21-30 km',preco:80},
+      {faixa:'31-50 km',preco:100},
+      {faixa:'Sem deslocamento',preco:0},
+    ],
+    // ── SERVIÇOS ────────────────────────────────────────────────
+    servicos_ref:[
+      // Letreiros em Acrílico
+      {nome:'Letreiro em Acrílico 3 mm',descricao:'Letreiro cortado a laser em Acrílico 3 mm',preco_min:0,preco_ref:700,preco_max:0,obs:''},
+      {nome:'Letreiro em Acrílico 6 mm',descricao:'Letreiro cortado a laser em Acrílico 6 mm',preco_min:0,preco_ref:1027,preco_max:0,obs:''},
+      {nome:'Letreiro em Acrílico 10 mm',descricao:'Letreiro cortado a laser em Acrílico 10 mm',preco_min:0,preco_ref:1385,preco_max:0,obs:''},
+      // Letreiros Impressão 3D (PETG/PLA)
+      {nome:'Letreiro Impressão 3D 3 mm',descricao:'Letreiro em impressão 3D (PETG/PLA), acabamento 3 mm',preco_min:0,preco_ref:581,preco_max:0,obs:''},
+      {nome:'Letreiro Impressão 3D 6 mm',descricao:'Letreiro em impressão 3D (PETG/PLA), acabamento 6 mm',preco_min:0,preco_ref:879,preco_max:0,obs:''},
+      {nome:'Letreiro Impressão 3D 10 mm',descricao:'Letreiro em impressão 3D (PETG/PLA), acabamento 10 mm',preco_min:0,preco_ref:1225,preco_max:0,obs:''},
+      // Letreiros planos em PVC
+      {nome:'Letreiro em PVC 5 mm',descricao:'Letreiro plano em PVC 5 mm com pintura automotiva',preco_min:0,preco_ref:581,preco_max:0,obs:''},
+      {nome:'Letreiro em PVC 10 mm',descricao:'Letreiro plano em PVC 10 mm com pintura automotiva',preco_min:0,preco_ref:879,preco_max:0,obs:''},
+      {nome:'Letreiro em PVC 20 mm',descricao:'Letreiro plano em PVC 20 mm com pintura automotiva',preco_min:0,preco_ref:1225,preco_max:0,obs:''},
+      // Letra Caixa Inox
+      {nome:'Letra Caixa Inox Escovado Chapa 26',descricao:'Letra Caixa em Aço Inox Escovado Chapa 26 (0,5 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa Inox Escovado Chapa 24',descricao:'Letra Caixa em Aço Inox Escovado Chapa 24 (0,6 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa Inox Escovado Chapa 22',descricao:'Letra Caixa em Aço Inox Escovado Chapa 22 (0,8 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      // Letra Caixa 3D PVC
+      {nome:'Letra Caixa 3D PVC 10 mm',descricao:'Letra Caixa 3D em PVC 10 mm com pintura automotiva',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa 3D PVC 15 mm',descricao:'Letra Caixa 3D em PVC 15 mm com pintura automotiva',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa 3D PVC 20 mm',descricao:'Letra Caixa 3D em PVC 20 mm com pintura automotiva',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      // Letra Caixa Galvanizado
+      {nome:'Letra Caixa Galvanizado Chapa 26',descricao:'Letra Caixa em Galvanizado Chapa 26 (0,5 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa Galvanizado Chapa 24',descricao:'Letra Caixa em Galvanizado Chapa 24 (0,6 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa Galvanizado Chapa 22',descricao:'Letra Caixa em Galvanizado Chapa 22 (0,8 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      // Letra Caixa Latão Dourado
+      {nome:'Letra Caixa Latão Dourado Chapa 26',descricao:'Letra Caixa em Latão Dourado Chapa 26 (0,56 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa Latão Dourado Chapa 24',descricao:'Letra Caixa em Latão Dourado Chapa 24 (0,64 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letra Caixa Latão Dourado Chapa 22',descricao:'Letra Caixa em Latão Dourado Chapa 22 (0,81 mm)',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      // Painéis
+      {nome:'Painel Acrílico 6 mm',descricao:'Painel em Acrílico 6 mm com impressão UV',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Painel PVC 10 mm',descricao:'Painel em PVC 10 mm com impressão digital',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Painel Inox Escovado',descricao:'Painel em Inox Escovado Chapa 20 com UV adesivo',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      // Placas de Identificação
+      {nome:'Placa Identificação Acrílico 3 mm',descricao:'Placa de identificação em Acrílico 3 mm com UV',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Placa Identificação PETG 3 mm',descricao:'Placa de identificação em PETG 3 mm com impressão digital',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Placa Identificação Inox 0,5 mm',descricao:'Placa de identificação em Inox Escovado Chapa 26',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      // Placas de Homenagem (preços base da calculadora)
+      {nome:'Placa Homenagem Acrílico 3 mm 15×10 cm',descricao:'Placa de homenagem em Acrílico 3 mm, 15×10 cm, com estojo',preco_min:0,preco_ref:160,preco_max:0,obs:'Preço base da calculadora'},
+      {nome:'Placa Homenagem Acrílico 3 mm 20×15 cm',descricao:'Placa de homenagem em Acrílico 3 mm, 20×15 cm, com estojo',preco_min:0,preco_ref:220,preco_max:0,obs:'Preço base da calculadora'},
+      {nome:'Placa Homenagem Inox 0,5 mm 15×10 cm',descricao:'Placa de homenagem em Inox Escovado Chapa 26, 15×10 cm',preco_min:0,preco_ref:220,preco_max:0,obs:'Preço base da calculadora'},
+      {nome:'Placa Homenagem Inox 0,5 mm 20×15 cm',descricao:'Placa de homenagem em Inox Escovado Chapa 26, 20×15 cm',preco_min:0,preco_ref:280,preco_max:0,obs:'Preço base da calculadora'},
+      {nome:'Placa Homenagem Latão 0,5 mm 15×10 cm',descricao:'Placa de homenagem em Latão Dourado Chapa 26, 15×10 cm',preco_min:0,preco_ref:280,preco_max:0,obs:'Preço base da calculadora'},
+      {nome:'Placa Homenagem Latão 0,5 mm 20×15 cm',descricao:'Placa de homenagem em Latão Dourado Chapa 26, 20×15 cm',preco_min:0,preco_ref:340,preco_max:0,obs:'Preço base da calculadora'},
+      // Adesivos e Faixas
+      {nome:'Faixa em Adesivo Vinil Branco',descricao:'Faixa em adesivo vinil branco com recorte plotter',preco_min:0,preco_ref:160,preco_max:0,obs:''},
+      {nome:'Faixa em Adesivo Jateado',descricao:'Faixa em adesivo jateado com recorte plotter',preco_min:0,preco_ref:160,preco_max:0,obs:''},
+      {nome:'Faixa em Adesivo Colorido',descricao:'Faixa em vinil colorido com recorte plotter',preco_min:0,preco_ref:170,preco_max:0,obs:''},
+      {nome:'Adesivo para Porta',descricao:'Adesivo para porta — envelopamento total ou parcial',preco_min:0,preco_ref:492,preco_max:0,obs:'Microperfurado: R$594'},
+      {nome:'Adesivo Geral Vinil Branco',descricao:'Adesivo geral em vinil branco',preco_min:0,preco_ref:291,preco_max:0,obs:''},
+      {nome:'Adesivo Geral Jateado',descricao:'Adesivo geral em vinil jateado',preco_min:0,preco_ref:291,preco_max:0,obs:''},
+      {nome:'Adesivo Geral Colorido',descricao:'Adesivo geral em vinil colorido',preco_min:0,preco_ref:339,preco_max:0,obs:''},
+      // Extras
+      {nome:'Letreiro Misto Acrílico + Aço Escovado',descricao:'Letreiro combinando Acrílico com moldura em Aço Escovado',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Letreiro Misto 3D PVC + Aço Escovado',descricao:'Letreiro 3D em PVC com moldura em Aço Escovado',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Quadro Personalizado Tela 2 cm',descricao:'Quadro personalizado em tela canvas 2 cm',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Quadro Personalizado Vidro 4 mm',descricao:'Quadro personalizado com vidro 4 mm e moldura',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+      {nome:'Quadro Personalizado Acrílico 6 mm',descricao:'Quadro personalizado em Acrílico 6 mm cristal',preco_min:0,preco_ref:0,preco_max:0,obs:''},
+    ],
     anotacoes:''
   };
 }
@@ -5551,7 +5794,7 @@ function _bpRender(){
   const tabsEl=document.getElementById('bp-tabs');
   const c=document.getElementById('bp-content');
   if(!tabsEl||!c)return;
-  const tabs=[{k:'historico',l:'📊 Histórico'},{k:'servicos',l:'📋 Serviços'},{k:'anotacoes',l:'📝 Anotações'},{k:'materiais',l:'🧱 Materiais'}];
+  const tabs=[{k:'historico',l:'📊 Histórico'},{k:'servicos',l:'🛠️ Serviços'},{k:'materiais',l:'🧱 Materiais'},{k:'anotacoes',l:'📝 Anotações'}];
   tabsEl.innerHTML=tabs.map(t=>`<button onclick="_bpTab='${t.k}';_bpRender()" style="padding:6px 14px;border-radius:8px;font-size:13px;border:1px solid var(--border);cursor:pointer;background:${_bpTab===t.k?'var(--accent)':'var(--bg3)'};color:${_bpTab===t.k?'#fff':'var(--text1)'};font-weight:${_bpTab===t.k?'600':'400'}">${t.l}</button>`).join('');
   if(_bpTab==='historico')c.innerHTML=_bpTabHistorico();
   else if(_bpTab==='servicos')c.innerHTML=_bpTabServicos();
@@ -5560,68 +5803,85 @@ function _bpRender(){
 }
 
 function _bpTabHistorico(){
-  const map={};
-  S.orcamentos.forEach(orc=>{
-    const calcs=orc.calcs||(orc.servicos||[]).map(sv=>calcServico(sv));
-    (orc.servicos||[]).forEach((s,si)=>{
-      const nome=(s.item||s.descricao||'').trim();if(!nome)return;
-      const calc=calcs[si]||{};
-      const preco=s.preco_final!=null?Number(s.preco_final):(calc.total_prazo||0);
-      if(preco<=0)return;
-      if(!map[nome])map[nome]={count:0,valores:[],total:0};
-      map[nome].count++;map[nome].valores.push(preco);map[nome].total+=preco;
+  try{
+    const map={};
+    S.orcamentos.forEach(orc=>{
+      let usouServico=false;
+      (orc.servicos||[]).forEach(s=>{
+        const nome=String(s.item||s.descricao||'').trim();if(!nome)return;
+        const preco=s.preco_final!=null?Number(s.preco_final):0;
+        if(preco<=0)return;
+        usouServico=true;
+        if(!map[nome])map[nome]={count:0,valores:[],total:0};
+        map[nome].count++;map[nome].valores.push(preco);map[nome].total+=preco;
+      });
+      // Fallback: orçamento tem total mas nenhum serviço tinha preço individual
+      if(!usouServico&&(orc.total_prazo||0)>0){
+        const svcs=(orc.servicos||[]).map(s=>(s.item||s.descricao||'').trim()).filter(Boolean);
+        const nome=orc.descricao||(svcs.length?svcs.join(' + '):'Orçamento #'+(orc.numero||''));
+        if(nome){
+          if(!map[nome])map[nome]={count:0,valores:[],total:0};
+          map[nome].count++;map[nome].valores.push(orc.total_prazo);map[nome].total+=orc.total_prazo;
+        }
+      }
     });
-  });
-  const rows=Object.entries(map).sort((a,b)=>b[1].count-a[1].count);
-  if(!rows.length)return'<div style="text-align:center;color:var(--text3);padding:32px">Nenhum serviço com valor encontrado nos orçamentos.</div>';
-  const total=S.orcamentos.filter(o=>(o.total_prazo||0)>0).length;
-  return`<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Baseado em ${total} orçamento${total!==1?'s':''} com valor. Preços em R$.</div>
-  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
-    <thead><tr style="border-bottom:2px solid var(--border)">
-      <th style="text-align:left;padding:6px 8px">Serviço</th>
-      <th style="text-align:center;padding:6px 8px">Qtd</th>
-      <th style="text-align:right;padding:6px 8px;color:var(--text2)">Mínimo</th>
-      <th style="text-align:right;padding:6px 8px;color:var(--accent)">Médio</th>
-      <th style="text-align:right;padding:6px 8px;color:var(--green)">Máximo</th>
-    </tr></thead>
-    <tbody>${rows.map(([nome,d],i)=>{
-      const min=Math.min(...d.valores),max=Math.max(...d.valores),avg=d.total/d.count;
-      return`<tr style="border-bottom:1px solid var(--border);background:${i%2?'var(--bg)':'var(--bg2)'}">
-        <td style="padding:6px 8px;font-weight:500">${nome}</td>
-        <td style="text-align:center;padding:6px 8px;color:var(--text3)">${d.count}×</td>
-        <td style="text-align:right;padding:6px 8px;color:var(--text2)">${BRL(min)}</td>
-        <td style="text-align:right;padding:6px 8px;font-weight:700;color:var(--accent)">${BRL(avg)}</td>
-        <td style="text-align:right;padding:6px 8px;color:var(--green)">${BRL(max)}</td>
-      </tr>`;
-    }).join('')}</tbody>
-  </table></div>`;
+    const rows=Object.entries(map).sort((a,b)=>b[1].count-a[1].count);
+    const total=S.orcamentos.length;
+    if(!rows.length)return`<div style="text-align:center;padding:40px 20px">
+      <div style="font-size:32px;margin-bottom:12px">📊</div>
+      <div style="font-weight:600;color:var(--text1);margin-bottom:8px">Nenhum dado ainda</div>
+      <div style="font-size:13px;color:var(--text3)">Os preços aparecem aqui conforme você registra valores nos orçamentos.${total?`<br>(${total} orçamento${total!==1?'s':''} verificado${total!==1?'s':''}, sem preços individuais por serviço)`:''}</div>
+    </div>`;
+    const totalOrc=S.orcamentos.filter(o=>(o.total_prazo||0)>0).length;
+    return`<div style="font-size:12px;color:var(--text3);margin-bottom:10px">Baseado em ${totalOrc} orçamento${totalOrc!==1?'s':''} com valor. Preços em R$.</div>
+    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead><tr style="border-bottom:2px solid var(--border)">
+        <th style="text-align:left;padding:6px 8px">Serviço</th>
+        <th style="text-align:center;padding:6px 8px">Qtd</th>
+        <th style="text-align:right;padding:6px 8px;color:var(--text2)">Mínimo</th>
+        <th style="text-align:right;padding:6px 8px;color:var(--accent)">Médio</th>
+        <th style="text-align:right;padding:6px 8px;color:var(--green)">Máximo</th>
+      </tr></thead>
+      <tbody>${rows.map(([nome,d],i)=>{
+        const min=Math.min(...d.valores),max=Math.max(...d.valores),avg=d.total/d.count;
+        return`<tr style="border-bottom:1px solid var(--border);background:${i%2?'var(--bg)':'var(--bg2)'}">
+          <td style="padding:6px 8px;font-weight:500">${nome}</td>
+          <td style="text-align:center;padding:6px 8px;color:var(--text3)">${d.count}×</td>
+          <td style="text-align:right;padding:6px 8px;color:var(--text2)">${BRL(min)}</td>
+          <td style="text-align:right;padding:6px 8px;font-weight:700;color:var(--accent)">${BRL(avg)}</td>
+          <td style="text-align:right;padding:6px 8px;color:var(--green)">${BRL(max)}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+  }catch(e){
+    return`<div style="text-align:center;padding:40px;color:var(--text3)">⚠️ Erro ao carregar histórico: ${e.message}</div>`;
+  }
 }
 
 function _bpTabServicos(){
   const bp=_getBP();const rows=bp.servicos_ref||[];
-  return`<div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
-    <span style="font-size:12px;color:var(--text3)">Tabela de referência editável. Clique em qualquer valor para alterar.</span>
+  return`<div style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span style="font-size:12px;color:var(--text3)">Tabela de referência editável. Clique em qualquer campo para alterar.</span>
     <button class="btn btn-primary" style="font-size:12px" onclick="_bpAddServico()">+ Serviço</button>
   </div>
-  ${rows.length?`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+  ${rows.length?`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;min-width:640px">
     <thead><tr style="border-bottom:2px solid var(--border)">
       <th style="text-align:left;padding:5px 6px">Serviço</th>
-      <th style="text-align:right;padding:5px 6px">Mínimo</th>
-      <th style="text-align:right;padding:5px 6px;color:var(--accent)">Referência</th>
-      <th style="text-align:right;padding:5px 6px;color:var(--green)">Máximo</th>
+      <th style="text-align:left;padding:5px 6px;min-width:130px">Descrição</th>
+      <th style="text-align:right;padding:5px 6px">Mín</th>
+      <th style="text-align:right;padding:5px 6px;color:var(--accent)">Ref</th>
+      <th style="text-align:right;padding:5px 6px;color:var(--green)">Máx</th>
       <th style="padding:5px 6px">Obs.</th>
       <th></th>
     </tr></thead>
     <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:4px 6px"><input value="${r.nome||''}" onblur="_bpSvcFld(${i},'nome',this.value)" style="border:none;background:transparent;color:var(--text1);font-size:13px;width:100%;min-width:120px"></td>
-      <td style="padding:4px 6px"><input type="number" value="${r.preco_min||''}" onblur="_bpSvcFld(${i},'preco_min',+this.value)" style="border:none;background:transparent;color:var(--text2);font-size:13px;width:80px;text-align:right"></td>
-      <td style="padding:4px 6px"><input type="number" value="${r.preco_ref||''}" onblur="_bpSvcFld(${i},'preco_ref',+this.value)" style="border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:600;width:80px;text-align:right"></td>
-      <td style="padding:4px 6px"><input type="number" value="${r.preco_max||''}" onblur="_bpSvcFld(${i},'preco_max',+this.value)" style="border:none;background:transparent;color:var(--green);font-size:13px;width:80px;text-align:right"></td>
-      <td style="padding:4px 6px;min-width:160px">
-        <div style="display:flex;gap:4px;align-items:flex-start">
-          <textarea id="bp-svc-obs-${i}" onblur="_bpSvcFld(${i},'obs',this.value)" rows="2" placeholder="observações..." style="flex:1;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text2);font-size:12px;padding:4px 6px;resize:vertical;min-width:100px">${r.obs||''}</textarea>
-          <button onclick="_bpVoiceField('bp-svc-obs-${i}')" title="Gravar voz" style="background:none;border:1px solid var(--border);border-radius:6px;padding:3px 6px;cursor:pointer;font-size:13px;color:var(--text2);flex-shrink:0">🎤</button>
-        </div>
+      <td style="padding:4px 6px;vertical-align:top"><textarea onblur="_bpSvcFld(${i},'nome',this.value)" rows="2" style="border:none;background:transparent;color:var(--text1);font-size:13px;width:100%;min-width:110px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word">${r.nome||''}</textarea></td>
+      <td style="padding:4px 6px;vertical-align:top"><textarea onblur="_bpSvcFld(${i},'descricao',this.value)" rows="2" style="border:none;background:transparent;color:var(--text2);font-size:12px;width:100%;min-width:120px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word">${(r.descricao||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></td>
+      <td style="padding:4px 6px;vertical-align:top"><input type="number" value="${r.preco_min||''}" onblur="_bpSvcFld(${i},'preco_min',+this.value)" style="border:none;background:transparent;color:var(--text2);font-size:13px;width:66px;text-align:right"></td>
+      <td style="padding:4px 6px;vertical-align:top"><input type="number" value="${r.preco_ref||''}" onblur="_bpSvcFld(${i},'preco_ref',+this.value)" style="border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:600;width:66px;text-align:right"></td>
+      <td style="padding:4px 6px;vertical-align:top"><input type="number" value="${r.preco_max||''}" onblur="_bpSvcFld(${i},'preco_max',+this.value)" style="border:none;background:transparent;color:var(--green);font-size:13px;width:66px;text-align:right"></td>
+      <td style="padding:4px 6px;vertical-align:top;min-width:130px">
+        <textarea id="bp-svc-obs-${i}" onblur="_bpSvcFld(${i},'obs',this.value)" rows="2" placeholder="obs..." style="width:100%;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text2);font-size:12px;padding:4px 6px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word;min-width:80px">${r.obs||''}</textarea>
       </td>
       <td style="padding:4px 6px;vertical-align:top"><button onclick="_bpDelServico(${i})" style="background:none;border:none;cursor:pointer;color:var(--text3);margin-top:4px">✕</button></td>
     </tr>`).join('')}</tbody>
@@ -5631,7 +5891,7 @@ function _bpTabServicos(){
   </div>`;
 }
 function _bpSvcFld(i,f,v){const bp=_getBP();if(bp.servicos_ref[i])bp.servicos_ref[i][f]=v;}
-function _bpAddServico(){const bp=_getBP();bp.servicos_ref.push({nome:'',preco_min:0,preco_ref:0,preco_max:0,obs:''});_bpRender();}
+function _bpAddServico(){const bp=_getBP();bp.servicos_ref.push({nome:'',descricao:'',preco_min:0,preco_ref:0,preco_max:0,obs:''});_bpRender();}
 function _bpDelServico(i){const bp=_getBP();bp.servicos_ref.splice(i,1);_bpRender();}
 function _bpSaveServicos(){saveState();toast('Tabela de serviços salva!');}
 
@@ -5693,13 +5953,13 @@ function _bpSaveAnotacoes(){
   saveState();toast('Anotações salvas!');
 }
 
-var _bpMatTab='acrilico';
+var _bpMatTab='chapas';
+var _bpChapasFilter='Acrílico';
 function _bpTabMateriais(){
+  const subTabs=['chapas','perfis','adesivos','corte','impressao','instalacao','deslocamento'];
+  const subLabels={chapas:'Chapas',perfis:'Perfis',adesivos:'Adesivos',corte:'Corte',impressao:'Impressão',instalacao:'Instalação',deslocamento:'Deslocamento'};
   return`<div style="display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap">
-    ${['acrilico','pvc','letra_caixa','impressao','adesivos'].map(k=>{
-      const l={acrilico:'Acrílico',pvc:'PVC',letra_caixa:'Letra Caixa',impressao:'Impressão',adesivos:'Adesivos'}[k];
-      return`<button onclick="_bpMatTab='${k}';_bpMatRender()" style="padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid var(--border);cursor:pointer;background:${_bpMatTab===k?'var(--accent2)':'var(--bg3)'};color:${_bpMatTab===k?'var(--accent)':'var(--text2)'};font-weight:${_bpMatTab===k?'600':'400'}">${l}</button>`;
-    }).join('')}
+    ${subTabs.map(k=>`<button onclick="_bpMatTab='${k}';_bpMatRender()" style="padding:5px 12px;border-radius:6px;font-size:12px;border:1px solid var(--border);cursor:pointer;background:${_bpMatTab===k?'var(--accent2)':'var(--bg3)'};color:${_bpMatTab===k?'var(--accent)':'var(--text2)'};font-weight:${_bpMatTab===k?'600':'400'}">${subLabels[k]}</button>`).join('')}
   </div>
   <div id="bp-mat-content"></div>
   <div style="margin-top:12px;text-align:right">
@@ -5707,87 +5967,84 @@ function _bpTabMateriais(){
   </div>`;
 }
 function _bpMatRender(){
-  // Update sub-tab buttons
-  document.querySelectorAll('#bp-mat-content').forEach(()=>{});
   const tabs=document.querySelectorAll('[onclick^="_bpMatTab"]');
-  tabs.forEach(b=>{const k=b.getAttribute('onclick').match(/'(\w+)'/)?.[1];const sel=k===_bpMatTab;b.style.background=sel?'var(--accent2)':'var(--bg3)';b.style.color=sel?'var(--accent)':'var(--text2)';b.style.fontWeight=sel?'600':'400';});
+  tabs.forEach(b=>{const m=b.getAttribute('onclick').match(/'(\w+)'/);const k=m?m[1]:'';const sel=k===_bpMatTab;b.style.background=sel?'var(--accent2)':'var(--bg3)';b.style.color=sel?'var(--accent)':'var(--text2)';b.style.fontWeight=sel?'600':'400';});
   const c=document.getElementById('bp-mat-content');if(!c)return;
-  if(_bpMatTab==='acrilico')c.innerHTML=_bpMatAcrilico();
-  else if(_bpMatTab==='pvc')c.innerHTML=_bpMatPvc();
-  else if(_bpMatTab==='letra_caixa')c.innerHTML=_bpMatLetraCaixa();
-  else if(_bpMatTab==='impressao')c.innerHTML=_bpMatImpressao();
+  if(_bpMatTab==='chapas')c.innerHTML=_bpMatChapas();
+  else if(_bpMatTab==='perfis')c.innerHTML=_bpMatPerfis();
   else if(_bpMatTab==='adesivos')c.innerHTML=_bpMatAdesivos();
+  else if(_bpMatTab==='corte')c.innerHTML=_bpMatCorte();
+  else if(_bpMatTab==='impressao')c.innerHTML=_bpMatImpressao();
+  else if(_bpMatTab==='instalacao')c.innerHTML=_bpMatInstalacao();
+  else if(_bpMatTab==='deslocamento')c.innerHTML=_bpMatDeslocamento();
 }
 function _bpNI(id,v){return`<input type="number" id="${id}" value="${v||0}" style="width:90px;text-align:right;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:var(--bg);color:var(--text1)">`;}
-function _bpMatAcrilico(){
-  const bp=_getBP();const rows=bp.acrilico.espessuras;
-  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Chapa padrão: ${bp.acrilico.chapa_w}×${bp.acrilico.chapa_h} cm &nbsp;·&nbsp; Edite os valores e clique Salvar.</div>
-  <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
+function _bpMatChapas(){
+  const bp=_getBP();
+  const mats=[...new Set((bp.chapas||[]).map(r=>r.material))];
+  if(!mats.includes(_bpChapasFilter))_bpChapasFilter=mats[0]||'Acrílico';
+  const filtradas=bp.chapas.map((r,i)=>({r,i})).filter(({r})=>r.material===_bpChapasFilter);
+  return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+    <label style="font-size:13px;font-weight:600;color:var(--text1)">Material:</label>
+    <select onchange="_bpChapasFilter=this.value;_bpMatRender()" style="padding:4px 10px;border:1px solid var(--border);border-radius:6px;background:var(--bg);color:var(--text1);font-size:13px">
+      ${mats.map(m=>`<option value="${m}"${m===_bpChapasFilter?' selected':''}>${m}</option>`).join('')}
+    </select>
+    <span style="font-size:12px;color:var(--text3)">${filtradas.length} iten${filtradas.length!==1?'s':''}</span>
+  </div>
+  ${filtradas.length?`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
     <thead><tr style="border-bottom:2px solid var(--border)">
       <th style="text-align:left;padding:5px 8px">Espessura</th>
+      <th style="text-align:left;padding:5px 8px">Tamanho</th>
+      <th style="text-align:left;padding:5px 8px">Cor</th>
       <th style="text-align:right;padding:5px 8px">Preço/chapa (R$)</th>
-      <th style="text-align:right;padding:5px 8px">Corte laser/m² (R$)</th>
-      <th></th>
+      <th style="text-align:center;padding:5px 8px;color:var(--text3)">Últ. Atualiz.</th>
     </tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:5px 8px;font-weight:500">${r.label}</td>
-      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-acr-pc-'+i,r.preco_chapa)}</td>
-      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-acr-tc-'+i,r.taxa_corte)}</td>
-      <td style="padding:5px 8px"><button onclick="_bpDelMat('acrilico',${i})" style="background:none;border:none;cursor:pointer;color:var(--text3)">✕</button></td>
+    <tbody>${filtradas.map(({r,i})=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.esp}</td>
+      <td style="padding:5px 8px;color:var(--text2)">${r.tamanho}</td>
+      <td style="padding:5px 8px;color:var(--text2)">${r.cor}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-ch-'+i,r.preco)}</td>
+      <td style="padding:5px 8px;text-align:center"><input id="bp-ch-at-${i}" value="${r.atualizado||''}" onblur="_bpSaveChAtualiz(${i},this.value)" placeholder="—" style="border:none;background:transparent;color:var(--text3);font-size:11px;width:76px;text-align:center"></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`:'<div style="text-align:center;color:var(--text3);padding:24px">Nenhuma chapa cadastrada para este material.</div>'}`;
+}
+function _bpMatPerfis(){
+  const bp=_getBP();
+  const B=`<div style="font-weight:600;font-size:13px;color:var(--text1);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">Barras (Metalon)</div>
+  <div style="overflow-x:auto;margin-bottom:20px"><table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Forma</th>
+      <th style="text-align:left;padding:5px 8px">Espessura</th>
+      <th style="text-align:left;padding:5px 8px">Tamanho</th>
+      <th style="text-align:right;padding:5px 8px">Preço (R$)</th>
+      <th style="text-align:center;padding:5px 8px;color:var(--text3)">Últ. Atualiz.</th>
+    </tr></thead>
+    <tbody>${(bp.barras||[]).map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.forma}</td>
+      <td style="padding:5px 8px;color:var(--text2)">${r.esp}</td>
+      <td style="padding:5px 8px;color:var(--text2)">${r.tamanho}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-b-'+i,r.preco)}</td>
+      <td style="padding:5px 8px;text-align:center"><input id="bp-b-at-${i}" value="${r.atualizado||''}" onblur="_bpSaveBarAtualiz(${i},this.value)" placeholder="—" style="border:none;background:transparent;color:var(--text3);font-size:11px;width:76px;text-align:center"></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
-}
-function _bpMatPvc(){
-  const bp=_getBP();const rows=bp.pvc.espessuras;
-  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Chapa padrão: ${bp.pvc.chapa_w}×${bp.pvc.chapa_h} cm</div>
+  const C=`<div style="font-weight:600;font-size:13px;color:var(--text1);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">Cantoneiras</div>
   <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
     <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Material</th>
       <th style="text-align:left;padding:5px 8px">Espessura</th>
-      <th style="text-align:right;padding:5px 8px">Preço/chapa (R$)</th>
-      <th style="text-align:right;padding:5px 8px">Corte router/m² (R$)</th>
-      <th></th>
+      <th style="text-align:left;padding:5px 8px">Tamanho</th>
+      <th style="text-align:right;padding:5px 8px">Preço (R$)</th>
+      <th style="text-align:center;padding:5px 8px;color:var(--text3)">Últ. Atualiz.</th>
     </tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:5px 8px;font-weight:500">${r.label}</td>
-      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-pvc-pc-'+i,r.preco_chapa)}</td>
-      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-pvc-tc-'+i,r.taxa_corte)}</td>
-      <td style="padding:5px 8px"><button onclick="_bpDelMat('pvc',${i})" style="background:none;border:none;cursor:pointer;color:var(--text3)">✕</button></td>
+    <tbody>${(bp.cantoneiras||[]).map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.material}</td>
+      <td style="padding:5px 8px;color:var(--text2)">${r.esp}</td>
+      <td style="padding:5px 8px;color:var(--text2)">${r.tamanho}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-ca-'+i,r.preco)}</td>
+      <td style="padding:5px 8px;text-align:center"><input id="bp-ca-at-${i}" value="${r.atualizado||''}" onblur="_bpSaveCaAtualiz(${i},this.value)" placeholder="—" style="border:none;background:transparent;color:var(--text3);font-size:11px;width:76px;text-align:center"></td>
     </tr>`).join('')}</tbody>
   </table></div>`;
-}
-function _bpMatLetraCaixa(){
-  const bp=_getBP();const mats=bp.letra_caixa||[];
-  return mats.map((mat,mi)=>`<div style="margin-bottom:16px">
-    <div style="font-weight:600;font-size:13px;color:var(--text1);margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--border)">${mat.material}</div>
-    <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px">
-      <thead><tr style="border-bottom:1px solid var(--border)">
-        <th style="text-align:left;padding:4px 8px">Espessura</th>
-        <th style="text-align:right;padding:4px 8px">Preço/chapa (R$)</th>
-        <th style="text-align:center;padding:4px 8px">Tamanho</th>
-        <th style="text-align:center;padding:4px 8px">Pintura</th>
-      </tr></thead>
-      <tbody>${mat.espessuras.map((e,ei)=>`<tr style="border-bottom:1px solid var(--border)20">
-        <td style="padding:4px 8px;font-size:12px">${e.esp}</td>
-        <td style="padding:4px 8px;text-align:right">${_bpNI('bp-lc-'+mi+'-'+ei,e.preco_chapa)}</td>
-        <td style="padding:4px 8px;text-align:center;font-size:12px;color:var(--text3)">${e.chapa_w}×${e.chapa_h}cm</td>
-        <td style="padding:4px 8px;text-align:center">${e.pintura?'✓':'—'}</td>
-      </tr>`).join('')}</tbody>
-    </table></div>
-  </div>`).join('');
-}
-function _bpMatImpressao(){
-  const bp=_getBP();const rows=bp.impressao||[];
-  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Taxa por m² de área impressa.</div>
-  <table style="width:100%;border-collapse:collapse;font-size:13px">
-    <thead><tr style="border-bottom:2px solid var(--border)">
-      <th style="text-align:left;padding:5px 8px">Tipo</th>
-      <th style="text-align:right;padding:5px 8px">Taxa/m² (R$)</th>
-    </tr></thead>
-    <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:5px 8px;font-weight:500">${r.label}</td>
-      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-imp-'+i,r.taxa)}</td>
-    </tr>`).join('')}</tbody>
-  </table>`;
+  return B+C;
 }
 function _bpMatAdesivos(){
   const bp=_getBP();const rows=bp.adesivos||[];
@@ -5796,51 +6053,120 @@ function _bpMatAdesivos(){
     <thead><tr style="border-bottom:2px solid var(--border)">
       <th style="text-align:left;padding:5px 8px">Tipo</th>
       <th style="text-align:right;padding:5px 8px">Preço/m² (R$)</th>
+      <th style="text-align:center;padding:5px 8px;color:var(--text3)">Últ. Atualiz.</th>
     </tr></thead>
     <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
       <td style="padding:5px 8px;font-weight:500">${r.tipo}</td>
       <td style="padding:5px 8px;text-align:right">${_bpNI('bp-ad-'+i,r.taxa_m2)}</td>
+      <td style="padding:5px 8px;text-align:center"><input id="bp-ad-at-${i}" value="${r.atualizado||''}" onblur="_bpSaveAdAtualiz(${i},this.value)" placeholder="—" style="border:none;background:transparent;color:var(--text3);font-size:11px;width:76px;text-align:center"></td>
     </tr>`).join('')}</tbody>
   </table>`;
 }
-function _bpDelMat(tipo,idx){
+function _bpMatCorte(){
   const bp=_getBP();
-  if(tipo==='acrilico')bp.acrilico.espessuras.splice(idx,1);
-  else if(tipo==='pvc')bp.pvc.espessuras.splice(idx,1);
-  _bpMatRender();
+  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Taxa adicional por m² de área cortada.</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:20px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Tipo de Corte</th>
+      <th style="text-align:right;padding:5px 8px">Taxa/m² (R$)</th>
+    </tr></thead>
+    <tbody>${(bp.corte_tipos||[]).map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.tipo}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-ct-'+i,r.pm)}</td>
+    </tr>`).join('')}</tbody>
+  </table>
+  <div style="font-weight:600;font-size:13px;color:var(--text1);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)">Laser em Acrílico (taxa/m² por espessura)</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Espessura</th>
+      <th style="text-align:right;padding:5px 8px">Taxa/m² (R$)</th>
+    </tr></thead>
+    <tbody>${(bp.laser_acrilico||[]).map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.esp}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-la-'+i,r.pm)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+function _bpMatImpressao(){
+  const bp=_getBP();const rows=bp.impressao_tipos||[];
+  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Taxa adicional por m² de área impressa.</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Tipo de Impressão</th>
+      <th style="text-align:right;padding:5px 8px">Taxa/m² (R$)</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.tipo}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-im-'+i,r.pm2)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+function _bpMatInstalacao(){
+  const bp=_getBP();const rows=bp.instalacao_tipos||[];
+  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Taxa adicional por m² de área instalada.</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Tipo de Instalação</th>
+      <th style="text-align:right;padding:5px 8px">Taxa/m² (R$)</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.tipo}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-it-'+i,r.pm2)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
+}
+function _bpMatDeslocamento(){
+  const bp=_getBP();const rows=bp.deslocamento_tipos||[];
+  return`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">Custo fixo por faixa de distância.</div>
+  <table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid var(--border)">
+      <th style="text-align:left;padding:5px 8px">Faixa</th>
+      <th style="text-align:right;padding:5px 8px">Preço (R$)</th>
+    </tr></thead>
+    <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
+      <td style="padding:5px 8px;font-weight:500">${r.faixa}</td>
+      <td style="padding:5px 8px;text-align:right">${_bpNI('bp-dt-'+i,r.preco)}</td>
+    </tr>`).join('')}</tbody>
+  </table>`;
 }
 function _bpSaveMateriais(){
   const bp=_getBP();
-  if(_bpMatTab==='acrilico'){
-    bp.acrilico.espessuras.forEach((r,i)=>{
-      const pc=document.getElementById('bp-acr-pc-'+i),tc=document.getElementById('bp-acr-tc-'+i);
-      if(pc&&+pc.value>0)r.preco_chapa=+pc.value;
-      if(tc&&+tc.value>0)r.taxa_corte=+tc.value;
+  if(_bpMatTab==='chapas'){
+    (bp.chapas||[]).forEach((r,i)=>{
+      const el=document.getElementById('bp-ch-'+i);if(el)r.preco=+el.value;
+      const ea=document.getElementById('bp-ch-at-'+i);if(ea)r.atualizado=ea.value;
     });
-  } else if(_bpMatTab==='pvc'){
-    bp.pvc.espessuras.forEach((r,i)=>{
-      const pc=document.getElementById('bp-pvc-pc-'+i),tc=document.getElementById('bp-pvc-tc-'+i);
-      if(pc&&+pc.value>0)r.preco_chapa=+pc.value;
-      if(tc&&+tc.value>0)r.taxa_corte=+tc.value;
+  } else if(_bpMatTab==='perfis'){
+    (bp.barras||[]).forEach((r,i)=>{
+      const el=document.getElementById('bp-b-'+i);if(el)r.preco=+el.value;
+      const ea=document.getElementById('bp-b-at-'+i);if(ea)r.atualizado=ea.value;
     });
-  } else if(_bpMatTab==='letra_caixa'){
-    (bp.letra_caixa||[]).forEach((mat,mi)=>{
-      mat.espessuras.forEach((e,ei)=>{
-        const pc=document.getElementById('bp-lc-'+mi+'-'+ei);
-        if(pc&&+pc.value>0)e.preco_chapa=+pc.value;
-      });
-    });
-  } else if(_bpMatTab==='impressao'){
-    (bp.impressao||[]).forEach((r,i)=>{
-      const t=document.getElementById('bp-imp-'+i);if(t&&+t.value>0)r.taxa=+t.value;
+    (bp.cantoneiras||[]).forEach((r,i)=>{
+      const el=document.getElementById('bp-ca-'+i);if(el)r.preco=+el.value;
+      const ea=document.getElementById('bp-ca-at-'+i);if(ea)r.atualizado=ea.value;
     });
   } else if(_bpMatTab==='adesivos'){
     (bp.adesivos||[]).forEach((r,i)=>{
-      const t=document.getElementById('bp-ad-'+i);if(t&&+t.value>0)r.taxa_m2=+t.value;
+      const el=document.getElementById('bp-ad-'+i);if(el)r.taxa_m2=+el.value;
+      const ea=document.getElementById('bp-ad-at-'+i);if(ea)r.atualizado=ea.value;
     });
+  } else if(_bpMatTab==='corte'){
+    (bp.corte_tipos||[]).forEach((r,i)=>{const el=document.getElementById('bp-ct-'+i);if(el)r.pm=+el.value;});
+    (bp.laser_acrilico||[]).forEach((r,i)=>{const el=document.getElementById('bp-la-'+i);if(el)r.pm=+el.value;});
+  } else if(_bpMatTab==='impressao'){
+    (bp.impressao_tipos||[]).forEach((r,i)=>{const el=document.getElementById('bp-im-'+i);if(el)r.pm2=+el.value;});
+  } else if(_bpMatTab==='instalacao'){
+    (bp.instalacao_tipos||[]).forEach((r,i)=>{const el=document.getElementById('bp-it-'+i);if(el)r.pm2=+el.value;});
+  } else if(_bpMatTab==='deslocamento'){
+    (bp.deslocamento_tipos||[]).forEach((r,i)=>{const el=document.getElementById('bp-dt-'+i);if(el)r.preco=+el.value;});
   }
   saveState();toast('Materiais salvos!');
 }
+// Salva campo atualizado individualmente (onblur inline)
+function _bpSaveChAtualiz(i,v){const bp=_getBP();if(bp.chapas&&bp.chapas[i])bp.chapas[i].atualizado=v;saveState();}
+function _bpSaveBarAtualiz(i,v){const bp=_getBP();if(bp.barras&&bp.barras[i])bp.barras[i].atualizado=v;saveState();}
+function _bpSaveCaAtualiz(i,v){const bp=_getBP();if(bp.cantoneiras&&bp.cantoneiras[i])bp.cantoneiras[i].atualizado=v;saveState();}
+function _bpSaveAdAtualiz(i,v){const bp=_getBP();if(bp.adesivos&&bp.adesivos[i])bp.adesivos[i].atualizado=v;saveState();}
 // ── FIM BASE DE PREÇOS ───────────────────────────────────────────────────────
 
 loadState().then(async()=>{
