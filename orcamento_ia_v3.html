@@ -580,10 +580,6 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
         </select>
       </div>
       <div class="cf-group">
-        <label class="cf-label">Prazo de entrega</label>
-        <div class="cf-inline"><input class="cf-input-sm" id="ad_prazo" type="number" value="5" min="1" max="90" onchange="adCalcUpdate()"><span style="font-size:12px;color:#71717a">dias úteis</span></div>
-      </div>
-      <div class="cf-group">
         <label class="cf-label">Ajuste manual (R$)</label>
         <input class="cf-input" id="ad_modificador" type="number" value="0" step="1" oninput="adCalcUpdate()">
         <div style="font-size:10px;color:#a1a1aa;margin-top:3px">Positivo para adicionar, negativo para reduzir</div>
@@ -1487,7 +1483,7 @@ function renderFzSvcList() {
                   ${confDot}
                 </div>
                 ${active
-                  ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:9px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
+                  ? `<textarea data-desc-idx="${idx}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:9px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
                   : (descPreview ? `<div style="font-size:9px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
                 }
               </div>
@@ -1531,7 +1527,7 @@ function renderFzSvcList() {
                 ${confDot}
               </div>
               ${active
-                ? `<textarea onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:11px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
+                ? `<textarea data-desc-idx="${i}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].descricao=this.value" placeholder="Descrição do serviço..." rows="2" style="width:100%;resize:vertical;font-size:11px;font-family:inherit;padding:4px 6px;border:1.5px solid #93c5fd;border-radius:6px;box-sizing:border-box;color:#18181b;background:#eff6ff;margin-top:2px">${descPreview}</textarea>`
                 : (descPreview ? `<div style="font-size:11px;color:#71717a;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;line-height:1.4;margin-top:1px">${descPreview}</div>` : '')
               }
             </div>
@@ -1661,6 +1657,8 @@ function fzEditService(i) {
       if (btn)   btn.classList.add('open');
       const grid = document.getElementById('fz-add-svc-grid');
       if (grid) { grid.innerHTML = ''; grid.style.display = 'none'; }
+      const gridCalc = document.getElementById('fz-grid-calc-panel');
+      if (gridCalc) gridCalc.style.display = 'none';
       const cfg = document.getElementById('fz-add-svc-config');
       if (cfg) {
         // Cria o container que _openCalcCompleta() precisa encontrar
@@ -1724,6 +1722,8 @@ function fzEditService(i) {
   // Hide the service selection grid in edit mode
   const grid = document.getElementById('fz-add-svc-grid');
   if (grid) { grid.innerHTML = ''; grid.style.display = 'none'; }
+  const gridCalc = document.getElementById('fz-grid-calc-panel');
+  if (gridCalc) gridCalc.style.display = 'none';
   // Reset calc container so toggle-off logic doesn't fire on re-open
   const _editContainer = document.getElementById('fz-add-calc-container');
   if (_editContainer && _editContainer.style.display !== 'none') {
@@ -1736,12 +1736,12 @@ function fzEditService(i) {
   const _lastCalc = svc.meta.lastCalc || 'simplified';
   if (_lastCalc === 'anterior') {
     setTimeout(() => {
-      _openCalcAnterior();
+      _openCalcAnterior(); // já chama _addPanelShowAdvanced() + _addActionBar() internamente
       if (svc.meta.lastInputs) setTimeout(() => _restoreCalcState(svc), 200);
     }, 60);
   } else if (_lastCalc === 'completa') {
     setTimeout(() => {
-      _openCalcCompleta();
+      _openCalcCompleta(); // já chama _addPanelShowAdvanced() + _addActionBar() internamente
       if (svc.meta.lastInputs) setTimeout(() => _restoreCalcState(svc), 200);
     }, 60);
   } else if (_lastCalc === 'advanced') {
@@ -1757,9 +1757,13 @@ function fzCloseEditPanel() {
   const btn   = document.getElementById('btn-add-svc');
   if (panel) panel.style.display = 'none';
   if (btn) btn.classList.remove('open');
-  _addPanelEditMode = false;
-  _addPanelEditIdx  = null;
-  _addPanelSvcIdx   = null;
+  _addPanelEditMode    = false;
+  _addPanelEditIdx     = null;
+  _addPanelSvcIdx      = null;
+  _addPanelInAdvanced  = false;
+  _returnCalcFormsToStep3();
+  const shell = document.getElementById('main-shell');
+  if (shell) shell.className = 'shell wide';
   renderFzSvcList();
 }
 
@@ -2132,14 +2136,14 @@ function _saveCalcState(idx) {
     try { inp.genMargens = JSON.parse(JSON.stringify(_genMargens)); } catch(e){}
   } else { // 'anterior' ou 'advanced' (legado)
     if (calcSvc === 'letreiro_acrilico') {
-      inp.larg=gN('l_larg'); inp.alt=gN('l_alt'); inp.desloc=gN('l_desloc');
-      inp.instOn=gB('l_inst_on'); inp.pinst=gN('l_pinst'); inp.nome=gS('l_nome');
-      inp.esp=_letreiroEsp; inp.impType=_letreiroImpType;
+      inp.larg=gN('l_larg'); inp.alt=gN('l_alt'); inp.qtd=gI('l_qtd');
+      inp.desloc=gS('l_desloc'); inp.instOn=gB('l_inst_on'); inp.pinst=gN('l_pinst');
+      inp.nome=gS('l_nome'); inp.esp=_letreiroEsp; inp.impType=_letreiroImpType;
       try { inp.camadas=JSON.parse(JSON.stringify(_letCamadas)); } catch(e){}
     } else if (calcSvc === 'letreiro_pvc') {
-      inp.larg=gN('pv_larg'); inp.alt=gN('pv_alt'); inp.desloc=gN('pv_desloc');
-      inp.instOn=gB('pv_inst_on'); inp.pinst=gN('pv_pinst'); inp.nome=gS('pv_nome');
-      inp.esp=_pvcEsp; inp.impType=_pvcImpType;
+      inp.larg=gN('pv_larg'); inp.alt=gN('pv_alt'); inp.qtd=gI('pv_qtd');
+      inp.desloc=gS('pv_desloc'); inp.instOn=gB('pv_inst_on'); inp.pinst=gN('pv_pinst');
+      inp.nome=gS('pv_nome'); inp.esp=_pvcEsp; inp.impType=_pvcImpType;
       try { inp.camadas=JSON.parse(JSON.stringify(_pvcCamadas)); } catch(e){}
     } else if (calcSvc === 'placa_identificacao') {
       inp.larg=gN('p_larg'); inp.alt=gN('p_alt'); inp.qtd=gI('p_qtd');
@@ -2151,9 +2155,17 @@ function _saveCalcState(idx) {
     } else if (calcSvc === 'adesivo') {
       inp.larg=gN('ad_larg'); inp.alt=gN('ad_alt'); inp.qtd=gI('ad_qtd');
       inp.ajuste=gN('ad_modificador'); inp.tipo=_adTipo;
+      inp.inst=gB('ad_inst'); inp.pinst=gN('ad_pinst');
+      inp.ret=gB('ad_ret'); inp.pret=gN('ad_pret');
+      inp.deslocOn=gB('ad_desloc_on');
+      const _adDeslocEl=document.getElementById('ad_desloc'); if(_adDeslocEl) inp.desloc=_adDeslocEl.value;
+      inp.metroFechado=_adMetroFechado;
       try { inp.camadas=JSON.parse(JSON.stringify(_adCamadas)); } catch(e){}
     } else if (calcSvc === 'letra_caixa') {
       inp.lcMat=_lcMat; inp.lcEsp=_lcEsp; inp.instOn=gB('lc_inst');
+      inp.pinst=gN('lc_pinst'); inp.ajuste=gN('lc_modificador');
+      inp.deslocOn=gB('lc_desloc_on');
+      const _lcDeslocEl=document.getElementById('lc_desloc'); if(_lcDeslocEl) inp.desloc=_lcDeslocEl.value;
       try { inp.camadas=JSON.parse(JSON.stringify(_lcCamadas)); } catch(e){}
     }
   }
@@ -2181,10 +2193,11 @@ function _restoreCalcState(svc) {
     if (inp.impType) letreiroSetImpType(inp.impType);
     if (inp.larg) set('l_larg', inp.larg);
     if (inp.alt)  set('l_alt', inp.alt);
-    set('l_desloc', inp.desloc||0);
+    if (inp.qtd)  set('l_qtd', inp.qtd);
+    if (inp.desloc !== undefined) { const el=document.getElementById('l_desloc'); if(el) el.value=inp.desloc; }
     setB('l_inst_on', inp.instOn??true);
     set('l_pinst', inp.pinst||0);
-    if (inp.nome) set('l_nome', inp.nome);
+    if (inp.nome !== undefined) set('l_nome', inp.nome);
     letreiroCalcUpdate();
   } else if (cs === 'letreiro_pvc') {
     if (inp.camadas?.length) { try{_pvcCamadas=JSON.parse(JSON.stringify(inp.camadas));}catch(e){} pvcRenderCamadas(); }
@@ -2192,10 +2205,11 @@ function _restoreCalcState(svc) {
     if (inp.impType) pvcSetImpType(inp.impType);
     if (inp.larg) set('pv_larg', inp.larg);
     if (inp.alt)  set('pv_alt', inp.alt);
-    set('pv_desloc', inp.desloc||0);
+    if (inp.qtd)  set('pv_qtd', inp.qtd);
+    if (inp.desloc !== undefined) { const el=document.getElementById('pv_desloc'); if(el) el.value=inp.desloc; }
     setB('pv_inst_on', inp.instOn??true);
     set('pv_pinst', inp.pinst||0);
-    if (inp.nome) set('pv_nome', inp.nome);
+    if (inp.nome !== undefined) set('pv_nome', inp.nome);
     pvcCalcUpdate();
   } else if (cs === 'placa_identificacao') {
     if (inp.matId) placaSetMat(inp.matId);
@@ -2218,13 +2232,24 @@ function _restoreCalcState(svc) {
     if (inp.larg) set('ad_larg', inp.larg);
     if (inp.alt)  set('ad_alt', inp.alt);
     if (inp.qtd)  set('ad_qtd', inp.qtd);
-    set('ad_modificador', inp.ajuste||0);
+    set('ad_modificador', inp.ajuste??0);
+    if (inp.inst !== undefined) { const el=document.getElementById('ad_inst'); if(el){el.checked=inp.inst; el.dispatchEvent(new Event('change'));} }
+    if (inp.pinst !== undefined) set('ad_pinst', inp.pinst);
+    if (inp.ret !== undefined) { const el=document.getElementById('ad_ret'); if(el){el.checked=inp.ret; el.dispatchEvent(new Event('change'));} }
+    if (inp.pret !== undefined) set('ad_pret', inp.pret);
+    if (inp.deslocOn !== undefined) { const el=document.getElementById('ad_desloc_on'); if(el){el.checked=inp.deslocOn; el.dispatchEvent(new Event('change'));} }
+    if (inp.desloc !== undefined) { const el=document.getElementById('ad_desloc'); if(el) el.value=inp.desloc; }
+    if (inp.metroFechado !== undefined) { _adMetroFechado=inp.metroFechado; const el=document.getElementById('ad_metro_fechado'); if(el) el.checked=inp.metroFechado; }
     adCalcUpdate();
   } else if (cs === 'letra_caixa') {
     if (inp.lcMat) lcSetMat(inp.lcMat);
     if (inp.lcEsp) lcSetEsp(inp.lcEsp);
     if (inp.camadas?.length) { try{_lcCamadas=JSON.parse(JSON.stringify(inp.camadas));}catch(e){} lcRenderCamadas(); }
     setB('lc_inst', inp.instOn??false);
+    if (inp.pinst !== undefined) set('lc_pinst', inp.pinst);
+    set('lc_modificador', inp.ajuste??0);
+    if (inp.deslocOn !== undefined) { const el=document.getElementById('lc_desloc_on'); if(el){el.checked=inp.deslocOn; el.dispatchEvent(new Event('change'));} }
+    if (inp.desloc !== undefined) { const el=document.getElementById('lc_desloc'); if(el) el.value=inp.desloc; }
     lcCalcRun();
   }
 }
@@ -2241,6 +2266,7 @@ function fzAdicionarServico() {
   if (open && _addPanelEditMode) {
     if (_fzEditingIdx !== null) _saveCalcState(_fzEditingIdx);
     _addPanelEditMode = false; _addPanelEditIdx = null; _addPanelSvcIdx = null;
+    _addPanelInAdvanced = false;
     _returnCalcFormsToStep3();
     const shell = document.getElementById('main-shell');
     if (shell) shell.className = 'shell wide';
@@ -2259,10 +2285,13 @@ function fzAdicionarServico() {
     // Mark as "add mode" so _calcFzPush appends instead of replacing the list
     if (_fzServicesList.length > 0) _fzAddMode = true;
     _addPanelSvcIdx = null; _addPanelEditMode = false; _addPanelEditIdx = null;
+    _addPanelInAdvanced = false;
     _apcOpenGroup = null;
     _returnCalcFormsToStep3();
     const grid = document.getElementById('fz-add-svc-grid');
     if (grid) grid.style.display = '';
+    const gridCalc = document.getElementById('fz-grid-calc-panel');
+    if (gridCalc) { gridCalc.style.display = 'none'; gridCalc.innerHTML = ''; }
     _renderAddPanelGrid();
     setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'start'}),80);
   }
@@ -2271,6 +2300,7 @@ function fzAdicionarServico() {
 // ── ADD PANEL STATE ──
 let _addPanelSvcIdx = null;
 let _addPanelPresetIdx = 1; // default: Médio
+let _addPanelInAdvanced = false; // true quando simplificada oculta e avançada visível
 let _addPanelLarg = null;
 let _addPanelAlt  = null;
 let _addPanelQtd  = 1;
@@ -2297,7 +2327,7 @@ const _APC_SVC_DEFAULTS = {
   letreiro_pvc:{mat:'PVC',esp:'PVC 10 mm',corte:'Router',imp:'Pintura Automotiva',log:'Instalação'},
   painel:{mat:'PVC',esp:'PVC 10 mm',corte:'Nenhum',imp:'Digital',log:'Instalação'},
   placa_identificacao:{mat:'PETG',esp:'PETG 3 mm',corte:'Nenhum',imp:'Digital',log:'Instalação'},
-  adesivo:{mat:'Adesivo',esp:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital',log:'Instalação'},
+  adesivo:{mat:'Adesivo',esp:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital',log:'Instalação'},
   letra_caixa:{mat:'Inox Escovado',esp:'Chapa 26 (0,5 mm)',corte:'Laser Fibra',imp:'Nenhum',log:'Instalação'},
 };
 const _APC_SVC_MATS = {
@@ -2385,6 +2415,8 @@ function fzToggleCalcCompleta() {
   const cfg = document.getElementById('fz-add-svc-config');
   if (cfg) cfg.style.display = 'none';
   _returnCalcFormsToStep3();
+  // Remove fz-gen-adv-form órfão (pode estar em fz-add-svc-config de edição anterior)
+  document.getElementById('fz-gen-adv-form')?.remove();
   // Inicializar calculadora completa em branco
   _genItems = [_newGenItem()];
   calcPanel.innerHTML = '<div id="fz-gen-adv-form"></div>';
@@ -2581,7 +2613,7 @@ let _lcResu=null;
 const _APC_FIN_MAT = {
   letreiro_acrilico:   [{m:'Acrílico',e:'Acrílico 3 mm'},{m:'Acrílico',e:'Acrílico 6 mm'},{m:'Acrílico',e:'Acrílico 10 mm'}],
   letreiro_pvc:        [{m:'PVC',e:'PVC 10 mm'},{m:'PVC',e:'PVC 20 mm'},{m:'PVC',e:'PVC 10 mm'}],
-  adesivo:             [{m:'Adesivo',e:'Automotivo IJ30'},{m:'Adesivo',e:'Automotivo IJ30'},{m:'Adesivo',e:'Automotivo IJ30'}],
+  adesivo:             [{m:'Adesivo',e:'Vinil'},{m:'Adesivo',e:'Vinil'},{m:'Adesivo',e:'Vinil'}],
   placa_identificacao: [{m:'Acrílico',e:'Acrílico 3 mm'},{m:'Galvanizado',e:'Chapa 20 (1,0 mm)'},{m:'Latão Dourado',e:'Latão Dourado 0,8 mm'}],
 };
 function _addPanelSetFin(fi) {
@@ -2767,6 +2799,7 @@ function _renderAddPanelConfig() {
     <div id="apc-price-box" style="margin-top:10px">${_apcBuildPrice()}</div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="fz-btn-per" style="flex:1" onclick="addPanelOpenAdvanced()">⚙️ Opções Avançadas</button>
+      ${_addPanelEditMode ? `<button class="fz-btn-per" onclick="fzCloseEditPanel()" style="flex:0 0 auto;color:#ef4444;border-color:#fca5a5;white-space:nowrap">✕ Cancelar</button>` : ''}
       <button class="fz-btn-form" style="flex:1" onclick="addPanelFormalizar2()">${editLabel}</button>
     </div>
   </div>
@@ -2862,7 +2895,16 @@ function _buildNomeItem(svcId, svcLabel, espessura) {
   return `${svcLabel} em ${espessura}`;
 }
 
+// Garante que a descrição digitada na textarea do card está salva em memória antes do formalizar
+function _syncEditingDescFromDOM() {
+  if (_addPanelEditMode && _addPanelEditIdx !== null) {
+    const ta = document.querySelector(`textarea[data-desc-idx="${_addPanelEditIdx}"]`);
+    if (ta) _fzServicesList[_addPanelEditIdx].descricao = ta.value;
+  }
+}
+
 function addPanelFormalizar() {
+  _syncEditingDescFromDOM();
   if (_addPanelSvcIdx === null) return;
   const svc = SVCS[_addPanelSvcIdx];
   const larg = _addPanelLarg || svc.presets[0].w;
@@ -2960,6 +3002,7 @@ function addPanelFormalizar() {
 
 function addPanelFormalizar2() {
   // Formalizar from simplified chip panel — syncs selections to _genItems then runs genFormalizar
+  _syncEditingDescFromDOM();
   if (_addPanelSvcIdx === null) return;
   const svc = SVCS[_addPanelSvcIdx];
   const preset = svc.presets[_addPanelPresetIdx] || svc.presets[0];
@@ -3050,6 +3093,63 @@ function addPanelPersonalizar() {
   setTimeout(()=>{ selectSvcById(svc.id); },50);
 }
 
+// ── NAVEGAÇÃO SIMPLIFICADA ↔ AVANÇADA ──
+
+// Oculta a div simplificada (chips/botões) e marca modo avançado
+function _addPanelShowAdvanced() {
+  const cfg = document.getElementById('fz-add-svc-config');
+  const simple = cfg?.querySelector('.add-panel-config');
+  if (simple) simple.style.display = 'none';
+  _addPanelInAdvanced = true;
+}
+
+// Volta para a calculadora simplificada (avançada some, estado em memória)
+function _addPanelGoBack() {
+  const container = document.getElementById('fz-add-calc-container');
+  if (container) { container.style.display = 'none'; _returnCalcFormsToStep3(); }
+  const cfg = document.getElementById('fz-add-svc-config');
+  const simple = cfg?.querySelector('.add-panel-config');
+  if (simple) simple.style.display = '';
+  document.getElementById('main-shell').className = 'shell wide';
+  _addPanelInAdvanced = false;
+  cfg?.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// Cancela tudo: se editando → fecha painel; se novo → fecha e volta ao grid
+function _addPanelCancelAdv() {
+  _addPanelInAdvanced = false;
+  _returnCalcFormsToStep3();
+  if (_addPanelEditMode) { fzCloseEditPanel(); return; }
+  const panel = document.getElementById('fz-add-panel');
+  const btn   = document.getElementById('btn-add-svc');
+  if (panel) panel.style.display = 'none';
+  if (btn)   btn.classList.remove('open');
+  _addPanelSvcIdx = null;
+  document.getElementById('main-shell').className = 'shell wide';
+  _renderAddPanelGrid();
+}
+
+// Gera HTML da barra de ação (Voltar | Cancelar | Salvar) para a calculadora avançada
+function _addPanelActionBarHtml() {
+  const isEdit    = _addPanelEditMode;
+  const cancelLbl = isEdit ? '✕ Cancelar edições' : '✕ Cancelar';
+  const saveLbl   = isEdit ? '✓ Salvar alterações' : '✓ Adicionar ao orçamento';
+  return `<div id="fz-adv-action-bar" style="display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1.5px dashed #93c5fd">
+    <button class="fz-btn-per" onclick="_addPanelGoBack()" style="flex:0 0 auto;white-space:nowrap">← Simplificada</button>
+    <button class="fz-btn-per" onclick="_addPanelCancelAdv()" style="flex:1;color:#ef4444;border-color:#fca5a5">${cancelLbl}</button>
+    <button class="fz-btn-form" onclick="_advancedCalcFormalizar()" style="flex:1">${saveLbl}</button>
+  </div>`;
+}
+
+// Insere a barra de ação no container da calc avançada (remove a anterior se existir)
+function _addActionBar() {
+  const container = document.getElementById('fz-add-calc-container');
+  if (!container) return;
+  const old = document.getElementById('fz-adv-action-bar');
+  if (old) old.remove();
+  container.insertAdjacentHTML('beforeend', _addPanelActionBarHtml());
+}
+
 // ── CALC INLINE (Opções Avançadas) ──
 function _returnCalcFormsToStep3() {
   const step3 = document.getElementById('step3');
@@ -3086,22 +3186,24 @@ function _fillCalcDims(calcSvc, larg, alt) {
 
 function addPanelOpenAdvanced() {
   if (_addPanelSvcIdx === null) return;
+  // Se já estamos na avançada, "Opções Avançadas" não deveria ser clicável
+  // (o botão some quando simplified fica oculto) — por segurança, ignora
+  if (_addPanelInAdvanced) return;
   // Registra que este serviço será editado pela calculadora avançada
   if (_addPanelEditMode && _addPanelEditIdx !== null && _fzServicesList[_addPanelEditIdx]) {
     _fzServicesList[_addPanelEditIdx].meta.lastCalc = 'advanced';
   }
   const container = document.getElementById('fz-add-calc-container');
   if (!container) return;
-  // Toggle off if already open
-  if (container.style.display !== 'none') {
-    container.style.display = 'none'; _returnCalcFormsToStep3();
-    document.getElementById('main-shell').className = 'shell wide'; return;
-  }
   const svc = SVCS[_addPanelSvcIdx];
+  // Oculta painel simplificado
+  _addPanelShowAdvanced();
   // Auto-route: adesivos e letra_caixa → Camadas; letreiro_3d/acr → Completa; outros → escolha
   if (['adesivo','letra_caixa'].includes(svc.calcSvc)) { _openCalcAnterior(); return; }
   if (['letreiro_3d','letreiro_acr','letreiro_pvc_flat'].includes(svc.id)) { _openCalcCompleta(); return; }
   const hasOldCalc = ['letreiro_acrilico','letreiro_pvc','placa_identificacao'].includes(svc.calcSvc);
+  const isEdit    = _addPanelEditMode;
+  const cancelLbl = isEdit ? '✕ Cancelar edições' : '✕ Cancelar';
   container.innerHTML = `
     <div style="padding:4px 0 10px">
       <div class="det-sec" style="margin-top:0;margin-bottom:8px">Escolha a calculadora</div>
@@ -3112,6 +3214,10 @@ function addPanelOpenAdvanced() {
         <button class="fz-btn-per" style="flex:1;padding:10px;text-align:center;line-height:1.4" onclick="_openCalcCompleta()">
           🧮 Calculadora Completa<br><span style="font-size:10px;font-weight:400;opacity:.7">Todos os campos com override</span>
         </button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="fz-btn-per" onclick="_addPanelGoBack()" style="flex:1">← Voltar às opções simples</button>
+        <button class="fz-btn-per" onclick="_addPanelCancelAdv()" style="flex:0 0 auto;color:#ef4444;border-color:#fca5a5">${cancelLbl}</button>
       </div>
     </div>`;
   container.style.display = 'block';
@@ -3139,28 +3245,80 @@ function _openCalcAnterior() {
     lcRenderCamadas();
     lcRenderEspButtons();
     lcSetMat(mat); // updates buttons + triggers lcCalcRun
+    if (!_addPanelEditMode) {
+      const _set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+      const _setB=(id,v,ev)=>{const el=document.getElementById(id);if(el){el.checked=v;if(ev)el.dispatchEvent(new Event('change'));}};
+      _set('lc_pinst',50); _set('lc_modificador',0);
+      _setB('lc_desloc_on',true,true);
+      const dEl=document.getElementById('lc_desloc'); if(dEl) dEl.value='30';
+    }
   }
   // For adesivo: sync tipo buttons, restore user dims, pre-load default ajuste/camadas
   if (svc.calcSvc === 'adesivo') {
-    if (svc.defaultCamadas) { _adCamadas=svc.defaultCamadas.map(c=>({...c})); }
-    // Sync corte + impressão selecionados no painel rápido
-    if (_adCamadas && _adCamadas.length) {
-      _adCamadas.forEach(c => {
-        c.recorte   = _apcCorte     !== 'Nenhum';
-        c.impressao = _apcImpressao !== 'Nenhum';
-      });
+    const _adEditInp = (_addPanelEditMode && _addPanelEditIdx !== null)
+      ? (_fzServicesList[_addPanelEditIdx]?.meta?.lastInputs || null) : null;
+    // Camadas: usa lastInputs se editando, senão usa defaultCamadas do SVCS
+    if (_adEditInp?.camadas?.length) {
+      try{_adCamadas=JSON.parse(JSON.stringify(_adEditInp.camadas));}catch(e){}
+    } else if (svc.defaultCamadas) {
+      _adCamadas=svc.defaultCamadas.map(c=>({...c}));
+      // Sync corte + impressão do painel rápido apenas para serviços novos
+      if (_adCamadas.length) {
+        _adCamadas.forEach(c => {
+          c.recorte   = _apcCorte     !== 'Nenhum';
+          c.impressao = _apcImpressao !== 'Nenhum';
+        });
+      }
     }
     adRenderCamadas();
-    if (svc.adTipo) adSetTipo(svc.adTipo);
+    if (_adEditInp?.tipo) adSetTipo(_adEditInp.tipo);
+    else if (svc.adTipo) adSetTipo(svc.adTipo);
     const lEl=document.getElementById('ad_larg'), aEl=document.getElementById('ad_alt');
-    const cL=_addPanelLarg||svc.presets[1]?.w||svc.presets[0].w;
-    const cA=_addPanelAlt||svc.presets[1]?.h||svc.presets[0].h;
+    const cL=_adEditInp?.larg||_addPanelLarg||svc.presets[1]?.w||svc.presets[0].w;
+    const cA=_adEditInp?.alt||_addPanelAlt||svc.presets[1]?.h||svc.presets[0].h;
     if(lEl)lEl.value=cL; if(aEl)aEl.value=cA;
-    // Sync quantidade do painel rápido
+    // Sync quantidade
     const qtdEl=document.getElementById('ad_qtd');
-    if(qtdEl && _addPanelQtd>1) qtdEl.value=_addPanelQtd;
+    if(_adEditInp?.qtd) { if(qtdEl) qtdEl.value=_adEditInp.qtd; }
+    else if(qtdEl && _addPanelQtd>1) qtdEl.value=_addPanelQtd;
+    // Ajuste: usa valor salvo se editando, senão usa defaultAjuste do SVCS
     const ajEl=document.getElementById('ad_modificador');
-    if(ajEl){ajEl.value=svc.defaultAjuste||0; adCalcUpdate();}
+    if(ajEl){ajEl.value=_adEditInp ? (_adEditInp.ajuste??0) : (svc.defaultAjuste||0); adCalcUpdate();}
+    // Factory defaults para campos de logística (apenas novo item)
+    if (!_adEditInp) {
+      const _adSet=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+      const _adSetB=(id,v,ev)=>{const el=document.getElementById(id);if(el){el.checked=v;if(ev)el.dispatchEvent(new Event('change'));}};
+      // qtd: usa o que veio do painel rápido se >1, senão padrão 1
+      _adSet('ad_qtd', _addPanelQtd>1 ? _addPanelQtd : 1);
+      _adSet('ad_pinst',50);
+      _adSetB('ad_ret',false,true); _adSet('ad_pret',35);
+      _adSetB('ad_desloc_on',true,true);
+      const dEl=document.getElementById('ad_desloc'); if(dEl) dEl.value='30';
+      _adMetroFechado=false; const mfEl=document.getElementById('ad_metro_fechado'); if(mfEl) mfEl.checked=false;
+    }
+  }
+  // Letreiro Acrílico: factory defaults para campos de logística (apenas novo item)
+  if (svc.calcSvc === 'letreiro_acrilico' && !_addPanelEditMode) {
+    const _lSet=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    _lSet('l_qtd', _addPanelQtd>1 ? _addPanelQtd : 1); _lSet('l_nome',''); _lSet('l_pinst',50);
+    const dEl=document.getElementById('l_desloc'); if(dEl) dEl.value='50';
+    const iEl=document.getElementById('l_inst_on'); if(iEl){iEl.checked=true;iEl.dispatchEvent(new Event('change'));}
+  }
+  // Letreiro PVC: factory defaults para campos de logística (apenas novo item)
+  if (svc.calcSvc === 'letreiro_pvc' && !_addPanelEditMode) {
+    const _pvSet=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    _pvSet('pv_qtd', _addPanelQtd>1 ? _addPanelQtd : 1); _pvSet('pv_nome',''); _pvSet('pv_pinst',50);
+    const dEl=document.getElementById('pv_desloc'); if(dEl) dEl.value='50';
+    const iEl=document.getElementById('pv_inst_on'); if(iEl){iEl.checked=true;iEl.dispatchEvent(new Event('change'));}
+  }
+  // Placa: factory defaults para campos de logística (apenas novo item)
+  if (svc.calcSvc === 'placa_identificacao' && !_addPanelEditMode) {
+    const _pSet=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    const _pSetB=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v;};
+    _pSet('p_qtd', _addPanelQtd>1 ? _addPanelQtd : 1); _pSet('p_pinst',10); _pSet('p_pfixacao',5);
+    _pSetB('p_verniz',false); _pSetB('p_lamin',false);
+    const dEl=document.getElementById('p_desloc'); if(dEl) dEl.value='30';
+    const iEl=document.getElementById('p_inst_on'); if(iEl){iEl.checked=true;iEl.dispatchEvent(new Event('change'));}
   }
   // Sync logística (instalação) do painel rápido para o checkbox da calculadora aberta
   const _hasInst = _apcLogistica === 'Instalação' || _apcLogistica === 'Retirada + Instalação';
@@ -3184,6 +3342,9 @@ function _openCalcAnterior() {
       if (_dId) setTimeout(()=>{const el=document.getElementById(_dId);if(el)el.value=_existDesc;},150);
     }
   }
+  // Ocultar simplificada e exibir barra de ação
+  _addPanelShowAdvanced();
+  _addActionBar();
 }
 function _openCalcCompleta() {
   const container = document.getElementById('fz-add-calc-container');
@@ -3196,17 +3357,21 @@ function _openCalcCompleta() {
   renderGenAdvForm();
   document.getElementById('main-shell').className = 'shell wide';
   container.scrollIntoView({behavior:'smooth', block:'start'});
+  // Ocultar simplificada; barra de ação só quando há painel simplificado ativo
+  _addPanelShowAdvanced();
+  if (_addPanelSvcIdx !== null) _addActionBar();
 }
 
 // Dispatcher: use the calc form's formalizar (preserves its computed values)
 function _advancedCalcFormalizar() {
-  if (_addPanelSvcIdx === null) { addPanelFormalizar(); return; }
+  if (_addPanelSvcIdx === null) { genFormalizar(); return; }
   const calcSvc = SVCS[_addPanelSvcIdx]?.calcSvc;
   if      (calcSvc === 'letreiro_acrilico')   letreiroFormalizar();
   else if (calcSvc === 'letreiro_pvc')        pvcFormalizar();
   else if (calcSvc === 'placa_identificacao') placaFormalizar();
   else if (calcSvc === 'adesivo')             adFormalizar();
-  else                                        addPanelFormalizar();
+  else if (calcSvc === 'letra_caixa')         lcFormalizar();
+  else                                        genFormalizar();
 }
 
 function _cancelEditService() {
@@ -4417,13 +4582,13 @@ const SVCS = [
   { id:'ad_faixa',     icon:'📏', label:'Faixa em Adesivo',       calcSvc:'adesivo',             adTipo:'faixa',
     defaultAjuste:30, defaultCamadas:[{tipo:'jateado',impressao:true,recorte:true,transfer:false}],
     finishes:[{label:'Vinil Branco',icon:'🏷️',desc:'Sem impressão',mult:1.0},{label:'Jateado',icon:'🔲',desc:'Efeito jateado',mult:1.0},{label:'Colorido',icon:'🎨',desc:'Vinil colorido',mult:1.0}],
-    finMat:[{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'}],
+    finMat:[{m:'Adesivo',e:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital'}],
     presets:[{l:'75×10cm',w:75,h:10},{l:'100×20cm',w:100,h:20},{l:'200×30cm',w:200,h:30}] },
   { id:'ad_porta',     icon:'🚪', label:'Adesivo para Porta',     calcSvc:'adesivo',             adTipo:'porta', defaultAjuste:30, presets:[{l:'75×30cm',w:75,h:30},{l:'80×220cm',w:80,h:220},{l:'200×220cm',w:200,h:220}] },
   { id:'ad_geral',     icon:'🪟', label:'Adesivo',                calcSvc:'adesivo',             adTipo:'geral',
     defaultAjuste:10, defaultCamadas:[{tipo:'jateado',impressao:true,recorte:false,transfer:false}],
     finishes:[{label:'Vinil Branco',icon:'🏷️',desc:'Sem impressão',mult:1.0},{label:'Jateado',icon:'🔲',desc:'Efeito jateado',mult:1.0},{label:'Colorido',icon:'🎨',desc:'Vinil colorido',mult:1.0}],
-    finMat:[{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Automotivo IJ30',corte:'Recorte Plotter',imp:'Impressão Digital'}],
+    finMat:[{m:'Adesivo',e:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital'},{m:'Adesivo',e:'Vinil',corte:'Recorte Plotter',imp:'Impressão Digital'}],
     presets:[{l:'30×20cm',w:30,h:20},{l:'100×100cm',w:100,h:100},{l:'350×220cm',w:350,h:220}] },
   // ── Mais opções ──
   { id:'quadro',        icon:'🎨', label:'Quadro Personalizado',    calcSvc:'letreiro_acrilico',   extra:true, adTipo:null,
@@ -5000,7 +5165,18 @@ function adRenderCamadas(){
     return `<div class="camada-block"><div class="camada-hdr"><span class="camada-lbl-t">Camada ${i+1}</span>${_adCamadas.length>1?`<button class="camada-rm" onclick="adRemoveCamada(${i})">✕</button>`:''}</div><select class="cf-input" style="margin-bottom:8px" onchange="adSetMatCamada(${i},this.value)">${opts}</select><div class="camada-opts"><label><input type="checkbox" ${cam.impressao?'checked':''} onchange="adSetImprCamada(${i},this.checked)"> Impressão digital</label><label><input type="checkbox" ${cam.recorte?'checked':''} onchange="adSetRecorteCamada(${i},this.checked)"> Recorte Eletrônico</label><label><input type="checkbox" ${cam.transfer?'checked':''} onchange="adSetTransferCamada(${i},this.checked)"> Transfer</label></div></div>`;
   }).join('');
 }
-function adInit(){adRenderCamadas();adSetTipo(_adTipo);}
+function adInit(){
+  adRenderCamadas(); adSetTipo(_adTipo);
+  if (!_addPanelEditMode) {
+    const _set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    const _setB=(id,v,ev)=>{const el=document.getElementById(id);if(el){el.checked=v;if(ev)el.dispatchEvent(new Event('change'));}};
+    _set('ad_qtd',1); _set('ad_pinst',50);
+    _setB('ad_ret',false,true); _set('ad_pret',35);
+    _setB('ad_desloc_on',true,true);
+    const dEl=document.getElementById('ad_desloc'); if(dEl) dEl.value='30';
+    _adMetroFechado=false; const mfEl=document.getElementById('ad_metro_fechado'); if(mfEl) mfEl.checked=false;
+  }
+}
 function adCalcUpdate(){clearTimeout(_adCalcTimer);_adCalcTimer=setTimeout(_adCalcRun,50);}
 function _adCalcRun(){
   const larg=parseFloat(document.getElementById('ad_larg')?.value)||100;
@@ -5294,13 +5470,13 @@ function _calcFzPush(meta,items,vista,prazo,desc,qtd){
   if(_addPanelEditMode && _addPanelEditIdx!==null){
     // Edit mode: replace existing service
     const existing=_fzServicesList[_addPanelEditIdx];
-    newSvc.descricao=desc||existing?.descricao||'';
+    newSvc.descricao=existing?.descricao||desc||'';
     newSvc.nomeItem=existing?.nomeItem||'';
     newSvc.prazo_entrega=existing?.prazo_entrega??10;
     newSvc.qtd_pdf=existing?.qtd_pdf??Math.max(1,+qtd||1);
     _fzServicesList[_addPanelEditIdx]=newSvc;
     _fzEditingIdx=_addPanelEditIdx;
-    _addPanelEditMode=false; _addPanelEditIdx=null;
+    _addPanelEditMode=false; _addPanelEditIdx=null; _addPanelInAdvanced=false;
   } else if(_fzAddMode){
     _fzServicesList.push(newSvc);_fzEditingIdx=_fzServicesList.length-1;_fzAddMode=false;
   } else{
@@ -5310,10 +5486,10 @@ function _calcFzPush(meta,items,vista,prazo,desc,qtd){
   _fzMeta=_fzServicesList[_fzEditingIdx].meta;
   goStep(4);
 }
-function letreiroFormalizar(){if(!_letResu)return;const desc=document.getElementById('l_desc_preview')?.value||'';const _lQtd=parseInt(document.getElementById('l_qtd')?.value)||1;_letResu.meta.lastCalc='anterior';_calcFzPush(_letResu.meta,_letResu.items,_letResu.vista,_letResu.prazo,desc,_lQtd);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_letResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
-function pvcFormalizar(){if(!_pvcResu)return;const desc=document.getElementById('pv_desc_preview')?.value||'';const _pvQtd=parseInt(document.getElementById('pv_qtd')?.value)||1;_pvcResu.meta.lastCalc='anterior';_calcFzPush(_pvcResu.meta,_pvcResu.items,_pvcResu.vista,_pvcResu.prazo,desc,_pvQtd);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_pvcResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
-function placaFormalizar(){if(!_placaResu)return;const desc=document.getElementById('p_desc_preview')?.value||'';const _pQtd=parseInt(document.getElementById('p_qtd')?.value)||1;_placaResu.meta.lastCalc='anterior';_calcFzPush(_placaResu.meta,_placaResu.items,_placaResu.vista,_placaResu.prazo,desc,_pQtd);_saveCalcState(_fzEditingIdx);}
-function adFormalizar(){if(!_adResu)return;const desc=document.getElementById('ad-desc')?.value||'';const _adQtdV=parseInt(document.getElementById('ad_qtd')?.value)||1;_adResu.meta.lastCalc='anterior';_calcFzPush(_adResu.meta,_adResu.items,_adResu.vista,_adResu.prazo,desc,_adQtdV);_saveCalcState(_fzEditingIdx);}
+function letreiroFormalizar(){_syncEditingDescFromDOM();if(!_letResu)return;const desc=document.getElementById('l_desc_preview')?.value||'';const _lQtd=parseInt(document.getElementById('l_qtd')?.value)||1;_letResu.meta.lastCalc='anterior';_calcFzPush(_letResu.meta,_letResu.items,_letResu.vista,_letResu.prazo,desc,_lQtd);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_letResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
+function pvcFormalizar(){_syncEditingDescFromDOM();if(!_pvcResu)return;const desc=document.getElementById('pv_desc_preview')?.value||'';const _pvQtd=parseInt(document.getElementById('pv_qtd')?.value)||1;_pvcResu.meta.lastCalc='anterior';_calcFzPush(_pvcResu.meta,_pvcResu.items,_pvcResu.vista,_pvcResu.prazo,desc,_pvQtd);const _sv=_fzServicesList[_fzEditingIdx];if(_sv&&!_sv.nomeItem)_sv.nomeItem=_pvcResu._nomeItem||'';_saveCalcState(_fzEditingIdx);}
+function placaFormalizar(){_syncEditingDescFromDOM();if(!_placaResu)return;const desc=document.getElementById('p_desc_preview')?.value||'';const _pQtd=parseInt(document.getElementById('p_qtd')?.value)||1;_placaResu.meta.lastCalc='anterior';_calcFzPush(_placaResu.meta,_placaResu.items,_placaResu.vista,_placaResu.prazo,desc,_pQtd);_saveCalcState(_fzEditingIdx);}
+function adFormalizar(){_syncEditingDescFromDOM();if(!_adResu)return;const desc=document.getElementById('ad-desc')?.value||'';const _adQtdV=parseInt(document.getElementById('ad_qtd')?.value)||1;_adResu.meta.lastCalc='anterior';_calcFzPush(_adResu.meta,_adResu.items,_adResu.vista,_adResu.prazo,desc,_adQtdV);_saveCalcState(_fzEditingIdx);}
 
 // ══════════════════════════════════════════
 // LETRA CAIXA — Calculator
@@ -5589,7 +5765,7 @@ const GEN_MATERIAIS_DB=[
   {f:'Chapa',m:'PS',e:'PS 2 mm',t:'200x100 cm',c:'Padrão',p:70,tw:200,th:100},
   {f:'Chapa',m:'PS',e:'PS 2 mm',t:'200x100 cm',c:'Colorido',p:100,tw:200,th:100},
   {f:'Chapa',m:'PETG',e:'PETG 3 mm',t:'200x100 cm',c:'Padrão',p:180,tw:200,th:100},
-  {f:'Vinil',m:'Adesivo',e:'Automotivo IJ30',t:'4500x137 cm',c:'Branco',p:1750,tw:4500,th:137},
+  {f:'Vinil',m:'Adesivo',e:'Vinil',t:'4500x137 cm',c:'Branco',p:1750,tw:4500,th:137},
 ];
 const GEN_CORTE_TIPOS=[{v:'Nenhum',pm:0},{v:'Adesivo',pm:15},{v:'Recorte Plotter',pm:15},{v:'Router',pm:35},{v:'Laser',pm:45},{v:'Plasma',pm:60},{v:'Laser Fibra',pm:150}];
 const GEN_IMPRESSAO_TIPOS=[{v:'Nenhum',pm2:0},{v:'Digital',pm2:40},{v:'Impressão Digital',pm2:40},{v:'Pintura Automotiva',pm2:70},{v:'UV Adesivo',pm2:75},{v:'UV',pm2:120},{v:'UV com Branco',pm2:150}];
@@ -5634,8 +5810,9 @@ function calcItemGeneric(it){
   }
   const w=it.largura||0,h=it.altura||0,qty=it.unidades||1;
   const apc=v=>it.preco_cheio?Math.ceil(v):Math.round(v*100)/100;
-  const ppa=w>0&&h>0?Math.max(Math.floor(100/w)*Math.floor(100/h),1):1;
-  const rm=w>0&&h>0?qty/ppa:0;
+  // Área em m² por unidade (correta para peças de qualquer tamanho)
+  const area_m2=w>0&&h>0?(w*h)/10000:1;
+  const rm=w>0&&h>0?qty*area_m2:0;
   const acm2=_gv(it.ov_corte_metros,apc(rm||(it.corte_metros||0)));
   const aim=_gv(it.ov_impressao_m2,apc(rm||(it.impressao_m2||0)));
   const ains=_gv(it.ov_instalacao_m2,apc(rm||(it.instalacao_m2||0)));
@@ -5680,7 +5857,7 @@ function _genInitFromSvc(svc){
     letreiro_pvc:{m:'PVC',e:'PVC 10 mm',t:'220x120 cm'},
     painel:{m:'ACM',e:'ACM 3 mm',t:'300x122 cm'},
     placa_identificacao:{m:'Inox Escovado',e:'Chapa 20 (1,0 mm)',t:'200x120 cm'},
-    adesivo:{forma:'Vinil',m:'Adesivo',e:'Automotivo IJ30',t:'4500x137 cm'}}[svc?.calcSvc]||{};
+    adesivo:{forma:'Vinil',m:'Adesivo',e:'Vinil',t:'4500x137 cm'}}[svc?.calcSvc]||{};
   // Use chip selections if they match (overrides seed)
   const forma = _apcMaterial==='Adesivo'?'Vinil':'Chapa';
   const mat   = _apcMaterial || seed.m;
@@ -5883,11 +6060,26 @@ function renderGenAdvForm(){
     </div>`;
 }
 function _genCancel(){
-  const cont=document.getElementById('fz-add-calc-container');if(cont)cont.style.display='none';
-  document.getElementById('main-shell').className='shell';
-  _addPanelEditMode=false;_addPanelEditIdx=null;
+  // Contexto 1: editando item existente (edit mode) ou na calc avançada do painel
+  if (_addPanelEditMode || _addPanelInAdvanced) {
+    _addPanelCancelAdv();
+    return;
+  }
+  // Contexto 2: calc completa aberta direto do grid (fz-grid-calc-panel)
+  const gPanel = document.getElementById('fz-grid-calc-panel');
+  if (gPanel && gPanel.style.display !== 'none') {
+    gPanel.style.display = 'none';
+    _returnCalcFormsToStep3();
+    _renderAddPanelGrid();
+    return;
+  }
+  // Fallback
+  const cont = document.getElementById('fz-add-calc-container');
+  if (cont) cont.style.display = 'none';
+  document.getElementById('main-shell').className = 'shell wide';
 }
 function genFormalizar(){
+  _syncEditingDescFromDOM();
   let totalSub=0;
   const items=[];
   _genItems.forEach((it,idx)=>{
@@ -5959,7 +6151,19 @@ const ACR_PRESETS_SHOW=['3mm','6mm','10mm']; // buttons visible by default
 const ACR_CHAPA_W=200,ACR_CHAPA_H=100;
 const ACR_IMP={digital:{taxa:40,label:'Impressão Digital'},uv:{taxa:150,label:'Impressão UV'},pintura:{taxa:70,label:'Pintura Automotiva'}};
 let _letreiroEsp='6mm',_letreiroImpType='pintura',_letreiroTimer=null;
-function letreiroInit(){_letreiroImpType='pintura';_letreiroEsp='6mm';_letCamadas=[{esp:'6mm',larg:0,alt:0,qtd:1,numChapas:1,pChapa:580,paprov:0,corteType:'laser',corteVal:0,impType:'pintura',impVal:0,montagem:0,fixacao:0,adic:0}];letRenderCamadas();setTimeout(()=>letreiroUpdateDefaults(true),30);}
+function letreiroInit(){
+  _letreiroImpType='pintura';_letreiroEsp='6mm';
+  _letCamadas=[{esp:'6mm',larg:0,alt:0,qtd:1,numChapas:1,pChapa:580,paprov:0,corteType:'laser',corteVal:0,impType:'pintura',impVal:0,montagem:0,fixacao:0,adic:0}];
+  letRenderCamadas();
+  if (!_addPanelEditMode) {
+    const _set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    const _setB=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v;};
+    _set('l_qtd',1); _set('l_nome','');
+    _setB('l_inst_on',true); _set('l_pinst',50);
+    const dEl=document.getElementById('l_desloc'); if(dEl) dEl.value='50';
+  }
+  setTimeout(()=>letreiroUpdateDefaults(true),30);
+}
 function letreiroSetImpType(t){_letreiroImpType=t;['digital','uv','pintura'].forEach(x=>{const b=document.getElementById('limp-btn-'+x);if(b)b.classList.toggle('sel',x===t);});letreiroUpdateDefaults();letreiroCalcUpdate();}
 function letreiroSetEsp(e){_letreiroEsp=e;ACR_PRESETS_SHOW.forEach(x=>{const b=document.getElementById('lbtn-'+x);if(b)b.classList.toggle('sel',x===e&&ACR_PRESETS_SHOW.includes(e));});letreiroUpdateDefaults(true);letreiroCalcUpdate();}
 function letreiroOnDimChange(){letreiroUpdateDefaults();letreiroCalcUpdate();}
@@ -6052,7 +6256,19 @@ const PVC_PRESETS_SHOW=['10mm','20mm'];
 const PVC_CHAPA_W=220,PVC_CHAPA_H=120;
 const PVC_IMP={digital:{taxa:40,label:'Impressão Digital'},uv:{taxa:150,label:'Impressão UV'},pintura:{taxa:70,label:'Pintura Automotiva'}};
 let _pvcEsp='10mm',_pvcImpType='pintura',_pvcTimer=null;
-function pvcInit(){_pvcEsp='10mm';_pvcImpType='pintura';_pvcCamadas=[{esp:'10mm',larg:0,alt:0,qtd:1,numChapas:1,pChapa:350,paprov:0,corteType:'router',corteVal:0,impType:'pintura',impVal:0,montagem:0,fixacao:0,adic:0}];pvcRenderCamadas();setTimeout(()=>pvcUpdateDefaults(true),30);}
+function pvcInit(){
+  _pvcEsp='10mm';_pvcImpType='pintura';
+  _pvcCamadas=[{esp:'10mm',larg:0,alt:0,qtd:1,numChapas:1,pChapa:350,paprov:0,corteType:'router',corteVal:0,impType:'pintura',impVal:0,montagem:0,fixacao:0,adic:0}];
+  pvcRenderCamadas();
+  if (!_addPanelEditMode) {
+    const _set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    const _setB=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v;};
+    _set('pv_qtd',1); _set('pv_nome','');
+    _setB('pv_inst_on',true); _set('pv_pinst',50);
+    const dEl=document.getElementById('pv_desloc'); if(dEl) dEl.value='50';
+  }
+  setTimeout(()=>pvcUpdateDefaults(true),30);
+}
 function pvcSetEsp(e){_pvcEsp=e;PVC_PRESETS_SHOW.forEach(x=>{const b=document.getElementById('pvbtn-'+x);if(b)b.classList.toggle('sel',x===e&&PVC_PRESETS_SHOW.includes(e));});pvcUpdateDefaults(true);pvcCalcUpdate();}
 function pvcSetImpType(t){_pvcImpType=t;['digital','uv','pintura'].forEach(x=>{const b=document.getElementById('pvimp-btn-'+x);if(b)b.classList.toggle('sel',x===t);});const ar=document.getElementById('pvc-acabamento-row');if(ar)ar.style.display=t==='pintura'?'grid':'none';if(t!=='pintura'){const a=document.getElementById('pv_acabamento_on');if(a)a.checked=false;const p=document.getElementById('pv_pacabamento');if(p)p.value=0;}else{const a=document.getElementById('pv_acabamento_on');if(a)a.checked=true;}pvcUpdateDefaults();pvcCalcUpdate();}
 function pvcOnDimChange(){pvcUpdateDefaults();pvcCalcUpdate();}
@@ -6142,7 +6358,20 @@ function _pvcCalcRun(){
 // ══════════════════════════════════════════
 const PLACA_MATS={'3mm':[{id:'acrilico',label:'Acrílico 3 mm',preco_chapa:285,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 3 mm',preco_chapa:130,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 3 mm',preco_chapa:90,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 3 mm',preco_chapa:85,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço 0,5 mm',preco_chapa:300,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}],'5mm':[{id:'acrilico',label:'Acrílico 5 mm',preco_chapa:550,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'pvc',label:'PVC 5 mm',preco_chapa:170,chapa_w:220,chapa_h:120,taxa_corte:70,taxa_imp:35},{id:'pla',label:'PLA 5 mm',preco_chapa:120,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'petg',label:'PETG 5 mm',preco_chapa:115,chapa_w:200,chapa_h:100,taxa_corte:70,taxa_imp:35},{id:'aco',label:'Aço 1 mm',preco_chapa:580,chapa_w:200,chapa_h:120,taxa_corte:150,taxa_imp:35}]};
 let _placaEsp='3mm',_placaMatId='acrilico',_placaTimer=null,_placaImpType='digital';
-function placaInit(){_placaEsp='3mm';_placaMatId='acrilico';_placaImpType='digital';_placaCamadas=[{impType:'digital',impVal:0,corteType:'laser',corteVal:0,adic:0,larg:0,alt:0,qtd:0}];_placaRenderMatBtns();placaRenderCamadas();placaSetEsp('3mm');setTimeout(()=>_placaUpdateCorteImp(),30);}
+function placaInit(){
+  _placaEsp='3mm';_placaMatId='acrilico';_placaImpType='digital';
+  _placaCamadas=[{impType:'digital',impVal:0,corteType:'laser',corteVal:0,adic:0,larg:0,alt:0,qtd:0}];
+  _placaRenderMatBtns();placaRenderCamadas();placaSetEsp('3mm');
+  if (!_addPanelEditMode) {
+    const _set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v;};
+    const _setB=(id,v)=>{const el=document.getElementById(id);if(el)el.checked=v;};
+    _set('p_qtd',1); _setB('p_inst_on',true);
+    _set('p_pinst',10); _set('p_pfixacao',5);
+    _setB('p_verniz',false); _setB('p_lamin',false);
+    const dEl=document.getElementById('p_desloc'); if(dEl) dEl.value='30';
+  }
+  setTimeout(()=>_placaUpdateCorteImp(),30);
+}
 function _placaRenderMatBtns(){const mats=PLACA_MATS[_placaEsp];const c=document.getElementById('placa-mat-btns');if(!c)return;c.innerHTML=mats.map(m=>`<button class="tbtn-sm${m.id===_placaMatId?' sel':''}" onclick="placaSetMat('${m.id}')" style="flex:none;padding:6px 10px">${m.label}</button>`).join('');}
 function placaSetEsp(e){_placaEsp=e;['3mm','5mm'].forEach(x=>{const b=document.getElementById('pbtn-'+x);if(b)b.classList.toggle('sel',x===e);});const ids=PLACA_MATS[e].map(m=>m.id);if(!ids.includes(_placaMatId))_placaMatId='acrilico';_placaRenderMatBtns();_placaUpdateCorteImp();placaCalcUpdate();}
 function placaSetImpType(t){_placaImpType=t;if(_placaCamadas.length>0){_placaCamadas[0].impType=t;placaRenderCamadas();}_updatePlacaVernizLaminRow();if(t!=='uv'){const v=document.getElementById('p_verniz');if(v)v.checked=false;}if(t!=='digital'){const l=document.getElementById('p_lamin');if(l)l.checked=false;}placaCalcUpdate();}

@@ -15,8 +15,8 @@
 <style>
 :root{--bg:#f4f4f5;--bg2:#ffffff;--bg3:#f8fafc;--border:#e4e4e7;--accent:#2563eb;--accent2:#eff6ff;--green:#16a34a;--red:#dc2626;--yellow:#ca8a04;--text:#35597F;--text2:#52525b;--text3:#a1a1aa;--radius:8px;--shadow:0 1px 4px rgba(0,0,0,.08)}
 *{box-sizing:border-box;margin:0;padding:0}
-html{overflow-x:hidden}
-body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;font-size:14px;min-height:100vh;overflow-x:hidden}
+html{overflow-x:clip}
+body{background:var(--bg);color:var(--text);font-family:'Lato',system-ui,sans-serif;font-size:14px;min-height:100vh;overflow-x:clip}
 a{color:var(--accent);text-decoration:none}
 button{cursor:pointer;border:none;border-radius:var(--radius);font-size:13px;font-family:inherit;transition:all .15s}
 input,select,textarea{background:#fff;border:1px solid var(--border);color:var(--text);border-radius:var(--radius);padding:8px 12px;font-size:13px;font-family:inherit;width:100%;outline:none}
@@ -145,9 +145,7 @@ tr:last-child td{border-bottom:none}
   .section-header>div{display:flex;flex-wrap:wrap;gap:6px;width:100%}
   .sprint-kanban>div{min-width:calc(100vw - 36px)!important;scroll-snap-align:start}
   .sprint-kanban{scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
-  table.task-tbl th:nth-child(3),table.task-tbl td:nth-child(3),
-  table.task-tbl th:nth-child(6),table.task-tbl td:nth-child(6){display:none}
-  table.task-tbl th:nth-child(5),table.task-tbl td:nth-child(5){display:none}
+  .tbl-scroll-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
   .nav-btn{padding:14px 10px;font-size:12px}
   #nav .logo span{display:none}
   #nav{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap}
@@ -891,7 +889,7 @@ function _orcListaHTML(){
   ${S.orcamentos.length===0?`<div class="card"><div class="empty">Nenhum orçamento cadastrado.</div></div>`:
   list.length===0?`<div class="card"><div class="empty" style="padding:32px">Nenhum resultado para os filtros aplicados.</div></div>`:`
   <div class="card">
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="task-tbl" style="width:100%;border-collapse:collapse;min-width:600px"><thead><tr>
+    <div class="tbl-scroll-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="task-tbl" style="width:100%;border-collapse:collapse;min-width:600px"><thead><tr>
       <th style="width:32px"><input type="checkbox" ${allSel?'checked':''} onchange="toggleSelectAll(this.checked,[${allIds.map(id=>`'${id}'`).join(',')}])" title="Selecionar todos"></th>
       <th>Nº</th><th>Empresa / Cliente</th><th>Serviços</th><th>Data</th><th>Prazo</th><th>À Vista</th><th>Status</th><th></th>
     </tr></thead><tbody>
@@ -4267,7 +4265,7 @@ function renderTarefas(){
   ${individuais.length>0?`
   <div class="card" style="margin-bottom:12px">
     <h3 style="margin-bottom:10px;font-size:14px;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">Todas as Tarefas <span style="font-size:12px;font-weight:400;color:var(--text2)">(${individuais.length})</span></h3>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="task-tbl" style="width:100%;border-collapse:collapse;min-width:600px">${tableHeader}<tbody>
+    <div class="tbl-scroll-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table class="task-tbl" style="width:100%;border-collapse:collapse;min-width:600px">${tableHeader}<tbody>
       ${_sortedList(individuais).map(t=>taskRow(t,getTSprints(t).length>0)).join('')}
     </tbody></table></div>
   </div>`:''}
@@ -5817,7 +5815,7 @@ function _bpTabHistorico(){
       });
       // Fallback: orçamento tem total mas nenhum serviço tinha preço individual
       if(!usouServico&&(orc.total_prazo||0)>0){
-        const svcs=(orc.servicos||[]).map(s=>(s.item||s.descricao||'').trim()).filter(Boolean);
+        const svcs=(orc.servicos||[]).map(s=>String(s.item||s.descricao||'').trim()).filter(Boolean);
         const nome=orc.descricao||(svcs.length?svcs.join(' + '):'Orçamento #'+(orc.numero||''));
         if(nome){
           if(!map[nome])map[nome]={count:0,valores:[],total:0};
@@ -5875,8 +5873,8 @@ function _bpTabServicos(){
       <th></th>
     </tr></thead>
     <tbody>${rows.map((r,i)=>`<tr style="border-bottom:1px solid var(--border)">
-      <td style="padding:4px 6px;vertical-align:top"><textarea onblur="_bpSvcFld(${i},'nome',this.value)" rows="2" style="border:none;background:transparent;color:var(--text1);font-size:13px;width:100%;min-width:110px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word">${r.nome||''}</textarea></td>
-      <td style="padding:4px 6px;vertical-align:top"><textarea onblur="_bpSvcFld(${i},'descricao',this.value)" rows="2" style="border:none;background:transparent;color:var(--text2);font-size:12px;width:100%;min-width:120px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word">${(r.descricao||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></td>
+      <td style="padding:4px 6px;vertical-align:top"><textarea onblur="_bpSvcFld(${i},'nome',this.value)" rows="4" style="border:none;background:transparent;color:var(--text1);font-size:13px;width:100%;min-width:110px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word">${r.nome||''}</textarea></td>
+      <td style="padding:4px 6px;vertical-align:top"><textarea onblur="_bpSvcFld(${i},'descricao',this.value)" rows="4" style="border:none;background:transparent;color:var(--text2);font-size:12px;width:100%;min-width:120px;resize:none;white-space:normal;word-break:break-word;overflow-wrap:break-word">${(r.descricao||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea></td>
       <td style="padding:4px 6px;vertical-align:top"><input type="number" value="${r.preco_min||''}" onblur="_bpSvcFld(${i},'preco_min',+this.value)" style="border:none;background:transparent;color:var(--text2);font-size:13px;width:66px;text-align:right"></td>
       <td style="padding:4px 6px;vertical-align:top"><input type="number" value="${r.preco_ref||''}" onblur="_bpSvcFld(${i},'preco_ref',+this.value)" style="border:none;background:transparent;color:var(--accent);font-size:13px;font-weight:600;width:66px;text-align:right"></td>
       <td style="padding:4px 6px;vertical-align:top"><input type="number" value="${r.preco_max||''}" onblur="_bpSvcFld(${i},'preco_max',+this.value)" style="border:none;background:transparent;color:var(--green);font-size:13px;width:66px;text-align:right"></td>
