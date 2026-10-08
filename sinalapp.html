@@ -1659,8 +1659,12 @@ function abrirFechamento(obj,total_prazo,total_vista,onConfirm){
     </div>
   </div>`;
   document.body.appendChild(modal);
-  // Pré-selecionar condição existente
-  if(obj.condicao_pag) modal.querySelector('#fc_cond').value=obj.condicao_pag;
+  // Pré-selecionar condição existente e atualizar valor correspondente
+  if(obj.condicao_pag){
+    modal.querySelector('#fc_cond').value=obj.condicao_pag;
+    modal.querySelector('#fc_valor').value=(obj.condicao_pag==='vista'?total_vista:total_prazo).toFixed(2);
+    updateFinal();
+  }
   // Eventos
   modal.querySelector('#fc_cond').addEventListener('change',function(){
     modal.querySelector('#fc_valor').value=(this.value==='vista'?total_vista:total_prazo).toFixed(2);
@@ -2076,11 +2080,13 @@ function crmDrop(e,etapaIdx){
     const scrollX=kb?kb.scrollLeft:0;
     const scrollY=kb?kb.scrollTop:0;
     saveState();render();
-    const kb2=document.getElementById('crm-kanban-outer');
-    if(kb2){kb2.scrollLeft=scrollX;kb2.scrollTop=scrollY;}
+    requestAnimationFrame(()=>{
+      const kb2=document.getElementById('crm-kanban-outer');
+      if(kb2){kb2.scrollLeft=scrollX;kb2.scrollTop=scrollY;}
+    });
     toast('Card movido para '+ETAPAS[etapaIdx]);
-    // Solicitar data de fechamento ao entrar em fase de produção
-    if(etapaIdx>=E_PRODUCAO&&etapaIdx!==E_PERDIDO&&etapaIdx!==E_FINALIZADO&&!card.data_fechamento){
+    // Solicitar fechamento ao entrar em fase de produção (sempre, permite revisão ao retroagir)
+    if(etapaIdx>=E_PRODUCAO&&etapaIdx!==E_PERDIDO&&etapaIdx!==E_FINALIZADO){
       crmSolicitarFechamento(card.id);
     }
     // Ao chegar em Pagamento: confirmar entrega (se ainda não confirmada) e depois registrar pagamento
@@ -2155,21 +2161,26 @@ function crmConfirmarFechamento(cardId){
 }
 
 // ── Helpers de pagamento no modal de card ─────────────────────────────────────
-function _pgtoSlot(label,pgto,prevId,prevVal){
+function _pgtoSlot(label,pgto,prevId,prevVal,orcId=''){
   return `<div style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px;font-size:12px">
     <div style="color:var(--text2);font-weight:600;margin-bottom:6px">${label}</div>
     ${pgto
       ?`<div style="display:flex;align-items:center;gap:8px"><div><div style="color:var(--green);font-weight:700">${BRL(pgto.valor)}</div><div style="color:var(--text3);font-size:11px">${pgto.data?fmtDate(pgto.data):'—'}</div></div><button onclick="editLancamento('${pgto.id}')" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--text2);flex-shrink:0;white-space:nowrap">✏️ Editar</button></div>`
-      :`<div style="color:var(--text3);margin-bottom:4px;font-size:11px">Não recebido</div>`
+      :`<div style="color:var(--text3);margin-bottom:4px;font-size:11px">Não recebido</div>
+       <div style="margin-top:6px">
+         <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:2px">Previsão de recebimento:</label>
+         <div style="display:flex;gap:6px;align-items:center">
+           <input type="date" id="${prevId}" value="${prevVal}" style="flex:1;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text1);box-sizing:border-box">
+           ${prevVal&&orcId?`<button onclick="this.closest('.modal-bg').remove();goFinanceiroCard('${orcId}')" style="font-size:10px;padding:2px 6px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--accent);white-space:nowrap;flex-shrink:0" title="Ver no financeiro">📊 ↗</button>`:''}
+         </div>
+       </div>`
     }
-    <div style="margin-top:6px">
-      <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:2px">Previsão de recebimento:</label>
-      <input type="date" id="${prevId}" value="${prevVal}" style="width:100%;font-size:12px;padding:3px 6px;border:1px solid var(--border);border-radius:4px;background:var(--bg);color:var(--text1);box-sizing:border-box">
-    </div>
   </div>`;
 }
 function _buildCrmPgtoHtml(card,orc,pgtos,cond){
-  const _total=card?.valor_fechado||card?.valor||(orc?.valor_fechado)||(orc?.total_prazo||0);
+  const _vFechado=card?.valor_fechado;
+  const _vRef=cond==='vista'?(card?.valor_vista||orc?.total_vista||0):(card?.valor||orc?.total_prazo||0);
+  const _total=_vFechado||_vRef;
   const _pago=pgtos.reduce((a,f)=>a+(f.valor||0),0);
   const _saldo=_total-_pago;
   const orcId=orc?.id||'';
@@ -2178,13 +2189,24 @@ function _buildCrmPgtoHtml(card,orc,pgtos,cond){
     const pgE=pgtos.find(f=>f.tipo_pagamento==='entrada');
     const pgD=pgtos.find(f=>f.tipo_pagamento==='entrega');
     html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-      ${_pgtoSlot('Entrada (50%)',pgE,'cm_prev_entrada',card.previsao_entrada||'')}
-      ${_pgtoSlot('Entrega (50%)',pgD,'cm_prev_entrega',card.previsao_entrega||'')}
+      ${_pgtoSlot('Entrada (50%)',pgE,'cm_prev_entrada',card.previsao_entrada||'',orcId)}
+      ${_pgtoSlot('Entrega (50%)',pgD,'cm_prev_entrega',card.previsao_entrega||'',orcId)}
+    </div>`;
+  } else if(cond==='outro'){
+    const pgB=pgtos.find(f=>!f.tipo_pagamento||f.tipo_pagamento==='outro');
+    const missingVF=!card?.valor_fechado;
+    html+=`<div style="margin-bottom:6px">
+      <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Observação</label>
+      <textarea id="cm_condpag_obs" rows="2" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--bg);color:var(--text1);box-sizing:border-box;resize:vertical">${card?.condicao_pag_obs||''}</textarea>
+    </div>`;
+    if(missingVF) html+=`<div style="font-size:11px;color:var(--red);margin-bottom:6px;padding:4px 8px;background:#fee2e220;border-radius:4px;border:1px solid #fca5a5">⚠️ Informe o Valor Fechado acima para calcular o saldo</div>`;
+    html+=`<div style="margin-bottom:8px">
+      ${_pgtoSlot('Pagamento',pgB,'cm_prev_boleto',card?.previsao_boleto||'',orcId)}
     </div>`;
   } else {
     const pgB=pgtos.find(f=>!f.tipo_pagamento||f.tipo_pagamento==='outro');
     html+=`<div style="margin-bottom:8px">
-      ${_pgtoSlot('Boleto / Faturamento 15 dias',pgB,'cm_prev_boleto',card.previsao_boleto||'')}
+      ${_pgtoSlot('Boleto / Faturamento',pgB,'cm_prev_boleto',card?.previsao_boleto||'',orcId)}
     </div>`;
   }
   if(_total>0){
@@ -2198,6 +2220,9 @@ function _buildCrmPgtoHtml(card,orc,pgtos,cond){
     html+=`<button class="btn btn-primary" style="width:100%;font-size:12px" onclick="this.closest('.modal-bg').remove();crmOpenPagamento('${orcId}')">+ Registrar Pagamento</button>`;
   } else if(orcId&&_pago>0){
     html+=`<div style="text-align:center;color:var(--green);font-size:12px;font-weight:600;padding:4px 0">✓ Pagamento completo</div>`;
+  }
+  if(orcId){
+    html+=`<div style="text-align:right;margin-top:8px"><button onclick="this.closest('.modal-bg').remove();goFinanceiroCard('${orcId}')" style="background:none;border:none;cursor:pointer;font-size:11px;color:var(--accent);padding:0;line-height:1.4" title="Ver lançamentos no Financeiro">📊 ver lançamentos no financeiro ↗</button></div>`;
   }
   html+='</div>';
   return html;
@@ -2213,10 +2238,12 @@ function _crmModalPgtoUpdate(){
   const orcId=document.getElementById('cm_orcId')?.value;
   const cond=document.getElementById('cm_condpag')?.value;
   const liveCard=S.crm.find(c=>c.id===cardId)||{};
-  // Mescla previsões digitadas com as salvas
+  // Mescla previsões digitadas com as salvas + valor_fechado e observação live
   const liveValor=parseFloat(document.getElementById('cm_valor')?.value)||liveCard.valor||0;
   const liveVista=parseFloat(document.getElementById('cm_valor_vista')?.value)||liveCard.valor_vista||0;
-  const cardCtx={...liveCard,valor:liveValor,valor_vista:liveVista,...prev&&{previsao_boleto:prev.boleto||liveCard.previsao_boleto||'',previsao_entrada:prev.entrada||liveCard.previsao_entrada||'',previsao_entrega:prev.entrega||liveCard.previsao_entrega||''}};
+  const liveVF=parseFloat(document.getElementById('cm_valor_fechado')?.value)||null;
+  const liveObs=document.getElementById('cm_condpag_obs')?.value||liveCard.condicao_pag_obs||'';
+  const cardCtx={...liveCard,valor:liveValor,valor_vista:liveVista,valor_fechado:liveVF,condicao_pag_obs:liveObs,...prev&&{previsao_boleto:prev.boleto||liveCard.previsao_boleto||'',previsao_entrada:prev.entrada||liveCard.previsao_entrada||'',previsao_entrega:prev.entrega||liveCard.previsao_entrega||''}};
   const orc=S.orcamentos.find(o=>o.id===orcId);
   const pgtos=orcId?S.financeiro.filter(f=>f.orcamentoId===orcId&&f.tipo==='receita'):[];
   const sec=document.getElementById('cm_pgto_section');
@@ -2226,8 +2253,10 @@ function _crmRender(){
   const ko=document.getElementById('crm-kanban-outer');
   const sx=ko?ko.scrollLeft:0,sy=ko?ko.scrollTop:0;
   render();
-  const ko2=document.getElementById('crm-kanban-outer');
-  if(ko2){ko2.scrollLeft=sx;ko2.scrollTop=sy;}
+  requestAnimationFrame(()=>{
+    const ko2=document.getElementById('crm-kanban-outer');
+    if(ko2){ko2.scrollLeft=sx;ko2.scrollTop=sy;}
+  });
 }
 function crmOpenPagamento(orcId){
   const orc=S.orcamentos.find(o=>o.id===orcId);
@@ -2425,11 +2454,14 @@ function showCRMModal(card,isNew){
       </div>
       <div class="form-row"><label>Empresa</label><input id="cm_empresa" value="${card.empresa}"></div>
       <div class="form-row"><label>Cliente</label><input id="cm_cliente" value="${card.cliente}"></div>
-      <div class="form-row"><label>Telefone</label><input id="cm_tel" value="${card.telefone||''}"></div>
-      <div class="form-row"><label>E-mail</label><input id="cm_email" value="${card.email||''}"></div>
-      <div class="form-row form-full"><label>Data do orçamento</label><input id="cm_data" type="date" value="${card.data||today()}"></div>
       <div class="form-row form-full"><label>Notas</label>
         <textarea id="cm_notas" rows="3">${card.notas||''}</textarea>
+      </div>
+      <div class="form-row form-full">
+        <div style="display:flex;align-items:center;gap:8px">
+          <label style="font-size:12px;color:var(--text2);white-space:nowrap;margin:0">Data de fechamento:</label>
+          <input id="cm_data_fechamento" type="date" value="${card.data_fechamento||''}" style="flex:1">
+        </div>
       </div>
       <div class="form-row form-full" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
         <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block">📦 Entrega</label>
@@ -2445,9 +2477,9 @@ function showCRMModal(card,isNew){
             <input id="cm_data_limite" type="date" value="${card.data_limite_entrega||_dlCalc}" style="flex:1" placeholder="calculada automaticamente">
           </div>`;
         })()}
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <input id="cm_entrega_conf" type="checkbox" style="width:18px;height:18px;cursor:pointer" ${card.entrega_confirmada?'checked':''}>
-          <label for="cm_entrega_conf" style="margin:0;cursor:pointer;font-weight:normal">Entrega/instalação realizada</label>
+        <div style="display:flex;align-items:center;gap:12px;margin:14px 0;padding:10px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+          <input id="cm_entrega_conf" type="checkbox" style="width:20px;height:20px;cursor:pointer;flex-shrink:0;accent-color:var(--green)" ${card.entrega_confirmada?'checked':''}>
+          <label for="cm_entrega_conf" style="margin:0;cursor:pointer;font-weight:600;font-size:13px;color:var(--text)">Entrega/instalação realizada</label>
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <label style="font-size:12px;color:var(--text2);white-space:nowrap;margin:0">Data da entrega:</label>
@@ -2467,29 +2499,72 @@ function showCRMModal(card,isNew){
         const _orc=S.orcamentos.find(o=>o.id===card.orcamentoId);
         const _pgtos=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='receita');
         const _cond=card.condicao_pag||_orc?.condicao_pag||'prazo';
+        const _condObs=card.condicao_pag_obs||'';
+        const _vFechado=card.valor_fechado||'';
+        const _missingVF=_cond==='outro'&&!_vFechado;
         return `<div class="form-row form-full" style="border-top:1px solid var(--border);padding-top:12px;margin-top:4px">
           <label style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px;display:block">💰 Pagamento</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Valor Faturado (R$)</label>
-              <input id="cm_valor" type="number" value="${card.valor||0}" oninput="_crmModalPgtoUpdate()" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text1);box-sizing:border-box">
-            </div>
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Valor 50/50 (R$)</label>
-              <input id="cm_valor_vista" type="number" step="0.01" value="${card.valor_vista||''}" oninput="_crmModalPgtoUpdate()" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text1);box-sizing:border-box">
-            </div>
-          </div>
           <div style="margin-bottom:10px">
             <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Condição de Pagamento</label>
             <select id="cm_condpag" onchange="_crmModalPgtoUpdate()" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg);color:var(--text1)">
-              <option value="">— não definida —</option>
-              <option value="prazo" ${card.condicao_pag==='prazo'?'selected':''}>Faturado (boleto/15 dias)</option>
+              <option value="prazo" ${(!card.condicao_pag||card.condicao_pag==='prazo')?'selected':''}>Faturado (boleto/15 dias)</option>
               <option value="vista" ${card.condicao_pag==='vista'?'selected':''}>50/50 (entrada + entrega)</option>
+              <option value="outro" ${card.condicao_pag==='outro'?'selected':''}>Outro</option>
             </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px">
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Valor Faturado (R$)</label>
+              <input id="cm_valor" type="number" value="${card.valor||0}" readonly tabindex="-1" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg3);color:var(--text3);box-sizing:border-box;cursor:default">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Valor 50/50 (R$)</label>
+              <input id="cm_valor_vista" type="number" step="0.01" value="${card.valor_vista||''}" readonly tabindex="-1" style="width:100%;padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:14px;background:var(--bg3);color:var(--text3);box-sizing:border-box;cursor:default">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">Valor Fechado (R$)</label>
+              <input id="cm_valor_fechado" type="number" step="0.01" value="${_vFechado}" placeholder="opcional" oninput="_crmModalPgtoUpdate()" style="width:100%;padding:6px 10px;border:1px solid ${_missingVF?'var(--red)':'var(--border)'};border-radius:8px;font-size:14px;background:var(--bg);color:var(--text1);box-sizing:border-box">
+            </div>
           </div>
           <div id="cm_pgto_section">${_buildCrmPgtoHtml(card,_orc,_pgtos,_cond)}</div>
         </div>`;
       })()}
     </div>
-    ${(()=>{if(!card.orcamentoId)return'';const _fins=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='receita');if(!_fins.length)return'';return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">💰 Lançamentos Financeiros</div><div style="display:flex;flex-direction:column;gap:4px">'+_fins.map(f=>{const tl={'entrada':'Entrada','entrega':'Entrega','outro':'Boleto'}[f.tipo_pagamento]||f.categoria||'';return'<div style="display:flex;align-items:center;gap:8px;padding:3px 0"><span style="font-size:13px;font-weight:700;color:var(--green)">'+BRL(f.valor)+'</span><span style="font-size:11px;color:var(--text2);flex:1">'+(f.data||'')+(tl?' · '+tl:'')+'</span><button onclick="editLancamento(\''+f.id+'\')" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--text2);white-space:nowrap;flex-shrink:0">✏️ Editar</button></div>';}).join('')+'</div></div>';})()}
+    ${(()=>{
+      if(!card.orcamentoId)return'';
+      const _orc2=S.orcamentos.find(o=>o.id===card.orcamentoId);
+      const _cond2=card.condicao_pag||_orc2?.condicao_pag||'prazo';
+      const _fins=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&(f.tipo==='receita'||f.tipo==='previsao_receita'||f.tipo==='previsao'||f.tipo==='despesa'||f.tipo==='previsao_despesa'));
+      const _allFins=[..._fins];
+      if(_cond2==='vista'){
+        const vHalf=(card.valor_fechado||card.valor_vista||_orc2?.total_vista||0)/2;
+        if(card.previsao_entrada&&!_fins.find(f=>f.tipo_pagamento==='entrada'))_allFins.push({_virtual:true,tipo:'previsao_receita',tipo_pagamento:'entrada',valor:vHalf,data:card.previsao_entrada});
+        if(card.previsao_entrega&&!_fins.find(f=>f.tipo_pagamento==='entrega'))_allFins.push({_virtual:true,tipo:'previsao_receita',tipo_pagamento:'entrega',valor:vHalf,data:card.previsao_entrega});
+      } else {
+        const vBol=card.valor_fechado||card.valor||_orc2?.total_prazo||0;
+        if(card.previsao_boleto&&!_fins.find(f=>!f.tipo_pagamento||f.tipo_pagamento==='outro'))_allFins.push({_virtual:true,tipo:'previsao_receita',tipo_pagamento:'outro',valor:vBol,data:card.previsao_boleto});
+      }
+      if(!_allFins.length)return'';
+      _allFins.sort((a,b)=>(a.data||'').localeCompare(b.data||''));
+      return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px">'+
+        '<div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">💰 Lançamentos Financeiros</div>'+
+        '<div style="display:flex;flex-direction:column;gap:4px">'+
+        _allFins.map(f=>{
+          const isPrevRec=f.tipo==='previsao_receita'||f.tipo==='previsao';
+          const isPrevDesp=f.tipo==='previsao_despesa';
+          const isPrev=isPrevRec||isPrevDesp;
+          const isDesp=f.tipo==='despesa'||isPrevDesp;
+          const tl={'entrada':'Entrada','entrega':'Entrega','outro':'Boleto'}[f.tipo_pagamento]||f.categoria||'';
+          const cor=isDesp?'var(--red)':isPrev?'var(--accent)':'var(--green)';
+          return'<div style="display:flex;align-items:center;gap:8px;padding:3px 0">'+
+            '<span style="font-size:13px;font-weight:700;color:'+cor+'">'+(isDesp?'−':'')+BRL(f.valor)+'</span>'+
+            '<span style="font-size:11px;color:var(--text2);flex:1">'+(f.data?fmtDate(f.data):'')+(tl?' · '+tl:'')+(f.descricao?' — '+f.descricao:'')+'</span>'+
+            (isPrev
+              ?'<span style="font-size:10px;padding:1px 6px;background:'+(isPrevDesp?'#fee2e2':'var(--accent2)')+';color:'+(isPrevDesp?'var(--red)':'var(--accent)')+';border-radius:4px;border:1px solid '+(isPrevDesp?'var(--red)':'var(--accent)')+';white-space:nowrap;flex-shrink:0">Previsão</span>'
+              :'<button onclick="editLancamento(\''+f.id+'\')" style="font-size:10px;padding:2px 8px;background:var(--bg3);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--text2);white-space:nowrap;flex-shrink:0">✏️ Editar</button>'
+            )+'</div>';
+        }).join('')+'</div></div>';
+    })()}
     ${(()=>{const lt=S.tarefas.filter(t=>t.crmCardId===card.id||(card.orcamentoId&&t.orcamentoId===card.orcamentoId));if(!lt.length)return'';return'<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px"><div style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tarefas vinculadas</div><div style="display:flex;flex-direction:column;gap:4px">'+lt.map(t=>'<div style="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--border)20"><span style="width:8px;height:8px;border-radius:50%;background:'+(TASK_STATUS_COLOR[t.status]||'var(--text2)')+';flex-shrink:0;display:inline-block"></span><button onclick="irParaTarefa(\''+t.id+'\')" style="flex:1;font-size:12px;text-align:left;background:none;border:none;color:var(--accent);cursor:pointer;padding:0;text-decoration:underline">'+t.titulo+'</button>'+(t.modulos&&t.modulos.length?t.modulos:[t.modulo].filter(Boolean)).map(m=>'<span style="font-size:10px;background:var(--bg3);padding:1px 5px;border-radius:99px;color:var(--text2)">'+m+'</span>').join('')+((t.checklist||[]).length?'<span style="font-size:10px;color:var(--text2)">'+t.checklist.filter(x=>x.done).length+'/'+t.checklist.length+'</span>':'')+'</div>').join('')+'</div></div>';})()}
     <div style="padding:10px 0 4px;display:flex;align-items:center;gap:10px;border-top:1px solid var(--border);margin-top:4px">
       <input id="cm_aval" type="checkbox" style="width:18px;height:18px;cursor:pointer;flex-shrink:0" ${card.avaliacao_solicitada?'checked':''}>
@@ -2508,16 +2583,20 @@ function showCRMModal(card,isNew){
 function saveCRMCard(id,isNew,btn){
   const m=btn.closest('.modal');
   const g=sel=>m.querySelector(sel)?.value||'';
+  const _cond=g('#cm_condpag')||'prazo';
+  const _vf=+g('#cm_valor_fechado')||null;
+  if(_cond==='outro'&&!_vf){toast('Informe o Valor Fechado para condição "Outro"','error');return;}
   const obj={
     id:id||genId(),
     cliente:g('#cm_cliente'),empresa:g('#cm_empresa'),
-    telefone:g('#cm_tel'),email:g('#cm_email'),
-    valor:+g('#cm_valor')||0,data:g('#cm_data'),
+    valor:+g('#cm_valor')||0,
     valor_vista:+g('#cm_valor_vista')||0,
+    valor_fechado:_vf,
     etapa:+g('#cm_etapa'),
     notas:g('#cm_notas'),
     orcamentoId:g('#cm_orcId')||'',
-    condicao_pag:g('#cm_condpag')||null,
+    condicao_pag:_cond,
+    condicao_pag_obs:g('#cm_condpag_obs')||'',
     avaliacao_solicitada:m.querySelector('#cm_aval')?.checked||false,
     entrega_confirmada:m.querySelector('#cm_entrega_conf')?.checked||false,
     data_entrega_confirmada:g('#cm_data_entrega')||'',
@@ -2558,13 +2637,17 @@ function saveCRMCard(id,isNew,btn){
     if(idx>=0){
       // Preserva campos que não aparecem no form
       const existing=S.crm[idx];
-      obj.data_fechamento=obj.data_fechamento||existing.data_fechamento||'';
+      obj.data_fechamento=g('#cm_data_fechamento')||existing.data_fechamento||'';
       obj.prazo_entrega=existing.prazo_entrega||obj.prazo_entrega||'';
       obj.arquivado=existing.arquivado||false;
       // Preserva campos removidos do form para compatibilidade com dados existentes
       obj.titulo=existing.titulo||obj.titulo||'';
       obj.responsavel=existing.responsavel||'Marcelo';
-      obj.valor_fechado=existing.valor_fechado||null;
+      obj.telefone=existing.telefone||'';
+      obj.email=existing.email||'';
+      obj.data=existing.data||obj.data||'';
+      // valor_fechado: usa o do form se preenchido, senão preserva o existente
+      if(!obj.valor_fechado) obj.valor_fechado=existing.valor_fechado||null;
       // data_encerramento: preserva se campo não está no form (etapas não-encerradas)
       if(!obj.data_encerramento) obj.data_encerramento=existing.data_encerramento||'';
       // sortOrder: preserva sempre (gerenciado só pelo drag-drop)
@@ -2572,13 +2655,26 @@ function saveCRMCard(id,isNew,btn){
       // data_limite_entrega: se usuário limpou o campo, respeita (permite voltar ao cálculo auto)
       if(!obj.data_limite_entrega) obj.data_limite_entrega='';
       S.crm[idx]=obj;
+      // Sincronizar datas de previsão com lançamentos salvos no financeiro
+      if(obj.orcamentoId){
+        const _syncPrev=(tipoPgto,novaData)=>{
+          if(!novaData)return;
+          const f=S.financeiro.find(x=>x.orcamentoId===obj.orcamentoId&&(x.tipo==='previsao_receita'||x.tipo==='previsao')&&(x.tipo_pagamento||'outro')===tipoPgto);
+          if(f)f.data=novaData;
+        };
+        _syncPrev('entrada',obj.previsao_entrada);
+        _syncPrev('entrega',obj.previsao_entrega);
+        _syncPrev('outro',obj.previsao_boleto);
+      }
     }
   }
   const _ko=document.getElementById('crm-kanban-outer');
   const _sx=_ko?_ko.scrollLeft:0,_sy=_ko?_ko.scrollTop:0;
   saveState();btn.closest('.modal-bg').remove();render();
-  const _ko2=document.getElementById('crm-kanban-outer');
-  if(_ko2){_ko2.scrollLeft=_sx;_ko2.scrollTop=_sy;}
+  requestAnimationFrame(()=>{
+    const _ko2=document.getElementById('crm-kanban-outer');
+    if(_ko2){_ko2.scrollLeft=_sx;_ko2.scrollTop=_sy;}
+  });
   toast(isNew?'Card criado com orçamento rascunho vinculado!':'Card salvo!');
 }
 function deleteCRMCard(id,btn){
@@ -2615,18 +2711,20 @@ function renderFinanceiro(){
     dispDesp=fRows.filter(r=>r.tipo==='despesa').reduce((a,r)=>a+(r.valor||0),0);
     dispSaldo=dispRec-dispDesp;
   }
-  // Previsão: cards com datas previstas + entradas salvas como tipo='previsao'
+  // Previsão: entradas salvas como tipo='previsao_receita' + previsões virtuais dos cards (mesma lógica da lista)
   let totalPrev=prevStored.reduce((a,f)=>a+(f.valor||0),0);
   S.crm.forEach(card=>{
     if(!card.orcamentoId)return;
-    if(!(card.previsao_entrada||card.previsao_entrega||card.previsao_boleto))return;
     const _orcPrev=S.orcamentos.find(o=>o.id===card.orcamentoId);
-    const total=card.valor_fechado||card.valor||_orcPrev?.total_prazo||0;
-    if(!total)return;
-    const pago=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&f.tipo==='receita').reduce((a,f)=>a+(f.valor||0),0);
-    const prevSalvo=S.financeiro.filter(f=>f.orcamentoId===card.orcamentoId&&(f.tipo==='previsao'||f.tipo==='previsao_receita')).reduce((a,f)=>a+(f.valor||0),0);
-    const pendente=Math.max(0,total-pago-prevSalvo);
-    if(pendente>0)totalPrev+=pendente;
+    const cond=card.condicao_pag||_orcPrev?.condicao_pag||'prazo';
+    if(cond==='vista'){
+      const vHalf=(card.valor_vista||_orcPrev?.total_vista||0)/2;
+      if(card.previsao_entrada&&!S.financeiro.find(f=>f.orcamentoId===card.orcamentoId&&f.tipo_pagamento==='entrada'))totalPrev+=vHalf;
+      if(card.previsao_entrega&&!S.financeiro.find(f=>f.orcamentoId===card.orcamentoId&&f.tipo_pagamento==='entrega'))totalPrev+=vHalf;
+    } else {
+      const vBol=card.valor_fechado||card.valor||_orcPrev?.total_prazo||0;
+      if(card.previsao_boleto&&!S.financeiro.find(f=>f.orcamentoId===card.orcamentoId&&(f.tipo_pagamento==='outro'||!f.tipo_pagamento)))totalPrev+=vBol;
+    }
   });
 
   return `
@@ -2740,6 +2838,14 @@ function renderLancamentos(){
   const btnInact='background:var(--bg3);color:var(--text2)';
   const inpSt='font-size:11px;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:3px 8px;min-width:0';
   const togArrow=_lancFilterOpen?'▲':'▼';
+  // Banner quando filtrado por card específico do funil
+  const _orcFiltrado=_lancFilters._orcId?S.orcamentos.find(o=>o.id===_lancFilters._orcId):null;
+  const _cardFiltrado=_lancFilters._orcId?S.crm.find(c=>c.orcamentoId===_lancFilters._orcId):null;
+  const _nomeFiltrado=_cardFiltrado?.empresa||_cardFiltrado?.cliente||_orcFiltrado?.cliente||'';
+  const cardFilterBanner=_lancFilters._orcId?`<div style="margin-bottom:10px;padding:8px 12px;background:var(--accent2);border:1px solid var(--accent);border-radius:8px;display:flex;align-items:center;gap:8px;font-size:12px">
+    <span>📊 Filtrando lançamentos de: <strong>${_nomeFiltrado}</strong></span>
+    <button onclick="_lancFilters._orcId='';render()" style="margin-left:auto;font-size:11px;padding:2px 8px;background:var(--accent);color:#fff;border:none;border-radius:4px;cursor:pointer">✕ Ver todos</button>
+  </div>`:'';
   const filterPanel=`<div style="margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden">
     <button onclick="_lancFilterOpen=!_lancFilterOpen;render()" style="width:100%;text-align:left;padding:7px 12px;background:var(--bg2);border:none;cursor:pointer;font-size:12px;color:${fActiveCount>0?'var(--accent)':'var(--text2)'};font-weight:600;display:flex;align-items:center;gap:8px">
       🔍 Filtros ${fActiveCount>0?`<span style="background:var(--accent);color:#fff;border-radius:10px;padding:1px 7px;font-size:10px">${fActiveCount} ativo${fActiveCount>1?'s':''}</span>`:''}
@@ -2809,11 +2915,11 @@ function renderLancamentos(){
       :`<button onclick="_toggleLancSelect()" style="font-size:12px;padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--text2)">☑ Selecionar para excluir</button>`}
     ${fActiveCount>0?`<span style="font-size:11px;color:var(--text3)">${filteredRows.filter(r=>!r._virtual).length} de ${allRows.filter(r=>!r._virtual).length} lançamentos</span>`:''}
   </div>`;
-  if(!allRows.length) return qeSection+filterPanel+`<div class="empty">Nenhum lançamento ainda.</div>`;
-  if(!filteredRows.length) return qeSection+filterPanel+selToolbar+`<div class="empty">Nenhum resultado para os filtros aplicados. <button onclick="_lancClearFilters()" style="font-size:12px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">Limpar filtros</button></div>`;
+  if(!allRows.length) return qeSection+cardFilterBanner+filterPanel+`<div class="empty">Nenhum lançamento ainda.</div>`;
+  if(!filteredRows.length) return qeSection+cardFilterBanner+filterPanel+selToolbar+`<div class="empty">Nenhum resultado para os filtros aplicados. <button onclick="_lancClearFilters()" style="font-size:12px;background:none;border:none;color:var(--accent);cursor:pointer;text-decoration:underline">Limpar filtros</button></div>`;
   const _thS='cursor:pointer;user-select:none;white-space:nowrap;padding-right:14px;position:relative';
   const _arr=col=>_lancSortCol===col?(_lancSortDir===1?' ▲':' ▼'):'';
-  return qeSection+filterPanel+selToolbar+`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table><thead><tr>
+  return qeSection+cardFilterBanner+filterPanel+selToolbar+`<div style="overflow-x:auto;-webkit-overflow-scrolling:touch"><table><thead><tr>
     ${_lancSelectMode?`<th style="width:28px"><input type="checkbox" id="lanc_chk_all" onchange="document.querySelectorAll('.lanc-chk').forEach(c=>{if(c.dataset.virtual!=='1'){c.checked=this.checked;c.checked?_lancSelected.add(c.dataset.id):_lancSelected.delete(c.dataset.id);}});_updateLancDeleteBtn()"></th>`:''}
     <th style="${_thS}" onclick="_lancSort('data')">Data${_arr('data')}</th>
     <th style="${_thS}" onclick="_lancSort('categoria')">Categoria${_arr('categoria')}</th>
@@ -3332,7 +3438,26 @@ function salvarLancamento(btn,editId=null){
       categoria:catFinal,descricao:obs||autoDescV,
       crmCardId:card?.id||'',orcamentoId:orcId};
     if(editId){const idx=S.financeiro.findIndex(x=>x.id===editId);if(idx>=0)S.financeiro[idx]=entryV;}
-    else{S.financeiro.push(entryV);if(tipoSel==='receita'&&orc)orc.status='Fechado';}
+    else{
+      S.financeiro.push(entryV);
+      if(tipoSel==='receita'&&orc)orc.status='Fechado';
+      // Auto-remover previsão do mesmo slot ao registrar pagamento real
+      if(tipoSel==='receita'&&orcId){
+        const pSlot=tipoPgto||'outro';
+        S.financeiro=S.financeiro.filter(f=>!(
+          f.orcamentoId===orcId&&
+          (f.tipo==='previsao_receita'||f.tipo==='previsao')&&
+          (f.tipo_pagamento||'outro')===pSlot
+        ));
+        // Também limpar data virtual do card
+        const _card2=S.crm.find(c=>c.orcamentoId===orcId);
+        if(_card2){
+          if(pSlot==='entrada')_card2.previsao_entrada='';
+          else if(pSlot==='entrega')_card2.previsao_entrega='';
+          else _card2.previsao_boleto='';
+        }
+      }
+    }
     const toastMsg=tipoSel==='despesa'?'Despesa registrada!':tipoSel==='previsao_despesa'?'Previsão de despesa salva!':tipoSel==='previsao_receita'?'Previsão de receita salva!':'Receita registrada!';
     saveState();btn.closest('.modal-bg').remove();render();toast(toastMsg);
   } else {
@@ -3521,9 +3646,17 @@ function _lancSort(col){
   render();
 }
 let _lancFilterOpen=false;
-let _lancFilters={dataModo:'',dataFrom:'',dataTo:'',tipo:'',categoria:'',busca:'',valorMin:'',valorMax:''};
+let _lancFilters={dataModo:'',dataFrom:'',dataTo:'',tipo:'',categoria:'',busca:'',valorMin:'',valorMax:'',_orcId:''};
 function _lancSetF(k,v){_lancFilters[k]=v;render();}
-function _lancClearFilters(){_lancFilters={dataModo:'',dataFrom:'',dataTo:'',tipo:'',categoria:'',busca:'',valorMin:'',valorMax:''};render();}
+function _lancClearFilters(){_lancFilters={dataModo:'',dataFrom:'',dataTo:'',tipo:'',categoria:'',busca:'',valorMin:'',valorMax:'',_orcId:''};render();}
+function goFinanceiroCard(orcId){
+  _lancClearFilters();
+  _lancFilters._orcId=orcId;
+  finTab='lancamentos';
+  currentTab='financeiro';
+  localStorage.setItem('sinalapp_tab','financeiro');
+  render();
+}
 function _lancActiveCount(){return Object.entries(_lancFilters).filter(([k,v])=>v!==''&&!(k==='dataFrom'&&_lancFilters.dataModo!=='personalizado')&&!(k==='dataTo'&&_lancFilters.dataModo!=='personalizado')).length - (_lancFilters.dataModo==='personalizado'&&(_lancFilters.dataFrom||_lancFilters.dataTo)?1:0);}
 function _lancApplyFilters(rows){
   const f=_lancFilters;
@@ -3542,6 +3675,7 @@ function _lancApplyFilters(rows){
     if(f.dataModo==='personalizado'){if(f.dataFrom&&rd<f.dataFrom)return false;if(f.dataTo&&rd>f.dataTo)return false;}
     if(f.tipo&&r.tipo!==f.tipo)return false;
     if(f.categoria&&r.categoria!==f.categoria)return false;
+    if(f._orcId&&r.orcamentoId!==f._orcId)return false;
     if(f.busca){
       const orc=r.orcamentoId?S.orcamentos.find(o=>o.id===r.orcamentoId):null;
       const card=r.crmCardId?S.crm.find(c=>c.id===r.crmCardId):(r.orcamentoId?S.crm.find(c=>c.orcamentoId===r.orcamentoId):null);
