@@ -628,6 +628,7 @@ function goTab(t){
   render();
 }
 function render(){
+  _migrateClientCodesV2();
   const app=document.getElementById('app');
   // Atualiza botão ativo na nav
   document.querySelectorAll('.nav-btn').forEach(b=>{
@@ -658,8 +659,9 @@ function _kanbanScrollShadow(){
   const scrolled=outer.scrollTop>2;
   outer.querySelectorAll('.kanban-col-top').forEach(h=>h.classList.toggle('has-shadow',scrolled));
 }
-// Recalcula no resize da janela (desktop e mobile)
+// Recalcula no resize e no scroll da janela (mantém scrollbar horizontal sempre visível)
 window.addEventListener('resize',()=>{ if(currentTab==='crm') adjustKanbanHeight(); });
+window.addEventListener('scroll',()=>{ if(currentTab==='crm') adjustKanbanHeight(); },{passive:true});
 
 // --- DASHBOARD ---------------------------------------------------------------
 function renderDashboard(){
@@ -746,7 +748,7 @@ function renderDashboard(){
         <td style="color:var(--text2)">#${o.numero}</td>
         <td>${o.cliente||'—'}</td>
         <td style="color:var(--text2)">${(o.descricao||'').slice(0,50)}</td>
-        <td style="color:var(--text2)">${o.data||'—'}</td>
+        <td style="color:var(--text2)">${fmtDate(o.data)||'—'}</td>
         <td style="font-weight:700;color:var(--green)">${BRL(o.total_prazo)}</td>
         <td>${statusSelectOrc(o.id,o.status)}</td>
         <td style="white-space:nowrap">
@@ -900,11 +902,12 @@ function _orcListaHTML(){
         <td>#${o.numero}</td>
         <td><strong>${hl(o.empresa||o.cliente||'—')}</strong>${o.empresa&&o.cliente?`<br><span style="color:var(--text2);font-size:11px">${hl(o.cliente)}</span><br><span style="color:var(--text3);font-size:10px">${hl(o.telefone||'')}</span>`:o.telefone?`<br><span style="color:var(--text3);font-size:10px">${hl(o.telefone)}</span>`:''}</td>
         <td style="color:var(--text2);font-size:12px">${(o.servicos||[]).length} serviço(s)</td>
-        <td style="color:var(--text2);font-size:12px">${o.data||'—'}</td>
+        <td style="color:var(--text2);font-size:12px">${fmtDate(o.data)||'—'}</td>
         <td style="font-weight:700;color:var(--green)">${BRL(o.total_prazo)}</td>
         <td style="color:var(--text2)">${BRL(o.total_vista)}</td>
         <td>${statusSelectOrc(o.id,o.status)}</td>
         <td style="white-space:nowrap">
+          ${(()=>{const cl=(S.clientes||[]).find(c=>c.id===o.clienteId);return`<button class="btn-icon" onclick="vincularOrcamentoCliente('${o.id}')" title="${cl?'Cliente: '+cl.codigo+' — clique para alterar':'Vincular a cliente'}" style="color:${cl?'var(--accent)':'var(--text3)'}">👤</button>`;})()}
           <button class="btn-icon" onclick="viewOrcamento('${o.id}')" title="Ver">👁</button>
           <button class="btn-icon" onclick="generateDocx('${o.id}')" title="Gerar PDF" style="margin-left:4px">📎</button>
           <button class="btn-icon" onclick="editOrcamento('${o.id}')" title="Editar">✏️</button>
@@ -960,7 +963,7 @@ function bulkArquivarOrc(){
   selectedOrcs.forEach(id=>{const o=S.orcamentos.find(x=>x.id===id);if(o)o.arquivado=true;});
   selectedOrcs.clear();saveState();render();toast('Orçamentos arquivados');
 }
-let formOrc={id:null,numero:'',cliente:'',empresa:'',telefone:'',email:'',data:today(),prazo_entrega:7,status:'Aberto',descricao:'',servicos:[newServico()],responsavel:'Marcelo'};
+let formOrc={id:null,numero:'',cliente:'',empresa:'',telefone:'',email:'',data:today(),prazo_entrega:7,status:'Aberto',descricao:'',servicos:[newServico()],responsavel:'Marcelo',clienteId:null};
 let formCalcs=[];
 
 function newItem(){
@@ -1020,7 +1023,18 @@ function _gerarCodigoCliente(){
   const now=new Date();
   const yy=String(now.getFullYear()).slice(-2);
   const mm=String(now.getMonth()+1).padStart(2,'0');
-  return `${letra}${nn}${yy}${mm}`;
+  return `${letra}${nn}${mm}${yy}`;
+}
+// Migração única: converte códigos de cliente do formato antigo (LETRA+NN+YY+MM) para novo (LETRA+NN+MM+YY)
+function _migrateClientCodesV2(){
+  if(S._clientCodeV2)return;
+  (S.clientes||[]).forEach(c=>{
+    if(!c.codigo)return;
+    const m=c.codigo.match(/^([A-Z])(\d{2})(\d{2})(\d{2})$/);
+    if(m) c.codigo=m[1]+m[2]+m[4]+m[3]; // troca posições de YY e MM
+  });
+  S._clientCodeV2=true;
+  saveState();
 }
 function renderClientes(){
   const clientes=S.clientes||[];
@@ -1122,6 +1136,24 @@ function openCadastroCliente(id){
         <input id="cl_end" value="${(c?.endereco||'').replace(/"/g,'&quot;')}" placeholder="Rua, nº, bairro, cidade, estado">
       </div>
     </div>
+    ${isEdit?(()=>{
+      const orcsVinc=(S.orcamentos||[]).filter(o=>o.clienteId===c.id).sort((a,b)=>(b.data||'').localeCompare(a.data||''));
+      return`<div style="padding:12px 0 4px;border-top:1px solid var(--border);margin-top:4px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em">📋 Orçamentos Vinculados</span>
+          <button onclick="this.closest('.modal-bg').remove();novoOrcamentoParaCliente('${c.id}')" style="font-size:11px;padding:2px 10px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer">+ Novo</button>
+        </div>
+        ${orcsVinc.length?`<div style="display:flex;flex-direction:column;gap:4px;max-height:160px;overflow-y:auto">`+orcsVinc.map(o=>`
+          <div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--bg3);border-radius:6px;font-size:12px">
+            <span style="color:var(--text3);flex-shrink:0">#${o.numero}</span>
+            <span style="flex:1;color:var(--text2)">${fmtDate(o.data)||'—'}</span>
+            <span style="font-weight:700;color:var(--green)">${BRL(o.total_prazo)}</span>
+            <span style="font-size:11px;padding:1px 6px;border-radius:4px;background:${o.status==='Fechado'?'#16a34a20':o.status==='Perdido'?'var(--red)20':'var(--bg)' };color:${o.status==='Fechado'?'#16a34a':o.status==='Perdido'?'var(--red)':'var(--text3)'}">${o.status}</span>
+            <button onclick="this.closest('.modal-bg').remove();viewOrcamento('${o.id}')" style="font-size:10px;padding:2px 6px;background:var(--bg);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text2);flex-shrink:0">👁</button>
+          </div>`).join('')+`</div>`
+        :`<div style="font-size:12px;color:var(--text3);padding:8px 0">Nenhum orçamento vinculado ainda.</div>`}
+      </div>`;
+    })():''}
     <div class="modal-footer">
       ${isEdit?`<button class="btn btn-danger" onclick="deleteCliente('${c.id}',this)">🗑 Excluir</button>`:''}
       <button class="btn btn-secondary" onclick="this.closest('.modal-bg').remove()">Cancelar</button>
@@ -1195,7 +1227,8 @@ function editOrcamento(id){
   const editData={
     id:o.id, numero:o.numero,
     cliente:o.cliente||'', empresa:o.empresa||'',
-    telefone:o.telefone||'', email:o.email||'',
+    telefone:o.telefone||'', email:o.email||'', cnpj:o.cnpj||'',
+    prazo_entrega:o.prazo_entrega||7,
     servicos:_svcs.map((sv,si)=>({
       meta:{svcLabel:sv.item||'Serviço',svcIcon:'📋',dim:'',finish:''},
       items:[], nomeItem:sv.item||'Serviço',
@@ -1232,6 +1265,21 @@ function renderFormOrcamento(){
       <div class="form-grid">
         <div class="form-row"><label>Nº do Orçamento</label><input type="number" value="${formOrc.numero}" onchange="formOrc.numero=+this.value"></div>
         <div class="form-row"><label>Data</label><input type="date" value="${formOrc.data}" onchange="formOrc.data=this.value"></div>
+        ${(()=>{
+          const cl=formOrc.clienteId?(S.clientes||[]).find(x=>x.id===formOrc.clienteId):null;
+          return`<div class="form-row form-full">
+            <label style="display:flex;align-items:center;gap:8px">👤 Cliente Cadastrado
+              ${cl?`<span style="font-family:monospace;font-size:11px;background:var(--accent)15;color:var(--accent);padding:1px 8px;border-radius:4px;border:1px solid var(--accent)30">${cl.codigo}</span>`:'<span style="font-size:11px;color:var(--text3);font-weight:400">opcional</span>'}
+            </label>
+            <div style="position:relative">
+              <div style="display:flex;gap:6px">
+                <input id="orc_cl_search" placeholder="Buscar na lista de clientes..." value="${cl?cl.nome||cl.empresa||'':''}" oninput="_orcClienteSearch(this.value)" onfocus="_orcClienteSearch(this.value)" style="flex:1" autocomplete="off">
+                ${cl?`<button onclick="_orcClienteClear()" style="padding:4px 10px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--red);font-size:12px;flex-shrink:0" title="Desvincular cliente">✕</button>`:''}
+              </div>
+              <div id="orc_cl_dd" style="position:absolute;z-index:200;width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;display:none;max-height:200px;overflow-y:auto;box-shadow:0 4px 16px #0003;margin-top:2px"></div>
+            </div>
+          </div>`;
+        })()}
         <div class="form-row"><label>Empresa</label><input value="${formOrc.empresa}" oninput="formOrc.empresa=this.value" placeholder="Empresa"></div>
         <div class="form-row"><label>Cliente *</label><input value="${formOrc.cliente}" oninput="formOrc.cliente=this.value" placeholder="Nome do cliente"></div>
         <div class="form-row"><label>Telefone</label><input value="${formOrc.telefone}" oninput="formOrc.telefone=this.value" placeholder="(11) 99999-9999"></div>
@@ -1597,6 +1645,99 @@ function recalc(){
 function addServico(){formOrc.servicos.push(newServico());recalc();}
 function removeServico(i){if(formOrc.servicos.length>1){formOrc.servicos.splice(i,1);recalc();}}
 
+// ── VÍNCULO ORÇAMENTO ↔ CLIENTE ──────────────────────────────────────────────
+function _orcClienteSearch(q){
+  const dd=document.getElementById('orc_cl_dd');
+  if(!dd)return;
+  const clients=(S.clientes||[]).filter(c=>{
+    if(!q)return true;
+    return[c.codigo,c.nome,c.empresa,c.telefone].join(' ').toLowerCase().includes(q.toLowerCase());
+  });
+  if(!clients.length){dd.style.display='none';return;}
+  dd.innerHTML=clients.slice(0,8).map(c=>`
+    <div onmousedown="_orcClienteSelect('${c.id}')" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)20;display:flex;gap:10px;align-items:center" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background=''">
+      <span style="font-family:monospace;font-size:11px;color:var(--accent);flex-shrink:0">${c.codigo}</span>
+      <span style="flex:1;font-size:13px;font-weight:600">${c.nome||c.empresa||'—'}</span>
+      <span style="font-size:11px;color:var(--text2)">${c.nome?c.empresa||'':''}</span>
+    </div>`).join('');
+  dd.style.display='block';
+  // Fechar ao clicar fora
+  setTimeout(()=>{
+    const close=()=>{dd.style.display='none';document.removeEventListener('click',close);};
+    document.addEventListener('click',close,{once:true});
+  },50);
+}
+function _orcClienteSelect(clienteId){
+  const c=(S.clientes||[]).find(x=>x.id===clienteId);
+  if(!c)return;
+  formOrc.clienteId=clienteId;
+  if(!formOrc.empresa&&c.nome) formOrc.empresa=c.nome;
+  if(!formOrc.cliente&&c.empresa) formOrc.cliente=c.empresa;
+  if(!formOrc.telefone&&c.telefone) formOrc.telefone=c.telefone;
+  if(!formOrc.email&&c.email) formOrc.email=c.email;
+  render();
+}
+function _orcClienteClear(){
+  formOrc.clienteId=null;
+  render();
+}
+function vincularOrcamentoCliente(orcId){
+  const o=S.orcamentos.find(x=>x.id===orcId);
+  if(!o)return;
+  const modal=document.createElement('div');
+  modal.className='modal-bg';
+  const clientes=S.clientes||[];
+  const linked=clientes.find(c=>c.id===o.clienteId);
+  modal.innerHTML=`
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><h2>👤 Vincular Cliente</h2>
+      <button class="btn-icon" onclick="this.closest('.modal-bg').remove()">✕</button>
+    </div>
+    <div style="font-size:12px;color:var(--text2);margin-bottom:12px">Orçamento #${o.numero} — ${o.empresa||o.cliente||'—'}</div>
+    ${linked?`<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--accent2);border:1px solid var(--accent);border-radius:8px;margin-bottom:12px;font-size:13px">
+      <span style="font-family:monospace;font-size:12px;color:var(--accent)">${linked.codigo}</span>
+      <span style="flex:1;font-weight:600">${linked.nome||linked.empresa||'—'}</span>
+      <button onclick="_desvincularOrc('${orcId}',this)" style="font-size:11px;padding:2px 8px;background:none;border:1px solid var(--red);border-radius:4px;cursor:pointer;color:var(--red)">Desvincular</button>
+    </div>`:''}
+    <input id="vc_search" placeholder="Buscar cliente..." oninput="_vcSearch(this.value,'${orcId}')" style="width:100%;box-sizing:border-box;margin-bottom:8px" autofocus>
+    <div id="vc_list" style="max-height:240px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;overflow:hidden">
+      ${_vcRenderList(clientes,'${orcId}')}
+    </div>
+    ${!clientes.length?`<div style="text-align:center;margin-top:12px"><button class="btn btn-primary" onclick="this.closest('.modal-bg').remove();openCadastroCliente()">+ Novo Cliente</button></div>`:''}
+  </div>`;
+  document.body.appendChild(modal);
+}
+function _vcRenderList(clientes,orcId,q=''){
+  const f=q?clientes.filter(c=>[c.codigo,c.nome,c.empresa,c.telefone].join(' ').toLowerCase().includes(q.toLowerCase())):clientes;
+  if(!f.length)return`<div class="empty" style="padding:16px">Nenhum cliente encontrado.</div>`;
+  const o=S.orcamentos.find(x=>x.id===orcId)||{};
+  return f.slice(0,10).map(c=>{
+    const ativo=c.id===o.clienteId;
+    return`<div onclick="_vincularOrc('${orcId}','${c.id}',this)" style="padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border)20;display:flex;gap:10px;align-items:center;${ativo?'background:var(--accent2)':''}" onmouseover="this.style.background='var(--bg3)'" onmouseout="this.style.background='${ativo?'var(--accent2)':''}'" >
+      <span style="font-family:monospace;font-size:11px;color:var(--accent);flex-shrink:0">${c.codigo}</span>
+      <span style="flex:1;font-size:13px">${c.nome||c.empresa||'—'}${c.nome&&c.empresa?`<br><span style="font-size:11px;color:var(--text2)">${c.empresa}</span>`:''}</span>
+      ${ativo?'<span style="color:var(--green);font-size:12px">✓ vinculado</span>':''}
+    </div>`;
+  }).join('');
+}
+function _vcSearch(q,orcId){
+  const el=document.getElementById('vc_list');
+  if(el) el.innerHTML=_vcRenderList(S.clientes||[],orcId,q);
+}
+function _vincularOrc(orcId,clienteId,el){
+  const o=S.orcamentos.find(x=>x.id===orcId);
+  if(!o)return;
+  o.clienteId=clienteId;
+  saveState();el.closest('.modal-bg').remove();render();
+  const c=(S.clientes||[]).find(x=>x.id===clienteId);
+  toast(`Orçamento vinculado a ${c?.nome||c?.empresa||'cliente'}`);
+}
+function _desvincularOrc(orcId,btn){
+  const o=S.orcamentos.find(x=>x.id===orcId);
+  if(!o)return;
+  o.clienteId=null;
+  saveState();btn.closest('.modal-bg').remove();render();toast('Vínculo removido');
+}
 function salvarOrcamento(){
   if(!formOrc.cliente){toast('Informe o nome do cliente','error');return;}
   const calcs=formOrc.servicos.map(sv=>calcServico(sv));
@@ -2333,9 +2474,13 @@ function crmToggleSelect(e,id){
   const kb=document.getElementById('crm-kanban-outer');
   const scrollX=kb?kb.scrollLeft:0;
   const scrollY=kb?kb.scrollTop:0;
+  const winY=window.scrollY;
   render();
-  const kb2=document.getElementById('crm-kanban-outer');
-  if(kb2){kb2.scrollLeft=scrollX;kb2.scrollTop=scrollY;}
+  requestAnimationFrame(()=>{
+    window.scrollTo(0,winY);
+    const kb2=document.getElementById('crm-kanban-outer');
+    if(kb2){kb2.scrollLeft=scrollX;kb2.scrollTop=scrollY;}
+  });
 }
 function crmLimparSel(){
   _crmSelected.clear();
@@ -4063,7 +4208,8 @@ function _buildOrcHTML(d){
       <div class="ci-left">
         <table><tbody>
           ${d.empresa?`<tr><td class="lbl">Empresa:</td><td class="val">${d.empresa}</td></tr>`:''}
-          <tr><td class="lbl">Cliente:</td><td class="val">${d.cliente||'—'}</td></tr>
+          <tr><td class="lbl">Responsável:</td><td class="val">${d.cliente||'—'}</td></tr>
+          ${d.cnpj?`<tr><td class="lbl">CNPJ/CPF:</td><td class="val">${d.cnpj}</td></tr>`:''}
           ${d.telefone?`<tr><td class="lbl">Telefone:</td><td class="val">${d.telefone}</td></tr>`:''}
           ${d.email?`<tr><td class="lbl">E-mail:</td><td class="val">${d.email}</td></tr>`:''}
         </tbody></table>
@@ -4143,24 +4289,72 @@ async function generateDocx(orcId){
   const total_vista=calcs.length?calcs.reduce((a,c)=>a+(c.total_vista||0),0):(o.total_vista||0);
   const R=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
   const fmtDate=dt=>{if(!dt)return'';const[y,mo,dd]=dt.split('-');return dd+'/'+mo+'/'+y;};
-  const serviceRows=o.servicos.map((sv,idx)=>{
-    const c=calcs[idx];const units=Number(sv.unidades)||1;
-    const svPrazo=c?c.total_prazo:(sv.preco_final||0);
-    const svVista=c?c.total_vista:(sv.preco_vista||Math.round(svPrazo*0.9*100)/100);
-    return `<tr>
-      <td class="col-num">${idx+1}</td>
-      <td class="col-desc">${sv.descricao||sv.item||('Serviço '+(idx+1))}</td>
-      <td class="col-units">${units}</td>
-      <td class="col-price">${R(svPrazo/units)}</td>
-      <td class="col-price">${R(svPrazo)}</td>
-      <td class="col-price col-vista">${R(svVista)}</td>
-    </tr>`;}).join('');
+  const letters='ABCDEFGH';
+  const rows=[];let rowNum=0;let total_prazo_calc=0;let total_vista_calc=0;
+  const renderedIdx=new Set();
+  o.servicos.forEach((sv,idx)=>{
+    if(renderedIdx.has(idx))return;
+    const g=sv.varGrupo;
+    if(g){
+      const grpItems=[];
+      o.servicos.forEach((sv2,si)=>{ if(sv2.varGrupo===g){grpItems.push({sv:sv2,si,c:calcs[si]});renderedIdx.add(si);} });
+      if(!grpItems.length)return;
+      rowNum++;
+      const aprovada=grpItems.find(({sv2})=>sv2?.varAprovada)||grpItems[0];
+      total_prazo_calc+=(aprovada.c?aprovada.c.total_prazo:aprovada.sv.preco_final)||0;
+      total_vista_calc+=(aprovada.c?aprovada.c.total_vista:aprovada.sv.preco_vista)||0;
+      rows.push(`<tr>
+        <td class="col-num" style="vertical-align:top;padding-top:8px">${rowNum}</td>
+        <td colspan="5" style="padding:0">
+          <div style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px 2px">Variações — escolha uma opção</div>
+          <table style="width:100%;border-collapse:collapse">
+            ${grpItems.map(({sv:sv2,c},pos)=>{
+              const letter=letters[pos]||(pos+1);
+              const svPrazo=c?c.total_prazo:(sv2.preco_final||0);
+              const svVista=c?c.total_vista:(sv2.preco_vista||Math.round(svPrazo*0.9*100)/100);
+              const isAprov=!!sv2.varAprovada;
+              const badgeStyle=isAprov?'background:#dcfce7;color:#166534;border:1.5px solid #86efac':'background:#f5f3ff;color:#6d28d9;border:1.5px solid #c4b5fd';
+              const desc=sv2.item?(sv2.descricao?`<strong>${sv2.item}:</strong><br>${sv2.descricao}`:`<strong>${sv2.item}</strong>`):(sv2.descricao||('Opção '+letter));
+              return `<tr style="border-bottom:1px solid #f1f5f9">
+                <td style="width:32px;padding:5px 6px;vertical-align:top"><span style="display:inline-block;min-width:22px;text-align:center;font-size:9px;font-weight:800;padding:2px 5px;border-radius:5px;${badgeStyle}">${letter}${isAprov?' ✓':''}</span></td>
+                <td style="padding:5px 6px;font-size:10px;color:#18181b;line-height:1.5">${desc}</td>
+                <td style="width:36px;padding:5px 4px;font-size:10px;text-align:center;color:#64748b">${Number(sv2.unidades)||1}</td>
+                <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R(svPrazo)}</td>
+                <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R(svPrazo)}</td>
+                <td style="width:88px;padding:5px 6px;font-size:10px;text-align:right;font-weight:700;color:#0f766e">${R(svVista)}</td>
+              </tr>`;
+            }).join('')}
+          </table>
+        </td>
+      </tr>`);
+    } else {
+      renderedIdx.add(idx);
+      rowNum++;
+      const c=calcs[idx];const units=Number(sv.unidades)||1;
+      const svPrazo=c?c.total_prazo:(sv.preco_final||0);
+      const svVista=c?c.total_vista:(sv.preco_vista||Math.round(svPrazo*0.9*100)/100);
+      total_prazo_calc+=svPrazo;total_vista_calc+=svVista;
+      rows.push(`<tr>
+        <td class="col-num">${rowNum}</td>
+        <td class="col-desc">${sv.descricao||sv.item||('Serviço '+(idx+1))}</td>
+        <td class="col-units">${units}</td>
+        <td class="col-price">${R(svPrazo/units)}</td>
+        <td class="col-price">${R(svPrazo)}</td>
+        <td class="col-price col-vista">${R(svVista)}</td>
+      </tr>`);
+    }
+  });
+  const serviceRows=rows.join('');
+  const _finalPrazo=calcs.length?total_prazo_calc:total_prazo;
+  const _finalVista=calcs.length?total_vista_calc:total_vista;
+  const _prazoEntrega=o.prazo_entrega||7;
   const html=_buildOrcHTML({
     numero:o.numero,empresa:o.empresa,cliente:o.cliente,
-    telefone:o.telefone,email:o.email,
+    telefone:o.telefone,email:o.email,cnpj:o.cnpj||'',
     data:fmtDate(o.data),responsavel:o.responsavel,
-    serviceRows,total_prazo,total_vista,
-    descricao:o.descricao
+    serviceRows,total_prazo:_finalPrazo,total_vista:_finalVista,
+    descricao:o.descricao,
+    prazo_texto:`Em até ${_prazoEntrega} dia${_prazoEntrega===1?'':'s'} úteis, após a aprovação das artes e definição do pagamento.`
   });
   const blob=new Blob([html],{type:'text/html;charset=utf-8'});
   const blobUrl=URL.createObjectURL(blob);

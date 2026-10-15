@@ -352,6 +352,9 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 .fz-svc-row-var{background:none;border:none;font-size:13px;color:#a78bfa;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0}
 .fz-svc-row-var:hover{color:#7c3aed}
 .fz-svc-row-var.ativo{color:#7c3aed;filter:drop-shadow(0 0 3px #a78bfa)}
+.fz-svc-row-move{background:none;border:none;font-size:11px;color:#94a3b8;cursor:pointer;padding:0 2px;line-height:1;flex-shrink:0;font-weight:700}
+.fz-svc-row-move:hover{color:#334155}
+.fz-svc-row-move:disabled{opacity:0.3;cursor:default}
 /* ── PAINEL VARIAÇÃO ── */
 .fz-var-panel{background:#faf5ff;border:1.5px solid #c4b5fd;border-radius:10px;padding:10px 12px;margin:-2px 0 6px;animation:fadeSlideIn .12s ease}
 .fz-var-chip{background:#ede9fe;border:1.5px solid #a78bfa;color:#5b21b6;border-radius:8px;padding:5px 10px;font-size:9px;font-weight:700;cursor:pointer;transition:background .1s,border-color .1s;white-space:nowrap}
@@ -490,9 +493,10 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
     <div class="sec-title">Dados do cliente</div>
     <div class="fields-grid">
       <div class="field-group full"><label>Empresa</label><input type="text" id="c_empresa" placeholder="Nome da empresa" oninput="s1Validate()"></div>
-      <div class="field-group full"><label>Contato</label><input type="text" id="c_contato" placeholder="Nome do contato" oninput="s1Validate()"></div>
+      <div class="field-group full"><label>Responsável</label><input type="text" id="c_contato" placeholder="Nome do contato" oninput="s1Validate()"></div>
+      <div class="field-group"><label>CNPJ / CPF</label><input type="text" id="c_cnpj" placeholder="00.000.000/0001-00" oninput="s1Validate()"></div>
       <div class="field-group"><label>Telefone</label><input type="text" id="c_fone" placeholder="(61) 99999-0000" oninput="s1Validate()"></div>
-      <div class="field-group"><label>E-mail</label><input type="text" id="c_email" placeholder="email@empresa.com" oninput="s1Validate()"></div>
+      <div class="field-group full"><label>E-mail</label><input type="text" id="c_email" placeholder="email@empresa.com" oninput="s1Validate()"></div>
     </div>
   </div>
   <div style="display:flex;gap:8px;margin-top:8px;align-items:stretch">
@@ -935,6 +939,7 @@ function _todayStr() {
 let _orcNumBumped = false;
 let _fzPrazoGlobal = 10;
 let _fzSavedOrcId  = null; // ID do orçamento já salvo no CRM (null = ainda não salvo)
+let _fzSavedOrcNum = null; // Número do orçamento existente ao editar (null = gerar novo)
 function _orcSeqFromCRM() {
   // Conta apenas os orçamentos realmente salvos no CRM para o dia de hoje
   try {
@@ -946,6 +951,8 @@ function _orcSeqFromCRM() {
   } catch(e) { return 1; }
 }
 function _getOrcNum() {
+  // Ao editar orçamento existente, usa o número original
+  if (_fzSavedOrcNum) return _fzSavedOrcNum;
   return _todayStr()+String(_orcSeqFromCRM()).padStart(2,'0');
 }
 function _bumpOrcNum() {
@@ -1139,7 +1146,7 @@ function goStep(n) {
   });
   if (n === 2) { renderSvcGrid(); updateClienteTags(); }
   if (n === 3) { updateClienteTags(); _buildCalcTabs(); setTimeout(()=>{ if(!document.querySelector('.calc-form.active')){ selectSvcById(SVCS[0].id); } else if(_calcActiveSvcsId){ const t=document.getElementById('ctab-'+_calcActiveSvcsId);if(t)t.classList.add('active');} },30); }
-  if (n === 1) { _orcNumBumped = false; _fzSavedOrcId = null; _fzUpdateSalvarBtn(); }
+  if (n === 1) { _orcNumBumped = false; _fzSavedOrcId = null; _fzSavedOrcNum = null; _fzUpdateSalvarBtn(); }
   if (n === 4) {
     const panel = document.getElementById('fz-add-panel');
     if (panel) panel.style.display = 'none';
@@ -1358,11 +1365,11 @@ function renderFzClientSummary() {
     </button>
     ${_fzClientOpen ? `<div class="fz-client-body">
       <div class="fz-ci-grid">
-        ${inp('Empresa',     _clienteEmpresa, '_clienteEmpresa', ';_clienteNome=_clienteEmpresa||_clienteContato')}
-        ${inp('Responsável', _clienteContato, '_clienteContato', ';_clienteNome=_clienteEmpresa||_clienteContato')}
-        ${inp('Telefone',    _clienteFone,    '_clienteFone')}
-        ${inp('E-mail',      _clienteEmail,   '_clienteEmail')}
-        ${inp('CNPJ',        _clienteCnpj,    '_clienteCnpj')}
+        ${inp('Empresa',       _clienteEmpresa, '_clienteEmpresa', ';_clienteNome=_clienteEmpresa||_clienteContato')}
+        ${inp('Responsável',   _clienteContato, '_clienteContato', ';_clienteNome=_clienteEmpresa||_clienteContato')}
+        ${inp('CNPJ / CPF',    _clienteCnpj,    '_clienteCnpj')}
+        ${inp('Telefone',      _clienteFone,    '_clienteFone')}
+        ${inp('E-mail',        _clienteEmail,   '_clienteEmail')}
       </div>
       <div style="margin-top:10px;border-top:1px solid #f0f0f0;padding-top:10px">
         <div style="font-size:11px;font-weight:700;color:#71717a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">Descrever Orçamento <span style="background:#eff6ff;color:#2563eb;font-size:10px;padding:1px 5px;border-radius:4px;font-weight:700;margin-left:4px">✦ IA</span></div>
@@ -1428,11 +1435,7 @@ function renderFzSvcList() {
     });
 
     // Função para verificar se o serviço suporta gerar variação (apenas originais, não variações)
-    const _canVarFrom = svc => {
-      if (svc.meta?.isVariacao) return false;
-      const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
-      return cs === 'letreiro_acrilico' || cs === 'letreiro_pvc';
-    };
+    const _canVarFrom = svc => !svc.meta?.isVariacao;
 
     // Render cards, agrupando variações
     const html = [];
@@ -1544,7 +1547,9 @@ function renderFzSvcList() {
             <div class="fz-srp-prazo">À Prazo<br><strong>R$ ${(svc.prazo||0).toLocaleString('pt-BR')}</strong></div>
             <div class="fz-srp-vista">À Vista<br><strong>R$ ${(svc.vista||0).toLocaleString('pt-BR')}</strong></div>
           </div>
-          ${canVar?`<button class="fz-svc-row-var${varPanelOpen?' ativo':''}" onclick="event.stopPropagation();fzOpenVarPanel(${i})" title="Gerar variação">🔀</button>`:''}
+          <button class="fz-svc-row-move" onclick="event.stopPropagation();fzMoveServiceUp(${i})" title="Mover para cima"${i===0?' disabled':''}>↑</button>
+          <button class="fz-svc-row-move" onclick="event.stopPropagation();fzMoveServiceDown(${i})" title="Mover para baixo"${i===_fzServicesList.length-1?' disabled':''}>↓</button>
+          ${canVar?`<button class="fz-svc-row-var${varPanelOpen?' ativo':''}" onclick="event.stopPropagation();fzOpenVarPanel(${i})" title="Gerar variação">✨</button>`:''}
           <button class="fz-svc-row-dup" onclick="event.stopPropagation();fzDuplicateService(${i})" title="Duplicar serviço">⎘</button>
           <button class="fz-svc-row-del" onclick="event.stopPropagation();fzRemoveService(${i})" title="Remover">×</button>
         </div>`);
@@ -1911,8 +1916,12 @@ function fzVarApplyTamanho(origIdx) {
     novoSvc = _calcVariacaoAcr10mm(larg, alt, hasInst, pinst);
   } else if (cs === 'letreiro_pvc') {
     novoSvc = _calcVariacaoPVC10mm(larg, alt, hasInst, pinst);
+  } else if (cs === 'adesivo') {
+    novoSvc = _calcVariacaoAdesivo(larg, alt, inp);
+  } else if (cs === 'placa_identificacao') {
+    novoSvc = _calcVariacaoPlaca(larg, alt, inp);
   } else {
-    alert('Variação de tamanho disponível apenas para Letreiro Acrílico e Letreiro PVC.');
+    alert('Variação de tamanho não disponível para este tipo de serviço.');
     return;
   }
   if (!novoSvc) { alert('Não foi possível calcular a variação.'); return; }
@@ -1949,11 +1958,268 @@ function fzVarApplyMaterial(origIdx, targetCalcSvc) {
   renderFzSvcList();
 }
 
+// ── Reordenação de serviços ──
+function fzMoveServiceUp(i) {
+  if (i <= 0) return;
+  [_fzServicesList[i-1], _fzServicesList[i]] = [_fzServicesList[i], _fzServicesList[i-1]];
+  if (_fzEditingIdx === i) _fzEditingIdx = i-1;
+  else if (_fzEditingIdx === i-1) _fzEditingIdx = i;
+  if (_varPanelIdx === i) _varPanelIdx = i-1;
+  else if (_varPanelIdx === i-1) _varPanelIdx = i;
+  renderFzSvcList();
+}
+function fzMoveServiceDown(i) {
+  if (i >= _fzServicesList.length - 1) return;
+  [_fzServicesList[i], _fzServicesList[i+1]] = [_fzServicesList[i+1], _fzServicesList[i]];
+  if (_fzEditingIdx === i) _fzEditingIdx = i+1;
+  else if (_fzEditingIdx === i+1) _fzEditingIdx = i;
+  if (_varPanelIdx === i) _varPanelIdx = i+1;
+  else if (_varPanelIdx === i+1) _varPanelIdx = i;
+  renderFzSvcList();
+}
+
+// ── Aplicar variação de Espessura (Letreiro) ──
+function fzVarApplyEspessura(origIdx, newEsp) {
+  const svc = _fzServicesList[origIdx];
+  if (!svc) return;
+  const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
+  const { larg, alt } = _extractDim(svc);
+  if (!larg || !alt) { alert('Não consegui encontrar as dimensões deste serviço.'); return; }
+  const inp = svc.meta.lastInputs || {};
+  const hasInst = inp.instOn !== undefined ? inp.instOn : true;
+  const corteOn = inp.corteOn !== false;
+  const impOn = inp.impOn !== false;
+  let novoSvc = null;
+  if (cs === 'letreiro_acrilico') {
+    novoSvc = _calcVariacaoAcrEsp(larg, alt, newEsp, hasInst, corteOn, impOn);
+  } else if (cs === 'letreiro_pvc') {
+    novoSvc = _calcVariacaoPVCEsp(larg, alt, newEsp, hasInst, corteOn, impOn);
+  } else {
+    alert('Variação de espessura não disponível para este tipo de serviço.');
+    return;
+  }
+  if (!novoSvc) { alert('Não foi possível calcular a variação.'); return; }
+  novoSvc.meta.varTipo = 'espessura';
+  const gId = _ensureVarGrupo(svc);
+  _insertVariacao(novoSvc, origIdx, gId);
+  _varPanelIdx = null; _varType = null;
+  renderFzSvcList();
+}
+
+// ── Vincular item existente como variação ──
+function fzVarLink(origIdx, targetIdx) {
+  const orig = _fzServicesList[origIdx];
+  const target = _fzServicesList[targetIdx];
+  if (!orig || !target) return;
+  const gId = _ensureVarGrupo(orig);
+  // Assign target to same group
+  target.meta.varGrupo = gId;
+  if (target.meta.varAprovada === undefined) target.meta.varAprovada = false;
+  // Auto-reorder: move target to be right after the last item in orig's group
+  const currentTargetPos = _fzServicesList.indexOf(target);
+  const origPos = _fzServicesList.indexOf(orig);
+  let insertAt = origPos + 1;
+  for (let j = origPos + 1; j < _fzServicesList.length; j++) {
+    if (_fzServicesList[j].meta?.varGrupo === gId && _fzServicesList[j] !== target) insertAt = j + 1;
+    else if (_fzServicesList[j] !== target) break;
+  }
+  if (currentTargetPos !== insertAt && currentTargetPos !== insertAt - 1) {
+    _fzServicesList.splice(currentTargetPos, 1);
+    const adj = currentTargetPos < insertAt ? insertAt - 1 : insertAt;
+    _fzServicesList.splice(adj, 0, target);
+  }
+  _varPanelIdx = null; _varType = null;
+  renderFzSvcList();
+}
+
+// ── Calcular variação Adesivo — usa mesma lógica de _adCalcRun ──
+function _calcVariacaoAdesivo(larg, alt, inp) {
+  try {
+    const tipo = inp.tipo || 'geral';
+    const camadas = inp.camadas || [{tipo:'vinil_branco', impressao:false, recorte:false, transfer:false}];
+    const qtd = inp.qtd || 1;
+    const instOn = inp.instOn !== undefined ? inp.instOn : false;
+    const pinst = inp.pinst || 0;
+    const deslocOn = inp.deslocOn !== undefined ? inp.deslocOn : false;
+    const desloc = deslocOn ? (inp.desloc || 0) : 0;
+    const modif = inp.ajuste || 0;
+    const metroFechado = inp.metroFechado || false;
+    const area_m2_real = (larg * alt) / 10000;
+    const area_m2 = metroFechado ? Math.ceil(area_m2_real) : area_m2_real;
+    let cu_mat=0, cu_imp=0, cu_rec=0, cu_trf=0;
+    camadas.forEach(c => {
+      const m = _AD_MATERIAIS.find(x => x.id === c.tipo) || _AD_MATERIAIS[0];
+      cu_mat += area_m2 * m.preco_m2;
+      if (c.impressao) cu_imp += area_m2 * 20;
+      if (c.recorte)   cu_rec += area_m2 * 20;
+      if (c.transfer)  cu_trf += area_m2 * 15;
+    });
+    const cu_inst = instOn ? pinst * area_m2 : 0;
+    const C = (cu_mat + cu_imp + cu_rec + cu_trf + cu_inst) * qtd + desloc + modif;
+    const mk = applyMarkup(C);
+    const _svcLabelMap = {faixa:'Faixa em Adesivo', porta:'Adesivo para Porta', geral:'Adesivo'};
+    const _AD_MAT_NOME = {vinil_branco:'branco', vinil_colorido:'colorido', jateado:'jateado', microperfurado:'microperfurado', transparente:'transparente'};
+    const _matNome = c => _AD_MAT_NOME[c.tipo] || '';
+    let _tipoLabel, _camadasExtra = '';
+    if (camadas.length === 1) {
+      const _suf = _matNome(camadas[0]);
+      _tipoLabel = ({faixa:`Faixa em Adesivo vinílico${_suf?' '+_suf:''}`, porta:`Adesivo vinílico${_suf?' '+_suf:''} para Porta`, geral:`Adesivo vinílico${_suf?' '+_suf:''}`})[tipo] || `Adesivo vinílico${_suf?' '+_suf:''}`;
+    } else {
+      _tipoLabel = ({faixa:'Faixa em Adesivo vinílico', porta:'Adesivo vinílico para Porta', geral:'Adesivo vinílico'})[tipo] || 'Adesivo vinílico';
+      _camadasExtra = ' (' + camadas.map((c,ci) => `Camada ${ci+1}: vinílico ${_matNome(c)}`).join(' · ') + ')';
+    }
+    const _instStr = instOn ? ' e instalação' : '';
+    const _qtdStr = qtd === 1 ? '1 unidade' : `${qtd} unidades`;
+    const _incluiParts = [];
+    const _hasImp = camadas.some(c=>c.impressao);
+    const _hasTrf = camadas.some(c=>c.transfer);
+    const _hasRec = camadas.some(c=>c.recorte);
+    if (_hasImp) _incluiParts.push('impressão digital');
+    if (_hasTrf) _incluiParts.push('transfer');
+    if (_hasRec) _incluiParts.push('recorte eletrônico');
+    const _incluiStr = _incluiParts.length ? ` Inclui ${_incluiParts.length===1?_incluiParts[0]:_incluiParts.slice(0,-1).join(', ')+' e '+_incluiParts.at(-1)}.` : '';
+    const _deslocStr = deslocOn && desloc > 0 ? ' Deslocamento incluso.' : '';
+    const _notParts=[];
+    if(!instOn)_notParts.push('Instalação não inclusa');
+    if(!deslocOn)_notParts.push('Deslocamento não incluso');
+    if(!_hasImp)_notParts.push('Impressão digital não inclusa');
+    if(!_hasRec)_notParts.push('Recorte eletrônico não incluso');
+    const _notStr=_notParts.map(s=>` ${s}.`).join('');
+    const descricao = `Fornecimento${_instStr} de ${_qtdStr} de ${_tipoLabel} medindo ${larg}×${alt} cm${_camadasExtra}.${_incluiStr}${_deslocStr}${_notStr}`;
+    const svcsEntry = SVCS.find(s => s.calcSvc === 'adesivo') || SVCS[0];
+    const svcsIdx = SVCS.indexOf(svcsEntry);
+    return {
+      items: [{label:'Material (camadas)',val:cu_mat*qtd},{label:'Impressão digital',val:cu_imp*qtd},{label:'Recorte Eletrônico',val:cu_rec*qtd},{label:'Transfer',val:cu_trf*qtd},{label:'Instalação',val:instOn?cu_inst*qtd:0},{label:'Deslocamento',val:desloc},{label:'Ajuste',val:modif}].filter(it=>it.val>0),
+      vista:mk.vista, prazo:mk.prazo, descricao, nomeItem:_svcLabelMap[tipo]||'Adesivo',
+      meta:{svcLabel:_svcLabelMap[tipo]||'Adesivo',svcIcon:'🪟',dim:`${larg}×${alt} cm${qtd>1?' × '+qtd+' un':''}`,finish:`${camadas.length} camada${camadas.length>1?'s':''}`,svcsIdx,lastCalc:'anterior',lastInputs:{calcType:'anterior',calcSvc:'adesivo',tipo,camadas:JSON.parse(JSON.stringify(camadas)),larg,alt,qtd,instOn,pinst,desloc:inp.desloc||0,ajuste:modif,deslocOn,metroFechado}}
+    };
+  } catch(e) { console.error('_calcVariacaoAdesivo:', e); return null; }
+}
+
+// ── Calcular variação Placa de Identificação — usa mesma lógica de _placaCalcRun ──
+function _calcVariacaoPlaca(larg, alt, inp) {
+  try {
+    const esp = inp.esp || '3mm';
+    const matId = inp.matId || 'acrilico';
+    const camadas = inp.camadas ? JSON.parse(JSON.stringify(inp.camadas)) : [{impType:'digital',impVal:0,corteType:'laser',corteVal:0,adic:0}];
+    const qtd = inp.qtd || 1;
+    const instOn = inp.instOn !== undefined ? inp.instOn : false;
+    const deslocSel = inp.desloc || 30;
+    const desloc = qtd > 5 ? Math.max(deslocSel, 50) : deslocSel;
+    const vernizOn = inp.verniz || false;
+    const laminOn = inp.lamin || false;
+    const c_inst = inp.pinst || 0;
+    const c_f = inp.pfixacao || 0;
+    const mat = (PLACA_MATS[esp] || []).find(m => m.id === matId) || PLACA_MATS['3mm'][0];
+    const area_m2 = (larg * alt) / 10000;
+    const ppc = Math.max(1, Math.floor(mat.chapa_w / (larg + 1)) * Math.floor(mat.chapa_h / (alt + 1)));
+    const nc = Math.ceil(qtd / ppc);
+    const cu_mat = nc * mat.preco_chapa;
+    // Recalcular corte e impressão com as novas dimensões
+    const newCamadas = camadas.map(cam => ({...cam,
+      corteVal: parseFloat(Math.max(10, area_m2 * mat.taxa_corte).toFixed(2)),
+      impVal: mat.taxa_imp > 0 ? parseFloat(Math.max(10, area_m2 * mat.taxa_imp).toFixed(2)) : 0
+    }));
+    const pImpType = newCamadas[0]?.impType || 'digital';
+    const c_c = newCamadas.reduce((s,c)=>s+(c.corteVal||0),0);
+    const c_i = newCamadas.reduce((s,c)=>s+(c.impVal||0),0);
+    const c_ad = newCamadas.reduce((s,c)=>s+(c.adic||0),0);
+    const c_v = (mat.taxa_imp>0 && pImpType==='uv' && vernizOn) ? 10 : 0;
+    const c_l = (mat.taxa_imp>0 && pImpType==='digital' && laminOn) ? 10 : 0;
+    const C = cu_mat + (c_c+c_i+c_v+c_l+c_ad+(instOn?c_inst:0)+c_f)*qtd + desloc;
+    const mk = applyMarkup(C);
+    const matLabel = mat.label;
+    const _impLC = pImpType==='uv'?'impressão UV diretamente na chapa'+(vernizOn?' com verniz fosco':''):(laminOn?'impressão digital com laminação transparente':'impressão digital');
+    const instStr = instOn ? ' e instalação' : '';
+    const _placaInstNotStr = !instOn ? ' Instalação não inclusa.' : '';
+    const _placaDeslocNotStr = desloc===0 ? ' Deslocamento não incluso.' : '';
+    const descricao = `Fornecimento${instStr} de ${qtd===1?'1 unidade':`${qtd} unidades`} de Placa de Identificação em ${matLabel} medindo ${larg}×${alt} cm. Inclui ${_impLC}.${desloc>0?' Deslocamento incluso.':''}${_placaInstNotStr}${_placaDeslocNotStr}`;
+    const svcsEntry = SVCS.find(s => s.calcSvc === 'placa_identificacao') || SVCS[0];
+    const svcsIdx = SVCS.indexOf(svcsEntry);
+    return {
+      items:[{label:'Material',val:cu_mat},{label:'Corte+Impressão (camadas)',val:(c_c+c_i)*qtd},{label:'Verniz/Laminação',val:(c_v+c_l)*qtd},{label:'Adicional',val:c_ad*qtd},{label:'Instalação',val:instOn?c_inst*qtd:0},{label:'Fixação',val:c_f*qtd},{label:'Deslocamento',val:desloc}].filter(it=>it.val>0),
+      vista:mk.vista, prazo:mk.prazo, descricao, nomeItem:'Placa de Identificação',
+      meta:{svcLabel:'Placa de Identificação',svcIcon:'🏷️',dim:`${larg}×${alt}cm${qtd>1?' × '+qtd+'un':''}`,finish:matLabel+(newCamadas.length>1?` ${newCamadas.length} camadas`:''),svcsIdx,lastCalc:'anterior',lastInputs:{calcType:'anterior',calcSvc:'placa_identificacao',larg,alt,qtd,esp,matId,instOn,desloc:deslocSel,verniz:vernizOn,lamin:laminOn,pinst:c_inst,pfixacao:c_f,camadas:JSON.parse(JSON.stringify(newCamadas))}}
+    };
+  } catch(e) { console.error('_calcVariacaoPlaca:', e); return null; }
+}
+
+// ── Calcular variação Acrílico por Espessura ──
+function _calcVariacaoAcrEsp(larg, alt, esp, hasInst, corteOn, impOn) {
+  try {
+    const conf = ACRILICO_CONF[esp] || ACRILICO_CONF['6mm'];
+    const area_m2 = (larg * alt) / 10000;
+    const paprov = Math.ceil((larg*alt)/(ACR_CHAPA_W*ACR_CHAPA_H)*conf.preco_chapa);
+    const c_c = corteOn ? Math.round(area_m2*conf.taxa_corte) : 0;
+    const c_i = impOn ? Math.round(area_m2*ACR_IMP.pintura.taxa) : 0;
+    const c_inst = hasInst ? Math.round(area_m2*50) : 0;
+    const desloc = hasInst ? 15 : 0;
+    const items = [
+      {label:'Material — '+conf.label, val:paprov},
+      ...(c_c>0?[{label:'Corte',val:c_c}]:[]),
+      ...(c_i>0?[{label:'Impressão',val:c_i}]:[]),
+      ...(c_inst>0?[{label:'Instalação',val:c_inst}]:[]),
+      ...(desloc>0?[{label:'Deslocamento',val:desloc}]:[]),
+    ];
+    const mk = applyMarkup(items.reduce((s,it)=>s+(it.val||0),0));
+    const _pp=[]; if(impOn)_pp.push('pintura automotiva'); if(corteOn)_pp.push('corte laser');
+    const _inclStr=_pp.length?` Inclui ${_pp.join(' e ')}.`:'';
+    const _instStr = hasInst ? ' e instalação' : '';
+    const _sufStr = hasInst ? ' Deslocamento incluso.' : ' Instalação não inclusa. Deslocamento não incluso.';
+    const descricao = `Fornecimento${_instStr} de 1 unidade de ${conf.label} medindo ${larg}×${alt} cm.${_inclStr} Fixação com dupla face e cola.${_sufStr}`;
+    const svcEntry = SVCS.find(s => s.id === 'letreiro_acr') || SVCS.find(s => s.calcSvc === 'letreiro_acrilico') || SVCS[1];
+    const svcsIdx = SVCS.indexOf(svcEntry);
+    return {
+      items, vista:mk.vista, prazo:mk.prazo, descricao, nomeItem:conf.label,
+      meta:{svcLabel:svcEntry?.label||'Letreiro em Acrílico',svcIcon:svcEntry?.icon||'🔤',dim:`${larg}×${alt} cm`,finish:conf.label,svcsIdx,
+        lastCalc:'anterior',lastInputs:{calcType:'anterior',calcSvc:'letreiro_acrilico',larg,alt,qtd:1,instOn:hasInst,esp,corteOn,impOn}}
+    };
+  } catch(e) { console.error('_calcVariacaoAcrEsp:', e); return null; }
+}
+
+// ── Calcular variação PVC por Espessura ──
+function _calcVariacaoPVCEsp(larg, alt, esp, hasInst, corteOn, impOn) {
+  try {
+    const conf = PVC_CONF[esp] || PVC_CONF['10mm'];
+    const area_m2 = (larg * alt) / 10000;
+    const paprov = Math.ceil((larg*alt)/(PVC_CHAPA_W*PVC_CHAPA_H)*conf.preco_chapa);
+    const c_c = corteOn ? Math.round(area_m2*conf.taxa_corte) : 0;
+    const c_i = impOn ? Math.round(area_m2*PVC_IMP.pintura.taxa) : 0;
+    const c_a = Math.round(area_m2*(conf.taxa_acabamento||0));
+    const c_inst = hasInst ? Math.round(area_m2*50) : 0;
+    const desloc = hasInst ? 15 : 0;
+    const items = [
+      {label:'Material — '+conf.label, val:paprov},
+      ...(c_c>0?[{label:'Corte',val:c_c}]:[]),
+      ...(c_i>0?[{label:'Impressão',val:c_i}]:[]),
+      ...(c_a>0?[{label:'Acabamento',val:c_a}]:[]),
+      ...(c_inst>0?[{label:'Instalação',val:c_inst}]:[]),
+      ...(desloc>0?[{label:'Deslocamento',val:desloc}]:[]),
+    ];
+    const mk = applyMarkup(items.reduce((s,it)=>s+(it.val||0),0));
+    const _pp=[]; if(impOn)_pp.push('pintura automotiva'); if(corteOn)_pp.push('corte router');
+    const _inclStr=_pp.length?` Inclui ${_pp.join(' e ')}.`:'';
+    const _instStr = hasInst ? ' e instalação' : '';
+    const _sufStr = hasInst ? ' Deslocamento incluso.' : ' Instalação não inclusa. Deslocamento não incluso.';
+    const descricao = `Fornecimento${_instStr} de 1 unidade de ${conf.label} medindo ${larg}×${alt} cm.${_inclStr} Fixação com dupla face e cola.${_sufStr}`;
+    const svcEntry = SVCS.find(s => s.id === 'letreiro_pvc_flat') || SVCS.find(s => s.calcSvc === 'letreiro_pvc') || SVCS[0];
+    const svcsIdx = SVCS.indexOf(svcEntry);
+    return {
+      items, vista:mk.vista, prazo:mk.prazo, descricao, nomeItem:conf.label,
+      meta:{svcLabel:svcEntry?.label||'Letreiro em PVC',svcIcon:svcEntry?.icon||'🧱',dim:`${larg}×${alt} cm`,finish:conf.label,svcsIdx,
+        lastCalc:'anterior',lastInputs:{calcType:'anterior',calcSvc:'letreiro_pvc',larg,alt,qtd:1,instOn:hasInst,esp,corteOn,impOn}}
+    };
+  } catch(e) { console.error('_calcVariacaoPVCEsp:', e); return null; }
+}
+
 // ── Builder HTML do painel inline de variação ──
 function _buildVarPanelHTML(i, svc) {
   const cs = svc.meta.svcsIdx != null ? SVCS[svc.meta.svcsIdx]?.calcSvc : null;
   const canMat = cs === 'letreiro_acrilico' || cs === 'letreiro_pvc';
+  const canEsp = cs === 'letreiro_acrilico' || cs === 'letreiro_pvc';
+  const canTam = !!(svc.meta?.lastInputs?.larg || svc.meta?.lastInputs?.alt || _extractDim(svc).larg);
   const closeBtn = `<button onclick="fzOpenVarPanel(null)" style="background:none;border:none;color:#a1a1aa;font-size:14px;cursor:pointer;line-height:1;padding:0;margin-left:auto">✕</button>`;
+  const backBtn = `<button onclick="fzVarSelectType(null)" style="background:none;border:none;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;padding:0">← Voltar</button>`;
 
   if (!_varType) {
     // Step 1: escolha do tipo
@@ -1963,9 +2229,10 @@ function _buildVarPanelHTML(i, svc) {
         ${closeBtn}
       </div>
       <div style="display:flex;gap:6px;flex-wrap:wrap">
-        <button class="fz-var-chip" onclick="fzVarSelectType('tamanho')">📐 Tamanho</button>
+        <button class="fz-var-chip${canTam?'':' fz-var-chip-dis'}" ${canTam?`onclick="fzVarSelectType('tamanho')"`:'disabled'}>📐 Tamanho</button>
         <button class="fz-var-chip${canMat?'':' fz-var-chip-dis'}" ${canMat?`onclick="fzVarSelectType('material')"`:' disabled'}>🧱 Material</button>
-        <button class="fz-var-chip fz-var-chip-dis" disabled title="Em breve">📏 Espessura</button>
+        <button class="fz-var-chip${canEsp?'':' fz-var-chip-dis'}" ${canEsp?`onclick="fzVarSelectType('espessura')"`:' disabled'}>📏 Espessura</button>
+        <button class="fz-var-chip" onclick="fzVarSelectType('vincular')">🔗 Vincular item</button>
       </div>
     </div>`;
   }
@@ -1974,7 +2241,7 @@ function _buildVarPanelHTML(i, svc) {
     const origDim = (_varW && _varH) ? `${_varW}×${_varH} cm` : '—';
     return `<div class="fz-var-panel" onclick="event.stopPropagation()">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <button onclick="fzVarSelectType(null)" style="background:none;border:none;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;padding:0">← Voltar</button>
+        ${backBtn}
         <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;flex:1">📐 Variação de Tamanho</span>
         ${closeBtn}
       </div>
@@ -1982,7 +2249,7 @@ function _buildVarPanelHTML(i, svc) {
       <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
         <label style="font-size:9px;color:#52525b;font-weight:700;min-width:14px">L</label>
         <input id="fz-var-w" type="number" min="1" step="0.5" value="${_varW}" oninput="fzVarInputW(this.value)" style="width:65px;padding:5px 6px;border:1.5px solid #a78bfa;border-radius:6px;font-size:12px;text-align:center;outline:none">
-        <button onclick="fzVarToggleLock()" title="${_varLock?'Destravar proporção (como o Illustrator)':'Travar proporção'}" style="background:none;border:none;font-size:16px;cursor:pointer;padding:0;line-height:1;color:${_varLock?'#7c3aed':'#a1a1aa'}">${_varLock?'🔒':'🔓'}</button>
+        <button onclick="fzVarToggleLock()" title="${_varLock?'Destravar proporção':'Travar proporção'}" style="background:none;border:none;font-size:16px;cursor:pointer;padding:0;line-height:1;color:${_varLock?'#7c3aed':'#a1a1aa'}">${_varLock?'🔒':'🔓'}</button>
         <label style="font-size:9px;color:#52525b;font-weight:700;min-width:14px">A</label>
         <input id="fz-var-h" type="number" min="1" step="0.5" value="${_varH}" oninput="fzVarInputH(this.value)" style="width:65px;padding:5px 6px;border:1.5px solid #a78bfa;border-radius:6px;font-size:12px;text-align:center;outline:none">
         <span style="font-size:10px;color:#71717a">cm</span>
@@ -1995,7 +2262,7 @@ function _buildVarPanelHTML(i, svc) {
     const isAcr = cs === 'letreiro_acrilico';
     return `<div class="fz-var-panel" onclick="event.stopPropagation()">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <button onclick="fzVarSelectType(null)" style="background:none;border:none;color:#7c3aed;font-size:11px;font-weight:700;cursor:pointer;padding:0">← Voltar</button>
+        ${backBtn}
         <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;flex:1">🧱 Variação de Material</span>
         ${closeBtn}
       </div>
@@ -2007,6 +2274,50 @@ function _buildVarPanelHTML(i, svc) {
              <button class="fz-var-chip fz-var-chip-dis" disabled>🧱 PVC 10 mm (atual)</button>`
         }
       </div>
+    </div>`;
+  }
+
+  if (_varType === 'espessura') {
+    const isAcr = cs === 'letreiro_acrilico';
+    const confMap = isAcr ? ACRILICO_CONF : PVC_CONF;
+    const currentEsp = svc.meta?.lastInputs?.esp || (isAcr ? '6mm' : '10mm');
+    const espOptions = Object.entries(confMap).map(([key, c]) => {
+      const isCurrent = key === currentEsp;
+      return `<button class="fz-var-chip${isCurrent?' fz-var-chip-dis':''}" ${isCurrent?'disabled':`onclick="fzVarApplyEspessura(${i},'${key}')"`}>${c.label}${isCurrent?' (atual)':''}</button>`;
+    }).join('');
+    return `<div class="fz-var-panel" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        ${backBtn}
+        <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;flex:1">📏 Variação de Espessura</span>
+        ${closeBtn}
+      </div>
+      <div style="display:flex;gap:5px;flex-wrap:wrap">${espOptions}</div>
+    </div>`;
+  }
+
+  if (_varType === 'vincular') {
+    const currentGrupo = svc.meta?.varGrupo || null;
+    const linkable = _fzServicesList
+      .map((sv, idx) => ({sv, idx}))
+      .filter(({sv, idx}) => idx !== i && !sv.meta?.isVariacao && sv.meta?.varGrupo !== currentGrupo);
+    const listHTML = linkable.length === 0
+      ? `<div style="font-size:10px;color:#71717a;padding:4px 0">Nenhum item disponível para vincular.</div>`
+      : linkable.map(({sv, idx}) => {
+          const label = sv.nomeItem || sv.meta?.svcLabel || `Item ${idx+1}`;
+          const dim = sv.meta?.dim ? ` · ${sv.meta.dim}` : '';
+          const vista = sv.vista ? ` · R$ ${sv.vista.toLocaleString('pt-BR')}` : '';
+          return `<button onclick="fzVarLink(${i},${idx})" style="display:block;width:100%;text-align:left;background:#f5f3ff;border:1.5px solid #a78bfa;border-radius:7px;padding:6px 8px;font-size:10px;cursor:pointer;margin-bottom:4px;color:#18181b">
+            <strong>${idx+1}.</strong> ${label}<span style="color:#71717a">${dim}${vista}</span>
+          </button>`;
+        }).join('');
+    return `<div class="fz-var-panel" onclick="event.stopPropagation()">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        ${backBtn}
+        <span style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;flex:1">🔗 Vincular como variação</span>
+        ${closeBtn}
+      </div>
+      <div style="font-size:8px;color:#71717a;margin-bottom:8px">Selecione um item da lista para vincular como variação deste:</div>
+      <div style="max-height:180px;overflow-y:auto">${listHTML}</div>
     </div>`;
   }
 
@@ -2046,7 +2357,7 @@ function _calcVariacaoPVC10mm(larg, alt, hasInst, pinst) {
     return {
       items,
       vista: mk.vista, prazo: mk.prazo,
-      descricao: `Fornecimento${hasInst?' e instalação':''} de 1 unidade de Letreiro em PVC 10 mm medindo ${larg}×${alt} cm. Inclui pintura automotiva e corte router. Fixação com dupla face e cola.${hasInst?' Deslocamento incluso.':''}`,
+      descricao: `Fornecimento${hasInst?' e instalação':''} de 1 unidade de Letreiro em PVC 10 mm medindo ${larg}×${alt} cm. Inclui pintura automotiva e corte router. Fixação com dupla face e cola.${hasInst?' Deslocamento incluso.':' Instalação não inclusa. Deslocamento não incluso.'}`,
       nomeItem: 'Letreiro em PVC 10 mm',
       meta: {
         svcLabel: svcEntry?.label || 'Letreiro em PVC',
@@ -2097,7 +2408,7 @@ function _calcVariacaoAcr10mm(larg, alt, hasInst, pinst) {
     return {
       items,
       vista: mk.vista, prazo: mk.prazo,
-      descricao: `Fornecimento${hasInst?' e instalação':''} de 1 unidade de Letreiro em Acrílico 10 mm medindo ${larg}×${alt} cm. Inclui pintura automotiva e corte laser. Fixação com dupla face e cola.${hasInst?' Deslocamento incluso.':''}`,
+      descricao: `Fornecimento${hasInst?' e instalação':''} de 1 unidade de Letreiro em Acrílico 10 mm medindo ${larg}×${alt} cm. Inclui pintura automotiva e corte laser. Fixação com dupla face e cola.${hasInst?' Deslocamento incluso.':' Instalação não inclusa. Deslocamento não incluso.'}`,
       nomeItem: 'Letreiro em Acrílico 10 mm',
       meta: {
         svcLabel: svcEntry?.label || 'Letreiro em Acrílico',
@@ -2960,7 +3271,7 @@ function addPanelFormalizar() {
   const _apfEsp = svc.finMat?.[_addPanelFinishIdx]?.e || fin.label || '';
   const _apfNomeItem = ['letreiro_pvc_flat','letreiro_acr','placa','painel'].includes(svc.id) ? _buildNomeItem(svc.id, svc.label, _apfEsp) : '';
   const _apfLabel = _apfNomeItem || svc.label;
-  const _apfInstStr=_addPanelLogistica==='Instalação'||_addPanelLogistica==='Retirada + Instalação'?' e instalação':_addPanelLogistica==='Entrega'?' e entrega':'';
+  const _apfInstStr = _addPanelLogistica==='instalacao' ? ' e instalação' : _addPanelLogistica==='entrega' ? ' e entrega' : '';
   const _apfQtdStr=qtd===1?'1 unidade':`${qtd} unidades`;
   // Inclui + Fixação por tipo de serviço
   let _apfIncluiStr='',_apfFixStr='';
@@ -2975,7 +3286,13 @@ function addPanelFormalizar() {
   }
   const _apfDeslVal=_addPanelLogistica!=='fornecimento'&&(svc.calcSvc==='letreiro_acrilico'||svc.calcSvc==='letreiro_pvc')?15:0;
   const _apfDeslStr=_apfDeslVal>0?` Deslocamento incluso (${dlbl(_apfDeslVal)}).`:'';
-  const _apfAutoDesc=`Fornecimento${_apfInstStr} de ${_apfQtdStr} de ${_apfLabel} medindo ${larg}×${alt} cm.${_apfIncluiStr}${_apfFixStr}${_apfDeslStr}`;
+  // "não incluso" — instalação, corte, impressão
+  const _apfNotParts=[];
+  if(_addPanelLogistica==='fornecimento') _apfNotParts.push('Instalação não inclusa');
+  if(svc.calcSvc==='letreiro_acrilico'){if(!_addPanelCorteOn)_apfNotParts.push('Corte não incluso');if(!_addPanelImpOn)_apfNotParts.push('Pintura não inclusa');}
+  else if(svc.calcSvc==='letreiro_pvc'){if(!_addPanelCorteOn)_apfNotParts.push('Corte não incluso');if(!_addPanelImpOn)_apfNotParts.push('Pintura não inclusa');}
+  const _apfNotStr=_apfNotParts.map(s=>` ${s}.`).join('');
+  const _apfAutoDesc=`Fornecimento${_apfInstStr} de ${_apfQtdStr} de ${_apfLabel} medindo ${larg}×${alt} cm.${_apfIncluiStr}${_apfFixStr}${_apfDeslStr}${_apfNotStr}`;
   const newSvc = {meta, items, vista:mk.vista, prazo:mk.prazo, prazo_entrega:10, descricao:_apfAutoDesc, nomeItem:_apfNomeItem, qtd_pdf:qtd||1};
   if (_addPanelEditMode && _addPanelEditIdx !== null) {
     // Edit mode: replace existing service
@@ -3928,7 +4245,7 @@ function _buildOrcHTML(d){
         <table><tbody>
           ${d.empresa?`<tr><td class="lbl">Empresa:</td><td class="val">${d.empresa}</td></tr>`:''}
           <tr><td class="lbl">Responsável:</td><td class="val">${d.cliente||'—'}</td></tr>
-          ${d.cnpj?`<tr><td class="lbl">CNPJ:</td><td class="val">${d.cnpj}</td></tr>`:''}
+          ${d.cnpj?`<tr><td class="lbl">CNPJ/CPF:</td><td class="val">${d.cnpj}</td></tr>`:''}
           ${d.telefone?`<tr><td class="lbl">Telefone:</td><td class="val">${d.telefone}</td></tr>`:''}
           ${d.email?`<tr><td class="lbl">E-mail:</td><td class="val">${d.email}</td></tr>`:''}
         </tbody></table>
@@ -4325,11 +4642,14 @@ async function fzSalvarNoCRM() {
   const servicos = _fzServicesList.map(svc=>({
     item: svc.nomeItem||svc.meta.svcLabel||'Serviço',
     descricao: svc.descricao||'',
-    unidades: 1,
+    unidades: svc.qtd_pdf||1,
     operacional_pct:30, comissao_pct:100, imposto_pct:10, juros_pct:10,
     preco_final: parseFloat((svc.prazo||0).toFixed(2)),
     preco_vista: parseFloat((svc.vista||0).toFixed(2)),
-    itens: svc.items||[]
+    itens: svc.items||[],
+    varGrupo: svc.meta?.varGrupo||null,
+    varAprovada: svc.meta?.varAprovada||false,
+    isVariacao: svc.meta?.isVariacao||false
   }));
   const totalVista = _fzServicesList.reduce((s,svc)=>s+(svc.vista||0), 0);
   const totalPrazo = _fzServicesList.reduce((s,svc)=>s+(svc.prazo||0), 0);
@@ -4432,52 +4752,110 @@ async function fzSalvarNoCRM() {
 
 function fzGerarPDF() {
   if (!_fzRequireCliente()) return;
-  // descrição já está em _fzServicesList[i].descricao (via oninput nos cards inline)
-  const R=v=>'R$ '+Number(v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
-  const total_prazo=_fzServicesList.reduce((s,svc)=>s+(svc.prazo||0),0);
-  const total_vista=_fzServicesList.reduce((s,svc)=>s+(svc.vista||0),0);
-  // Oculta total quando existem itens de variação (alternativas — soma não faz sentido)
-  const _pdfHideTotal = _fzServicesList.some(svc => svc.meta?.varGrupo);
-  const serviceRows=_fzServicesList.map((svc,idx)=>{
-    const _nomePDF = svc.nomeItem || '';
-    const _descPDF = svc.descricao || '';
-    const desc = _nomePDF
-      ? (_descPDF ? `<strong>${_nomePDF}:</strong><br>${_descPDF}` : `<strong>${_nomePDF}</strong>`)
-      : (_descPDF || [svc.meta.svcLabel, svc.meta.dim].filter(Boolean).join(' — '));
-    return `<tr>
-      <td class="col-num">${idx+1}</td>
-      <td class="col-desc">${desc}</td>
-      <td class="col-units">${svc.qtd_pdf||1}</td>
-      <td class="col-price">${R(svc.prazo||0)}</td>
-      <td class="col-price">${R(svc.prazo||0)}</td>
-      <td class="col-price col-vista">${R(svc.vista||0)}</td>
-    </tr>`;
-  }).join('');
-  const html=_buildOrcHTML({
-    numero:_getOrcNum(),
-    empresa:_clienteEmpresa,
-    cliente:_clienteContato,
-    telefone:_clienteFone,
-    email:_clienteEmail,
-    cnpj:_clienteCnpj,
-    data:new Date().toLocaleDateString('pt-BR'),
-    responsavel:'Marcelo Duarte',
+  const R = v => 'R$ ' + Number(v).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  const letters = 'ABCDEFGH';
+
+  // Agrupa serviços: normais (sem varGrupo) e por grupo de variação
+  const rows = [];
+  let rowNum = 0;
+  let total_prazo = 0;
+  let total_vista = 0;
+  const renderedIdx = new Set();
+
+  _fzServicesList.forEach((svc, idx) => {
+    if (renderedIdx.has(idx)) return;
+    const g = svc.meta?.varGrupo;
+    if (g) {
+      // Coletar todos os itens deste grupo em ordem
+      const grpItems = [];
+      _fzServicesList.forEach((sv, si) => {
+        if (sv.meta?.varGrupo === g) { grpItems.push({sv, si}); renderedIdx.add(si); }
+      });
+      if (!grpItems.length) return;
+      rowNum++;
+      // Cabeçalho do grupo de variações
+      const grpHeaderRow = `<tr>
+        <td class="col-num" style="vertical-align:top;padding-top:8px">${rowNum}</td>
+        <td colspan="5" style="padding:0">
+          <div style="font-size:9px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.06em;padding:6px 8px 2px">Variações — escolha uma opção</div>
+          <table style="width:100%;border-collapse:collapse">
+            ${grpItems.map(({sv}, pos) => {
+              const letter = letters[pos] || (pos+1);
+              const _nomePDF = sv.nomeItem || '';
+              const _descPDF = sv.descricao || '';
+              const desc = _nomePDF
+                ? (_descPDF ? `<strong>${_nomePDF}:</strong><br>${_descPDF}` : `<strong>${_nomePDF}</strong>`)
+                : (_descPDF || [sv.meta?.svcLabel, sv.meta?.dim].filter(Boolean).join(' — '));
+              const isAprov = !!sv.meta?.varAprovada;
+              const badgeStyle = isAprov
+                ? 'background:#dcfce7;color:#166534;border:1.5px solid #86efac'
+                : 'background:#f5f3ff;color:#6d28d9;border:1.5px solid #c4b5fd';
+              return `<tr style="border-bottom:1px solid #f1f5f9">
+                <td style="width:32px;padding:5px 6px;vertical-align:top">
+                  <span style="display:inline-block;min-width:22px;text-align:center;font-size:9px;font-weight:800;padding:2px 5px;border-radius:5px;${badgeStyle}">${letter}${isAprov?' ✓':''}</span>
+                </td>
+                <td style="padding:5px 6px;font-size:10px;color:#18181b;line-height:1.5">${desc}</td>
+                <td style="width:36px;padding:5px 4px;font-size:10px;text-align:center;color:#64748b">${sv.qtd_pdf||1}</td>
+                <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R(sv.prazo||0)}</td>
+                <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R(sv.prazo||0)}</td>
+                <td style="width:88px;padding:5px 6px;font-size:10px;text-align:right;font-weight:700;color:#0f766e">${R(sv.vista||0)}</td>
+              </tr>`;
+            }).join('')}
+          </table>
+        </td>
+      </tr>`;
+      rows.push(grpHeaderRow);
+      // Somente adiciona ao total a variação aprovada (ou a primeira se nenhuma aprovada)
+      const aprovada = grpItems.find(({sv}) => sv.meta?.varAprovada) || grpItems[0];
+      total_prazo += aprovada.sv.prazo || 0;
+      total_vista += aprovada.sv.vista || 0;
+    } else {
+      renderedIdx.add(idx);
+      rowNum++;
+      total_prazo += svc.prazo || 0;
+      total_vista += svc.vista || 0;
+      const _nomePDF = svc.nomeItem || '';
+      const _descPDF = svc.descricao || '';
+      const desc = _nomePDF
+        ? (_descPDF ? `<strong>${_nomePDF}:</strong><br>${_descPDF}` : `<strong>${_nomePDF}</strong>`)
+        : (_descPDF || [svc.meta.svcLabel, svc.meta.dim].filter(Boolean).join(' — '));
+      rows.push(`<tr>
+        <td class="col-num">${rowNum}</td>
+        <td class="col-desc">${desc}</td>
+        <td class="col-units">${svc.qtd_pdf||1}</td>
+        <td class="col-price">${R(svc.prazo||0)}</td>
+        <td class="col-price">${R(svc.prazo||0)}</td>
+        <td class="col-price col-vista">${R(svc.vista||0)}</td>
+      </tr>`);
+    }
+  });
+
+  const serviceRows = rows.join('');
+  const html = _buildOrcHTML({
+    numero: _getOrcNum(),
+    empresa: _clienteEmpresa,
+    cliente: _clienteContato,
+    telefone: _clienteFone,
+    email: _clienteEmail,
+    cnpj: _clienteCnpj,
+    data: new Date().toLocaleDateString('pt-BR'),
+    responsavel: 'Marcelo Duarte',
     serviceRows,
     total_prazo,
     total_vista,
-    hideTotal: _pdfHideTotal,
-    descricao:'',
-    prazo_texto:'Em até 7 dias úteis, após a aprovação das artes e definição do pagamento.',
-    validade_texto:'60 dias.'
+    hideTotal: false,
+    descricao: '',
+    prazo_texto: `Em até ${_fzPrazoGlobal||10} dia${(_fzPrazoGlobal||10)===1?'':'s'} úteis, após a aprovação das artes e definição do pagamento.`,
+    validade_texto: '60 dias.'
   });
-  const _pdfCliente=(_clienteEmpresa||_clienteContato||'').replace(/[^\w\sÀ-ú]/g,'').trim();
-  const _pdfTitle=_getOrcNum()+(_pdfCliente?' - '+_pdfCliente:'')+' - Orçamento Design Visual';
-  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
-  const blobUrl=URL.createObjectURL(blob);
-  const w=window.open(blobUrl,'_blank','width=900,height=700');
-  if(!w){URL.revokeObjectURL(blobUrl);alert('Permita pop-ups para gerar o PDF.');return;}
-  w.addEventListener('load',()=>{try{w.document.title=_pdfTitle;}catch(e){}});
-  setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);
+  const _pdfCliente = (_clienteEmpresa||_clienteContato||'').replace(/[^\w\sÀ-ú]/g,'').trim();
+  const _pdfTitle = _getOrcNum()+(_pdfCliente?' - '+_pdfCliente:'')+' - Orçamento Design Visual';
+  const blob = new Blob([html], {type:'text/html;charset=utf-8'});
+  const blobUrl = URL.createObjectURL(blob);
+  const w = window.open(blobUrl, '_blank', 'width=900,height=700');
+  if (!w) { URL.revokeObjectURL(blobUrl); alert('Permita pop-ups para gerar o PDF.'); return; }
+  w.addEventListener('load', () => { try { w.document.title = _pdfTitle; } catch(e){} });
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
 }
 
 // ── Step 1 validation ──
@@ -5234,7 +5612,13 @@ function _adCalcRun(){
     ?` Inclui ${_incluiParts.length===1?_incluiParts[0]:_incluiParts.slice(0,-1).join(', ')+' e '+_incluiParts.at(-1)}.`
     :'';
   const _deslocStr=deslocOn&&desloc>0?` Deslocamento incluso (${dlbl(desloc)}).`:'';
-  const descF=`Fornecimento${_instStr} de ${_qtdStr} de ${_tipoLabel} medindo ${larg}×${alt} cm${_camadasExtra}.${_incluiStr}${_deslocStr}`;
+  const _adNotParts=[];
+  if(!instOn)_adNotParts.push('Instalação não inclusa');
+  if(!deslocOn||desloc===0)_adNotParts.push('Deslocamento não incluso');
+  if(!_hasImp)_adNotParts.push('Impressão digital não inclusa');
+  if(!_hasRec)_adNotParts.push('Recorte eletrônico não incluso');
+  const _adNotStr=_adNotParts.map(s=>` ${s}.`).join('');
+  const descF=`Fornecimento${_instStr} de ${_qtdStr} de ${_tipoLabel} medindo ${larg}×${alt} cm${_camadasExtra}.${_incluiStr}${_deslocStr}${_adNotStr}`;
   const de=document.getElementById('ad-desc');if(de)de.value=descF;
   _adResu={items:[{label:'Material (camadas)',val:cu_mat*qtd},{label:'Impressão digital',val:cu_imp*qtd},{label:'Recorte Eletrônico',val:cu_rec*qtd},{label:'Transfer',val:cu_trf*qtd},{label:'Instalação',val:instOn?cu_inst*qtd:0},{label:'Retirada',val:retOn?cu_ret*qtd:0},{label:'Deslocamento',val:desloc},{label:'Ajuste',val:modif}].filter(it=>it.val>0),meta:{svcLabel:_svcLabelMap[_adTipo]||'Adesivo vinílico',svcIcon:'🪟',dim:`${larg}×${alt} cm${qtd>1?' × '+qtd+' un':''}`,finish:`${_adCamadas.length} camada${_adCamadas.length>1?'s':''}`,lastCalc:'anterior',lastInputs:{calcType:'anterior',calcSvc:'adesivo',tipo:_adTipo,camadas:JSON.parse(JSON.stringify(_adCamadas)),larg,alt,qtd,instOn,pinst,desloc,ajuste:modif}},vista,prazo};
   document.getElementById('ad-resultado').innerHTML=`<div class="bk-title">📊 Breakdown</div><div style="font-size:11px;color:#71717a;margin-bottom:10px">${larg}×${alt}cm — ${qtd}un — ${fmtN(area_m2)}m²/un</div>${bkRow(`Material camadas (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$${mRate}/m²`,cu_mat*qtd)}${cu_imp>0?bkRow(`Impressão digital (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$20/m²`,cu_imp*qtd):''}${cu_rec>0?bkRow(`Recorte Eletrônico (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$20/m²`,cu_rec*qtd):''}${cu_trf>0?bkRow(`Transfer (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$15/m²`,cu_trf*qtd):''}${instOn&&pinst>0?bkRow(`Instalação (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$${pinst}/m²`,cu_inst*qtd):''}${retOn&&pret>0?bkRow(`Retirada (×${qtd})`,`${qtd}un × ${fmtN(area_m2)}m² × R$${pret}/m²`,cu_ret*qtd):''}${desloc>0?`<div class="bk-row"><span class="bk-lbl">Deslocamento (${dlbl(desloc)})</span><span class="bk-val">${fmt(desloc)}</span></div>`:''}${modif!==0?bkRow('Ajuste manual','valor manual',modif):''}<div class="bk-total-row"><span>Custo Total (C)</span><span>${fmt(C)}</span></div>${markupRows(oper,com,imp)}${priceBoxes(vista,prazo,qtd)}`;
@@ -6232,7 +6616,8 @@ function _letreiroCalcRun(){
   }
   const _letFixStr=' Fixação com dupla face e cola.';
   const _letDeslStr=desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':'';
-  const descF=`Fornecimento${_letInstStr} de ${_letQtdStr} de Letreiro em ${l_espLabel}${_letNomeStr} medindo ${larg0}×${alt0} cm.${_letIncluiStr}${_letFixStr}${_letDeslStr}`;
+  const _letInstNotStr=!instOn?' Instalação não inclusa.':'';
+  const descF=`Fornecimento${_letInstStr} de ${_letQtdStr} de Letreiro em ${l_espLabel}${_letNomeStr} medindo ${larg0}×${alt0} cm.${_letIncluiStr}${_letFixStr}${_letDeslStr}${_letInstNotStr}`;
   const dp=document.getElementById('l_desc_preview');if(dp)dp.value=descF;
   const camadasBk=_letCamadas.map((cam,i)=>{
     const r=ACR_IMP[cam.impType]||ACR_IMP.pintura;const q=cam.qtd||1;
@@ -6337,7 +6722,8 @@ function _pvcCalcRun(){
   }
   const _pvcFixStr=' Fixação com dupla face e cola.';
   const _pvcDeslStr=desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':'';
-  const descF=`Fornecimento${_pvcInstStr} de ${_pvcQtdStr} de Letreiro em ${pv_espLabel}${_pvcNomeStr} medindo ${larg0}×${alt0} cm.${_pvcIncluiStr}${_pvcFixStr}${_pvcDeslStr}`;
+  const _pvcInstNotStr=!instOn?' Instalação não inclusa.':'';
+  const descF=`Fornecimento${_pvcInstStr} de ${_pvcQtdStr} de Letreiro em ${pv_espLabel}${_pvcNomeStr} medindo ${larg0}×${alt0} cm.${_pvcIncluiStr}${_pvcFixStr}${_pvcDeslStr}${_pvcInstNotStr}`;
   const dp=document.getElementById('pv_desc_preview');if(dp)dp.value=descF;
   const pvcCamadasBk=_pvcCamadas.map((cam,i)=>{
     const r=PVC_IMP[cam.impType]||PVC_IMP.pintura;const q=cam.qtd||1;
@@ -6410,7 +6796,8 @@ function _placaCalcRun(){
   const placaCamadasDesc=_placaCamadas.length>1?` Camadas: ${_placaCamadas.map((c,i)=>(`C${i+1}: ${c.impType==='uv'?'UV':'Digital'}`)).join(', ')}.`:'';
   const _placaImpLC=impDesc.charAt(0).toLowerCase()+impDesc.slice(1);
   const _placaQtdStr=qtd>1?`, ${qtd} unidades`:`, 1 unidade`;
-  const descF=`Fornecimento${instStr} de ${qtd===1?'1 unidade':`${qtd} unidades`} de Placa de Identificação em ${matLabel} medindo ${larg}×${alt} cm. Inclui ${_placaImpLC}.${placaCamadasDesc}${desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':''}`;
+  const _placaInstNotStr=!instOn?' Instalação não inclusa.':'';
+  const descF=`Fornecimento${instStr} de ${qtd===1?'1 unidade':`${qtd} unidades`} de Placa de Identificação em ${matLabel} medindo ${larg}×${alt} cm. Inclui ${_placaImpLC}.${placaCamadasDesc}${desloc>0?' Deslocamento incluso ('+dlbl(desloc)+').':''}${_placaInstNotStr}`;
   const dp=document.getElementById('p_desc_preview');if(dp)dp.value=descF;
   const C=cu_mat+(c_c+c_i+c_v+c_l+c_ad+(instOn?c_inst:0)+c_f)*qtd+desloc;
   const {oper,com,imp,vista,prazo}=applyMarkup(C);
@@ -6436,6 +6823,12 @@ function _placaCalcRun(){
   if (d.telefone) _clienteFone = d.telefone;
   if (d.email) _clienteEmail = d.email;
   if (d.cnpj)  _clienteCnpj = d.cnpj;
+  // Restaura prazo de entrega
+  if (d.prazo_entrega) {
+    _fzPrazoGlobal = d.prazo_entrega;
+    const prazoEl = document.getElementById('fz-prazo-global');
+    if (prazoEl) prazoEl.value = d.prazo_entrega;
+  }
   // Preenche serviços
   if (d.servicos && d.servicos.length) {
     _fzServicesList = d.servicos;
@@ -6443,12 +6836,16 @@ function _placaCalcRun(){
   }
   // Marca como orçamento já existente para que "Salvar" seja tratado como "Atualizar"
   if (d.id) _fzSavedOrcId = d.id;
+  if (d.numero) _fzSavedOrcNum = d.numero;
   // Vai direto para o step 4 (Formalizar)
   goStep(4);
   // Mostra tag de cliente se dados preenchidos + atualiza botão salvar
   setTimeout(() => {
     renderFzClientSummary && renderFzClientSummary();
     _fzUpdateSalvarBtn();
+    // Garante que o input de prazo mostra o valor correto após goStep renderizar
+    const prazoEl2 = document.getElementById('fz-prazo-global');
+    if (prazoEl2 && d.prazo_entrega) prazoEl2.value = d.prazo_entrega;
   }, 100);
 
   // Seleciona todo o conteúdo ao focar qualquer input (exceto checkbox/radio/file)
