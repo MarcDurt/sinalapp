@@ -1230,8 +1230,21 @@ function editOrcamento(id){
     telefone:o.telefone||'', email:o.email||'', cnpj:o.cnpj||'',
     prazo_entrega:o.prazo_entrega||7,
     servicos:_svcs.map((sv,si)=>({
-      meta:{svcLabel:sv.item||'Serviço',svcIcon:'📋',dim:'',finish:''},
-      items:[], nomeItem:sv.item||'Serviço',
+      // Repassa meta salvo (com lastCalc, lastInputs, etc.) para permitir re-edição
+      meta: sv.meta ? {
+        svcLabel: sv.meta.svcLabel||sv.item||'Serviço',
+        svcIcon: sv.meta.svcIcon||'📋',
+        dim: sv.meta.dim||'',
+        finish: sv.meta.finish||'',
+        material: sv.meta.material||'',
+        lastCalc: sv.meta.lastCalc||null,
+        svcsIdx: sv.meta.svcsIdx??-1,
+        lastInputs: sv.meta.lastInputs||null,
+        varGrupo: sv.meta.varGrupo||null,
+        varAprovada: sv.meta.varAprovada||false,
+        isVariacao: sv.meta.isVariacao||false
+      } : {svcLabel:sv.item||'Serviço',svcIcon:'📋',dim:'',finish:''},
+      items: sv.itens||[], nomeItem:sv.item||'Serviço',
       prazo: sv.preco_final||0,
       vista: sv.preco_vista||(sv.preco_final||0)*0.91,
       descricao:sv.descricao||''

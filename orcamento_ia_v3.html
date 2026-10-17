@@ -1677,7 +1677,29 @@ function fzEditService(i) {
     else if (/misto/.test(_lbl)) svcsIdx = 10;
   }
   if (svcsIdx < 0) {
-    // Serviço sem correspondência conhecida e sem lastCalc='completa' → sem ação
+    // Serviço sem correspondência conhecida → abre calculadora completa como fallback
+    _addPanelEditMode = true;
+    _addPanelEditIdx  = i;
+    _addPanelSvcIdx   = null;
+    svc.meta.lastCalc = svc.meta.lastCalc || 'completa';
+    const panel = document.getElementById('fz-add-panel');
+    const btn   = document.getElementById('btn-add-svc');
+    if (panel) panel.style.display = 'block';
+    if (btn)   btn.classList.add('open');
+    const grid = document.getElementById('fz-add-svc-grid');
+    if (grid) { grid.innerHTML = ''; grid.style.display = 'none'; }
+    const gridCalc = document.getElementById('fz-grid-calc-panel');
+    if (gridCalc) gridCalc.style.display = 'none';
+    const cfg = document.getElementById('fz-add-svc-config');
+    if (cfg) {
+      cfg.innerHTML = '<div id="fz-add-calc-container" style="display:none;margin-top:0;border-top:none;padding-top:0"></div>';
+      cfg.style.display = 'block';
+    }
+    setTimeout(() => {
+      _openCalcCompleta();
+      if (svc.meta.lastInputs) setTimeout(() => _restoreCalcState(svc), 200);
+    }, 60);
+    panel?.scrollIntoView({behavior:'smooth', block:'start'});
     return;
   }
   // Set edit state
@@ -4648,7 +4670,7 @@ async function fzSalvarNoCRM() {
 
   // 3. Montar serviços
   const servicos = _fzServicesList.map(svc=>({
-    item: svc.nomeItem||svc.meta.svcLabel||'Serviço',
+    item: svc.nomeItem||svc.meta?.svcLabel||'Serviço',
     descricao: svc.descricao||'',
     unidades: svc.qtd_pdf||1,
     operacional_pct:30, comissao_pct:100, imposto_pct:10, juros_pct:10,
@@ -4657,7 +4679,21 @@ async function fzSalvarNoCRM() {
     itens: svc.items||[],
     varGrupo: svc.meta?.varGrupo||null,
     varAprovada: svc.meta?.varAprovada||false,
-    isVariacao: svc.meta?.isVariacao||false
+    isVariacao: svc.meta?.isVariacao||false,
+    // Preserva meta completo para permitir re-edição do orçamento
+    meta: svc.meta ? {
+      lastCalc: svc.meta.lastCalc||null,
+      svcsIdx: svc.meta.svcsIdx??-1,
+      lastInputs: svc.meta.lastInputs||null,
+      svcLabel: svc.meta.svcLabel||'',
+      svcIcon: svc.meta.svcIcon||'📋',
+      dim: svc.meta.dim||'',
+      finish: svc.meta.finish||'',
+      material: svc.meta.material||'',
+      varGrupo: svc.meta.varGrupo||null,
+      varAprovada: svc.meta.varAprovada||false,
+      isVariacao: svc.meta.isVariacao||false
+    } : {}
   }));
   const totalVista = _fzServicesList.reduce((s,svc)=>s+(svc.vista||0), 0);
   const totalPrazo = _fzServicesList.reduce((s,svc)=>s+(svc.prazo||0), 0);
@@ -6947,7 +6983,23 @@ function _placaCalcRun(){
   }
   // Preenche serviços
   if (d.servicos && d.servicos.length) {
-    _fzServicesList = d.servicos;
+    _fzServicesList = d.servicos.map(svc => {
+      // Compatibilidade retroativa: garante meta mínimo para orçamentos salvos antes da v3.1
+      if (!svc.meta) {
+        svc.meta = {
+          svcLabel: svc.item || svc.nomeItem || 'Serviço',
+          svcIcon: '📋',
+          dim: '', finish: '', material: '',
+          lastCalc: null, svcsIdx: -1, lastInputs: null,
+          varGrupo: svc.varGrupo || null,
+          varAprovada: svc.varAprovada || false,
+          isVariacao: svc.isVariacao || false
+        };
+      }
+      // Garante array de items
+      if (!svc.items) svc.items = svc.itens || [];
+      return svc;
+    });
     _fzEditingIdx = 0;
   }
   // Marca como orçamento já existente para que "Salvar" seja tratado como "Atualizar"
