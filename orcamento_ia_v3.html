@@ -4847,7 +4847,7 @@ function fzGerarPDF() {
                 </td>
                 <td style="padding:5px 6px;font-size:10px;color:#18181b;line-height:1.5">${desc}</td>
                 <td style="width:36px;padding:5px 4px;font-size:10px;text-align:center;color:#64748b">${sv.qtd_pdf||1}</td>
-                <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R(sv.prazo||0)}</td>
+                <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R((sv.prazo||0)/(sv.qtd_pdf||1))}</td>
                 <td style="width:80px;padding:5px 6px;font-size:10px;text-align:right;color:#64748b">${R(sv.prazo||0)}</td>
                 <td style="width:88px;padding:5px 6px;font-size:10px;text-align:right;font-weight:700;color:#0f766e">${R(sv.vista||0)}</td>
               </tr>`;
@@ -4874,7 +4874,7 @@ function fzGerarPDF() {
         <td class="col-num">${rowNum}</td>
         <td class="col-desc">${desc}</td>
         <td class="col-units">${svc.qtd_pdf||1}</td>
-        <td class="col-price">${R(svc.prazo||0)}</td>
+        <td class="col-price">${R((svc.prazo||0)/(svc.qtd_pdf||1))}</td>
         <td class="col-price">${R(svc.prazo||0)}</td>
         <td class="col-price col-vista">${R(svc.vista||0)}</td>
       </tr>`);
@@ -4894,7 +4894,7 @@ function fzGerarPDF() {
     serviceRows,
     total_prazo,
     total_vista,
-    hideTotal: _fzServicesList.length > 0 && _fzServicesList.every(s => s.meta?.varGrupo),
+    hideTotal: (()=>{const grpApproved=new Set(),grpSeen=new Set();_fzServicesList.forEach(s=>{if(s.meta?.varGrupo){grpSeen.add(s.meta.varGrupo);if(s.meta.varAprovada)grpApproved.add(s.meta.varGrupo);}});const summable=_fzServicesList.filter(s=>!s.meta?.varGrupo).length+grpApproved.size;return summable<2;})(),
     descricao: '',
     prazo_texto: `Em até ${_fzPrazoGlobal||10} dia${(_fzPrazoGlobal||10)===1?'':'s'} úteis, após a aprovação das artes e definição do pagamento.`,
     validade_texto: '60 dias.'
