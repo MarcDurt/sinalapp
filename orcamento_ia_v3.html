@@ -1482,7 +1482,7 @@ function renderFzSvcList() {
             <div class="fz-svc-row-info" style="display:grid;grid-template-columns:52% 1fr;gap:8px;min-width:0;align-items:start">
               <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
                 <div style="display:flex;align-items:center;gap:4px;width:100%">
-                  <input class="fz-nome-item-inp" value="${(sv.nomeItem||sv.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:10px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
+                  <input class="fz-nome-item-inp" value="${(sv.nomeItem||sv.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].nomeItem=this.value;if(_addPanelEditMode&&_addPanelEditIdx===${idx})_saveCalcState(${idx})" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:10px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
                   ${confDot}
                 </div>
                 ${active
@@ -1493,6 +1493,10 @@ function renderFzSvcList() {
               <div style="min-width:0;display:flex;flex-direction:column;gap:1px">
                 ${breakdown?`<div style="font-size:9px;color:#71717a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${breakdown}</div>`:''}
                 ${dimInfo?`<div style="font-size:9px;color:#a1a1aa">${dimInfo}</div>`:''}
+                <div onclick="event.stopPropagation()" style="display:flex;align-items:center;gap:4px;margin-top:2px">
+                  <span style="font-size:9px;color:#94a3b8;white-space:nowrap">Unid. PDF:</span>
+                  <input type="number" min="1" value="${sv.qtd_pdf||1}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${idx}].qtd_pdf=Math.max(1,+this.value||1)" style="width:52px;padding:2px 4px;border:1.5px solid #cbd5e1;border-radius:5px;font-size:10px;font-weight:600;color:#35597F;background:#f8fafc;text-align:center">
+                </div>
               </div>
             </div>
             <div class="fz-svc-row-prices">
@@ -1526,7 +1530,7 @@ function renderFzSvcList() {
           <div class="fz-svc-row-info" style="display:grid;grid-template-columns:52% 1fr;gap:8px;min-width:0;align-items:start">
             <div style="min-width:0;display:flex;flex-direction:column;gap:2px">
               <div style="display:flex;align-items:center;gap:4px;width:100%">
-                <input class="fz-nome-item-inp" value="${(svc.nomeItem||svc.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].nomeItem=this.value" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:13px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
+                <input class="fz-nome-item-inp" value="${(svc.nomeItem||svc.meta.svcLabel).replace(/"/g,'&quot;')}" onclick="event.stopPropagation()" onfocus="event.stopPropagation()" oninput="event.stopPropagation();_fzServicesList[${i}].nomeItem=this.value;if(_addPanelEditMode&&_addPanelEditIdx===${i})_saveCalcState(${i})" style="flex:1;min-width:0;padding:2px 5px;border:1.5px solid ${active?'#93c5fd':'transparent'};border-radius:5px;font-size:13px;font-weight:700;color:#18181b;background:${active?'#eff6ff':'transparent'};cursor:${active?'text':'default'};pointer-events:${active?'auto':'none'}">
                 ${confDot}
               </div>
               ${active
@@ -1786,6 +1790,7 @@ function fzCloseEditPanel() {
   const btn   = document.getElementById('btn-add-svc');
   if (panel) panel.style.display = 'none';
   if (btn) btn.classList.remove('open');
+  if (_addPanelEditIdx !== null) _saveCalcState(_addPanelEditIdx);
   _addPanelEditMode    = false;
   _addPanelEditIdx     = null;
   _addPanelSvcIdx      = null;
@@ -3325,6 +3330,7 @@ function addPanelFormalizar() {
     newSvc.nomeItem  = existing?.nomeItem  || _apfNomeItem;
     newSvc.prazo_entrega = existing?.prazo_entrega ?? 10;
     newSvc.qtd_pdf = existing?.qtd_pdf ?? (qtd||1);
+    if(existing?.meta?.varGrupo){newSvc.meta.varGrupo=existing.meta.varGrupo;newSvc.meta.varAprovada=existing.meta.varAprovada;newSvc.meta.isVariacao=existing.meta.isVariacao;}
     _fzServicesList[_addPanelEditIdx] = newSvc;
     _fzEditingIdx = _addPanelEditIdx;
   } else if (_fzAddMode || !_fzServicesList.length) {
@@ -4685,6 +4691,7 @@ async function fzSalvarNoCRM() {
       lastCalc: svc.meta.lastCalc||null,
       svcsIdx: svc.meta.svcsIdx??-1,
       lastInputs: svc.meta.lastInputs||null,
+      _apcState: svc.meta._apcState||null,
       svcLabel: svc.meta.svcLabel||'',
       svcIcon: svc.meta.svcIcon||'📋',
       dim: svc.meta.dim||'',
@@ -5902,6 +5909,7 @@ function _calcFzPush(meta,items,vista,prazo,desc,qtd){
     newSvc.nomeItem=existing?.nomeItem||'';
     newSvc.prazo_entrega=existing?.prazo_entrega??10;
     newSvc.qtd_pdf=existing?.qtd_pdf??Math.max(1,+qtd||1);
+    if(existing?.meta?.varGrupo){newSvc.meta.varGrupo=existing.meta.varGrupo;newSvc.meta.varAprovada=existing.meta.varAprovada;newSvc.meta.isVariacao=existing.meta.isVariacao;}
     _fzServicesList[_addPanelEditIdx]=newSvc;
     _fzEditingIdx=_addPanelEditIdx;
     _addPanelEditMode=false; _addPanelEditIdx=null; _addPanelInAdvanced=false;
