@@ -4894,7 +4894,7 @@ function fzGerarPDF() {
     serviceRows,
     total_prazo,
     total_vista,
-    hideTotal: (()=>{const grpApproved=new Set(),grpSeen=new Set();_fzServicesList.forEach(s=>{if(s.meta?.varGrupo){grpSeen.add(s.meta.varGrupo);if(s.meta.varAprovada)grpApproved.add(s.meta.varGrupo);}});const summable=_fzServicesList.filter(s=>!s.meta?.varGrupo).length+grpApproved.size;return summable<2;})(),
+    hideTotal: (()=>{const grpApproved=new Set(),grpSeen=new Set();_fzServicesList.forEach(s=>{if(s.meta?.varGrupo){grpSeen.add(s.meta.varGrupo);if(s.meta.varAprovada)grpApproved.add(s.meta.varGrupo);}});if(grpSeen.size===0)return false;const summable=_fzServicesList.filter(s=>!s.meta?.varGrupo).length+grpApproved.size;return summable<2;})(),
     descricao: '',
     prazo_texto: `Em até ${_fzPrazoGlobal||10} dia${(_fzPrazoGlobal||10)===1?'':'s'} úteis, após a aprovação das artes e definição do pagamento.`,
     validade_texto: '60 dias.'
