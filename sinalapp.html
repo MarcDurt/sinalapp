@@ -429,7 +429,7 @@ function loadState(){
             // Primeira resposta do Firebase: sempre aplicar (inicialização segura)
             _firstFired=true;
             Object.assign(S,doc.data());
-            if(_migrarEtapasV1()) saveState(); // migração única: remove etapa Consultoria
+            if(_migrarEtapasV1()|_migrarNumerosOrc()) saveState(); // migrações de dados
             localStorage.setItem('sinalapp_v1',JSON.stringify(S));
             resolve();
           } else {
@@ -475,6 +475,20 @@ function loadState(){
       }
     );
   });
+}
+// Migração: atribui número a orçamentos sem numero (importados antes da correção)
+function _migrarNumerosOrc(){
+  let changed=false;
+  (S.orcamentos||[]).forEach(o=>{
+    if(!o.numero){
+      const d=o.data?new Date(o.data+'T12:00:00'):new Date();
+      const pfx=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+      const seq=(S.orcamentos||[]).filter(x=>String(x.numero||'').startsWith(pfx)).length+1;
+      o.numero=pfx+String(seq).padStart(2,'0');
+      changed=true;
+    }
+  });
+  return changed;
 }
 // Migração única: remove etapa Consultoria (índice 0) — shift -1 em todos os cards
 function _migrarEtapasV1(){
@@ -782,7 +796,7 @@ function renderDashboard(){
     `<table><thead><tr><th>Nº</th><th>Cliente</th><th>Descrição</th><th>Data</th><th>Total</th><th>Status</th><th></th></tr></thead><tbody>
     ${S.orcamentos.slice(-8).reverse().map(o=>`
       <tr>
-        <td style="color:var(--text2)">#${o.numero}</td>
+        <td style="color:var(--text2)">#${o.numero||'—'}</td>
         <td>${o.cliente||'—'}</td>
         <td style="color:var(--text2)">${(o.descricao||'').slice(0,50)}</td>
         <td style="color:var(--text2)">${fmtDate(o.data)||'—'}</td>
@@ -936,7 +950,7 @@ function _orcListaHTML(){
       const hl=(txt)=>q&&txt&&txt.toLowerCase().includes(q)?`<mark style="background:var(--accent)30;border-radius:2px">${txt}</mark>`:txt;
       return`<tr style="${selectedOrcs.has(o.id)?'background:var(--bg2)':''}">
         <td><input type="checkbox" ${selectedOrcs.has(o.id)?'checked':''} onchange="toggleOrcSelect('${o.id}',this.checked)"></td>
-        <td>#${o.numero}</td>
+        <td>#${o.numero||'—'}</td>
         <td><strong>${hl(o.empresa||o.cliente||'—')}</strong>${o.empresa&&o.cliente?`<br><span style="color:var(--text2);font-size:11px">${hl(o.cliente)}</span><br><span style="color:var(--text3);font-size:10px">${hl(o.telefone||'')}</span>`:o.telefone?`<br><span style="color:var(--text3);font-size:10px">${hl(o.telefone)}</span>`:''}</td>
         <td style="color:var(--text2);font-size:12px">${(o.servicos||[]).length} serviço(s)</td>
         <td style="color:var(--text2);font-size:12px">${fmtDate(o.data)||'—'}</td>
@@ -5668,6 +5682,13 @@ async function executeImport(){
   statusEl.innerHTML='<span style="color:#60a5fa">⏳ Importando...</span>';
   const orc=data.orc;
   const card=data.crm;
+  // Auto-numerar se numero vier zerado ou ausente
+  if(!orc.numero){
+    const d=new Date();
+    const pfx=String(d.getFullYear()).slice(-2)+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+    const seq=S.orcamentos.filter(o=>String(o.numero||'').startsWith(pfx)).length+1;
+    orc.numero=pfx+String(seq).padStart(2,'0');
+  }
   // Defaults
   if(!orc.servicos) orc.servicos=[{item:orc.descricao||'Serviço',descricao:'',unidades:1,operacional_pct:30,comissao_pct:100,imposto_pct:10,juros_pct:10,preco_final:orc.total_prazo||0,itens:[]}];
   if(!orc.calcs) orc.calcs=[];
