@@ -5,6 +5,7 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Design Visual — Orçamentos, CRM & Financeiro</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjcyIDQzMCAyNDAgMjc0Ij48cGF0aCBmaWxsPSJ3aGl0ZSIgZD0iTTMwMS45NSw1MDMuMzlsLTEwOS45MS02My40NS0xMTAuMDMsNjMuNDl2MTI2Ljk1bDEwOS45OCw2My41NCwxMTAtNjMuNTEtLjA1LTEyNy4wMloiLz48cGF0aCBmaWxsPSIjNTg4OWM2IiBkPSJNMzAxLjk1LDUwMy4zOWwtMTA5LjkxLTYzLjQ1LTExMC4wMyw2My40OXYxMjYuOTVsMTA5Ljk4LDYzLjU0LDExMC02My41MS0uMDUtMTI3LjAyWk0xMjAuOTYsNjQxLjA2bDEuMzkuMTZjMzEuNDMsMi45OSw2MC44OC02LjE3LDg1LjI4LTI3LjEyLDE1LjI0LTEzLjc4LDE4LjQtMzAuMzgsMTEuMjgtNDYuNS0zLjgxLTguMjgtOC43OC0xMy4zNy0yMC4yNy0xNC45OCw4LjM1LDQuNzYsMTEuNzUsMTEuMTQsMTEuMDYsMTguODYtMS41NywxMC41Mi04LjIzLDE5LjgzLTIwLjQ5LDI3LjgxLTguOTcsNS40My0xOS43Nyw2LjcxLTMyLjQxLDMuOC0xMy42Mi0zLjctMjUuODctOS40LTM3LjEzLTE5LjM0LTcuNzYtNi4zOC0yMC4wMy0yMy44OS0yNi40Ni00MC4xMS0uMDItLjA0LS41NC0xLjI2LS45Ny0yLjE2di0zMi4xM2w2OS43OC00MC4yNi0uMDIuMDNjLTE4LjA1LDI1LjktMjQuNTUsNTYuMDUtMTguMjksODcuNiw0LjUxLDIwLjA0LDE3LjQyLDMwLjk1LDM0Ljk1LDMyLjY3LDkuMDguNzYsMTUuOTYtMS4wNywyMy4wMS0xMC4yOS04LjI1LDQuOTMtMTUuNDcsNC43NS0yMS44Ni4zNi04LjM5LTYuNTQtMTMuMjItMTYuOTEtMTQuMTUtMzEuNTEtLjMyLTEwLjQ4LDMuODgtMjAuNTIsMTIuNjItMzAuMDksOS45MS0xMC4wNSwyMC45LTE3LjkxLDM1LjEtMjIuODMsOS4zNC0zLjYxLDMwLjUzLTUuNjksNDcuNzktMy4zNWwzMC41NCwxNy42My4wMyw4MC4zMy0uMDItLjA0Yy0xMy4yNy0yOC42NS0zNi4wMy00OS40Ni02Ni40My01OS45Ni0xOS41OC02LjIxLTM1LjUxLS41Ni00NS44NCwxMy43MS01LjIzLDcuNDYtNy4xMiwxNC4zMi0yLjcxLDI1LjA2LS4xLTkuNjEsMy43LTE1Ljc2LDEwLjcxLTE5LjA2LDkuODctMy45NSwyMS4yNy0yLjg5LDM0LjM0LDMuNjcsOS4yMiw1LjAxLDE1Ljc2LDEzLjY5LDE5LjYyLDI2LjA3LDMuNjgsMTMuNjMsNC45MywyNy4wNywyLjAyLDQxLjgyLTEuNiw5LjkyLTEwLjUzLDI5LjM0LTIxLjI5LDQzLjA4LS4wMi4wMi0uNDQuNTktLjg4LDEuMjFsLTI5LjI3LDE2LjktNzEuMDMtNDEuMDNaIi8+PC9zdmc+">
@@ -172,11 +173,29 @@ tr:last-child td{border-bottom:none}
   <button class="nav-btn" onclick="goTab('crm')">Funil</button>
   <button class="nav-btn" onclick="goTab('tarefas')">Tarefas</button>
   <button class="nav-btn" onclick="goTab('financeiro')">Financeiro</button>
-  <button class="nav-btn" onclick="openImportModal()" style="margin-left:auto;color:#7dd3fc;border-bottom-color:transparent" title="Importar orçamento de Claude">📥 Importar</button><button class="nav-btn" onclick="openConfigApp()" title="Configurações do app" style="color:rgba(255,255,255,0.5);border-bottom-color:transparent;padding:14px 10px">⚙️</button>
+  <button class="nav-btn" onclick="openImportModal()" style="margin-left:auto;color:#7dd3fc;border-bottom-color:transparent" title="Importar orçamento de Claude">📥 Importar</button><button class="nav-btn" onclick="openConfigApp()" title="Configurações do app" style="color:rgba(255,255,255,0.5);border-bottom-color:transparent;padding:14px 10px">⚙️</button><button class="nav-btn" onclick="_authLogout()" title="Sair da conta" style="color:rgba(255,255,255,0.4);border-bottom-color:transparent;padding:14px 10px;font-size:15px">🔒</button>
 </nav>
 
 <div id="app"></div>
 <div id="toast"></div>
+
+<!-- ── AUTH OVERLAY ── Exibido até o login ser confirmado ── -->
+<div id="auth-overlay" style="position:fixed;inset:0;background:#0f1923;z-index:9999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#1a2b3c;border:1px solid #2a3f54;border-radius:12px;padding:36px 32px;width:300px;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.5)">
+    <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:4px">Design Visual CRM</div>
+    <div style="color:#94a3b8;font-size:13px;margin-bottom:24px">Entre para continuar</div>
+    <input id="auth-email" type="email" placeholder="E-mail" autocomplete="username"
+      style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3f54;background:#0f1923;color:#fff;font-size:14px;margin-bottom:10px;outline:none"
+      onkeydown="if(event.key==='Enter')document.getElementById('auth-pass').focus()">
+    <input id="auth-pass" type="password" placeholder="Senha" autocomplete="current-password"
+      style="width:100%;box-sizing:border-box;padding:10px 12px;border-radius:8px;border:1px solid #2a3f54;background:#0f1923;color:#fff;font-size:14px;margin-bottom:16px;outline:none"
+      onkeydown="if(event.key==='Enter')_authLogin()">
+    <div id="auth-err" style="color:#f87171;font-size:12px;margin-bottom:12px;display:none"></div>
+    <button onclick="_authLogin()"
+      style="width:100%;padding:11px;background:#2563eb;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s"
+      onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='#2563eb'">Entrar</button>
+  </div>
+</div>
 
 <script>
 // --- PRICE DATABASE ----------------------------------------------------------
@@ -359,6 +378,24 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 const db=firebase.firestore();
+const _auth=firebase.auth();
+
+// ── AUTH: login / logout ──
+function _authLogin(){
+  const email=(document.getElementById('auth-email')||{}).value||'';
+  const pass=(document.getElementById('auth-pass')||{}).value||'';
+  const errEl=document.getElementById('auth-err');
+  if(errEl){errEl.style.display='none';}
+  _auth.signInWithEmailAndPassword(email,pass).catch(e=>{
+    if(!errEl)return;
+    const msg=(e.code==='auth/wrong-password'||e.code==='auth/user-not-found'||e.code==='auth/invalid-credential')
+      ?'E-mail ou senha incorretos.'
+      :'Erro ao entrar. Tente novamente.';
+    errEl.textContent=msg;
+    errEl.style.display='block';
+  });
+}
+function _authLogout(){_auth.signOut();}
 
 let _saveTimer=null;
 function saveState(){
@@ -610,7 +647,7 @@ function calcServico(sv){
   const total_vista=Math.round((pre_imposto+custo_imposto)*100)/100;
   const total_prazo=Math.round(total_vista*(1+jr_pct)*100)/100;
   const result_total_prazo=sv.preco_final!=null?Number(sv.preco_final):total_prazo;
-  const result_total_vista=sv.preco_final!=null?Math.round(Number(sv.preco_final)/1.10*100)/100:total_vista;
+  const result_total_vista=sv.preco_final!=null?Math.floor(Number(sv.preco_final)/(1+jr_pct)):total_vista;
   return {
     itens_calc,subtotal,custo_operacional,custo_comissao,custo_imposto,
     total_prazo:result_total_prazo,total_vista:result_total_vista
@@ -2104,9 +2141,14 @@ function renderKanbanCard(card){
     dlTimer=dlDias<0?`⚠️ ${Math.abs(dlDias)}d em atraso`:dlDias===0?'⚡ Entrega HOJE':`⏱ ${dlDias}d restantes`;
   }
 
+  // Detecção de variação (A/B/C) — totais seriam incorretos (soma de todas as opções)
+  const hasVariacao=(orc?.servicos||[]).some(s=>s.varGrupo);
+
   // Bloco de valor
   const valorBlock=vFechado
     ?`<div style="margin-top:6px"><div class="kanban-card-val" style="color:var(--green)" title="Valor fechado">✓ ${BRL(vFechado)}</div></div>`
+    :hasVariacao
+    ?`<div style="margin-top:6px;font-size:11px;font-weight:600;color:#7c3aed;background:#f5f3ff;border:1px solid #c4b5fd;border-radius:4px;padding:4px 7px">⚠️ Variações — Ver detalhes</div>`
     :(vPrazo||vVista)?`<div style="display:flex;justify-content:space-between;margin-top:6px">
       ${vPrazo?`<div class="kanban-card-val" title="À prazo">⏱ ${BRL(vPrazo)}</div>`:''}
       ${vVista?`<div class="kanban-card-val" style="color:var(--accent)" title="À vista">💰 ${BRL(vVista)}</div>`:''}
@@ -6508,16 +6550,31 @@ function _bpSaveCaAtualiz(i,v){const bp=_getBP();if(bp.cantoneiras&&bp.cantoneir
 function _bpSaveAdAtualiz(i,v){const bp=_getBP();if(bp.adesivos&&bp.adesivos[i])bp.adesivos[i].atualizado=v;saveState();}
 // ── FIM BASE DE PREÇOS ───────────────────────────────────────────────────────
 
-loadState().then(async()=>{
-  await processPendingImport();
-  // Migrate CRM etapa indexes if still on old schema
-  if(!S.etapas_v2){
-    const MAP={0:1,1:2,2:3,3:4,4:5,5:6,6:7,7:8};
-    S.crm.forEach(c=>{if(MAP[c.etapa]!==undefined)c.etapa=MAP[c.etapa];});
-    S.etapas_v2=true;
-    saveState();
+// ── AUTH GUARD: só inicializa o app após autenticação confirmada ──
+let _appInitialized=false;
+_auth.onAuthStateChanged(user=>{
+  const overlay=document.getElementById('auth-overlay');
+  if(user){
+    // Usuário autenticado: esconde overlay e inicia o app (uma única vez)
+    if(overlay) overlay.style.display='none';
+    if(_appInitialized) return;
+    _appInitialized=true;
+    loadState().then(async()=>{
+      await processPendingImport();
+      // Migrate CRM etapa indexes if still on old schema
+      if(!S.etapas_v2){
+        const MAP={0:1,1:2,2:3,3:4,4:5,5:6,6:7,7:8};
+        S.crm.forEach(c=>{if(MAP[c.etapa]!==undefined)c.etapa=MAP[c.etapa];});
+        S.etapas_v2=true;
+        saveState();
+      }
+      render();
+    });
+  } else {
+    // Não autenticado: garante overlay visível e reseta estado
+    if(overlay) overlay.style.display='flex';
+    _appInitialized=false;
   }
-  render();
 });
 
 // ── LIVE RELOAD ── substituído por onSnapshot em loadState() (tempo real sem reload)

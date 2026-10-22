@@ -7,11 +7,13 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%2335597F'/%3E%3Crect x='12' y='10' width='76' height='24' rx='5' fill='%23dbeafe'/%3E%3Crect x='12' y='42' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='40' y='42' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='68' y='42' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='12' y='60' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='40' y='60' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='68' y='60' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='12' y='78' width='20' height='14' rx='3' fill='%23fff' opacity='.9'/%3E%3Crect x='40' y='78' width='48' height='14' rx='3' fill='%2393c5fd' opacity='.9'/%3E%3C/svg%3E">
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 (function(){
   const _fbCfg={apiKey:"AIzaSyD-bHKCY6nu4P34Zj5bYuWorsOW8og4BzA",authDomain:"design-visual-crm.firebaseapp.com",projectId:"design-visual-crm",storageBucket:"design-visual-crm.firebasestorage.app",messagingSenderId:"453769480226",appId:"1:453769480226:web:1bb9cd96506f94abaaa27b"};
   try{firebase.initializeApp(_fbCfg);}catch(e){}
   window._fzDb=firebase.firestore();
+  window._fzAuth=firebase.auth();
 })();
 </script>
 <style>
@@ -446,6 +448,17 @@ select.cf-input{appearance:none;background-image:url("data:image/svg+xml,%3Csvg 
 </style>
 </head>
 <body>
+
+<!-- ── AUTH GUARD: exibido se a calculadora for aberta sem login ── -->
+<div id="fz-auth-overlay" style="display:none;position:fixed;inset:0;background:#f4f4f5;z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border:1.5px solid #e4e4e7;border-radius:12px;padding:32px;width:300px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.08)">
+    <div style="font-size:32px;margin-bottom:12px">🔒</div>
+    <div style="font-size:16px;font-weight:700;color:#18181b;margin-bottom:8px">Acesso restrito</div>
+    <div style="font-size:13px;color:#71717a;margin-bottom:20px">Abra a calculadora pelo CRM para acessar.</div>
+    <a href="sinalapp.html" style="display:block;padding:10px;background:#2563eb;color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none">Ir para o CRM</a>
+  </div>
+</div>
+
 <div class="shell wide" id="main-shell">
 
 <!-- ── STEP BAR ── -->
@@ -2087,7 +2100,7 @@ function _calcVariacaoAdesivo(larg, alt, inp) {
     const C = (cu_mat + cu_imp + cu_rec + cu_trf + cu_inst) * qtd + desloc + modif;
     const mk = applyMarkup(C);
     const _svcLabelMap = {faixa:'Faixa em Adesivo', porta:'Adesivo para Porta', geral:'Adesivo'};
-    const _AD_MAT_NOME = {vinil_branco:'branco', vinil_colorido:'colorido', jateado:'jateado', microperfurado:'microperfurado', transparente:'transparente'};
+    const _AD_MAT_NOME = {vinil_branco:'branco', vinil_colorido:'colorido', jateado:'jateado', microperfurado:'microperfurado', transparente:'transparente', especial:'especial'};
     const _matNome = c => _AD_MAT_NOME[c.tipo] || '';
     let _tipoLabel, _camadasExtra = '';
     if (camadas.length === 1) {
@@ -5568,6 +5581,7 @@ const _AD_MATERIAIS = [
   { id:'jateado',        label:'Adesivo Jateado',  preco_m2:20 },
   { id:'microperfurado', label:'Microperfurado',   preco_m2:50 },
   { id:'transparente',   label:'Transparente',     preco_m2:20 },
+  { id:'especial',       label:'Especial',         preco_m2:60 },
 ];
 const _AD_DIMS = { faixa:{larg:100,alt:20}, porta:{larg:80,alt:220}, geral:{larg:100,alt:100} };
 let _adTipo='geral', _adCamadas=[{tipo:'jateado',impressao:true,recorte:false,transfer:false}], _adCalcTimer=null;
@@ -5633,7 +5647,7 @@ function _adCalcRun(){
   // _svcLabelMap → card/lista (sem "vinílico")
   const _svcLabelMap={faixa:'Faixa em Adesivo',porta:'Adesivo para Porta',geral:'Adesivo'};
   // Mapeamento de material para nome descritivo (usado na descrição)
-  const _AD_MAT_NOME={vinil_branco:'branco',vinil_colorido:'colorido',jateado:'jateado',microperfurado:'microperfurado',transparente:'transparente'};
+  const _AD_MAT_NOME={vinil_branco:'branco',vinil_colorido:'colorido',jateado:'jateado',microperfurado:'microperfurado',transparente:'transparente',especial:'especial'};
   const _matNome=c=>_AD_MAT_NOME[c.tipo]||'';
   // Label para a descrição — camada única integra o material; múltiplas ficam entre parênteses
   let _tipoLabel, _camadasExtra='';
@@ -7051,6 +7065,18 @@ function _placaCalcRun(){
       t.select();
     }
   }, true);
+})();
+</script>
+<script>
+// ── AUTH GUARD DA CALCULADORA ──
+// Verifica se o usuário está autenticado (sessão compartilhada com o CRM no mesmo domínio).
+// Se não estiver logado, exibe overlay bloqueando o acesso.
+(function(){
+  const overlay = document.getElementById('fz-auth-overlay');
+  if(!window._fzAuth || !overlay) return;
+  window._fzAuth.onAuthStateChanged(function(user){
+    overlay.style.display = user ? 'none' : 'flex';
+  });
 })();
 </script>
 </body>
