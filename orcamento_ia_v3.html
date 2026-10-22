@@ -4715,8 +4715,14 @@ async function fzSalvarNoCRM() {
       isVariacao: svc.meta.isVariacao||false
     } : {}
   }));
-  const totalVista = _fzServicesList.reduce((s,svc)=>s+(svc.vista||0), 0);
-  const totalPrazo = _fzServicesList.reduce((s,svc)=>s+(svc.prazo||0), 0);
+  // Detecta variações: se houver grupos sem opção aprovada, totais ficam null (evita soma incorreta)
+  const _hasVarGrupos = servicos.some(s => s.varGrupo);
+  const _hasAprovada  = servicos.some(s => s.varGrupo && s.varAprovada);
+  const _useNullTotals = _hasVarGrupos && !_hasAprovada;
+  // Conta apenas serviços sem variação + variações aprovadas
+  const _countable = _fzServicesList.filter(svc => !svc.meta?.varGrupo || svc.meta?.varAprovada);
+  const totalVista = _useNullTotals ? null : parseFloat(_countable.reduce((s,svc)=>s+(svc.vista||0), 0).toFixed(2));
+  const totalPrazo = _useNullTotals ? null : parseFloat(_countable.reduce((s,svc)=>s+(svc.prazo||0), 0).toFixed(2));
   const d = new Date();
   const aa = String(d.getFullYear()).slice(2);
   const mm = String(d.getMonth()+1).padStart(2,'0');
@@ -4731,8 +4737,8 @@ async function fzSalvarNoCRM() {
       const _prevStatus = cs.orcamentos[existIdx].status;
       Object.assign(cs.orcamentos[existIdx], {
         servicos,
-        total_vista: parseFloat(totalVista.toFixed(2)),
-        total_prazo: parseFloat(totalPrazo.toFixed(2)),
+        total_vista: totalVista,
+        total_prazo: totalPrazo,
         prazo_entrega: _fzPrazoGlobal||7,
         cliente:_clienteContato, empresa:_clienteEmpresa,
         telefone:_clienteFone, email:_clienteEmail, cnpj:_clienteCnpj,
@@ -4742,8 +4748,8 @@ async function fzSalvarNoCRM() {
       // Atualiza valor no card CRM correspondente
       const crmCard = cs.crm.find(c => c.orcamentoId === _fzSavedOrcId);
       if (crmCard) {
-        crmCard.valor = parseFloat(totalPrazo.toFixed(2));
-        crmCard.valor_vista = parseFloat(totalVista.toFixed(2));
+        crmCard.valor = totalPrazo;
+        crmCard.valor_vista = totalVista;
         crmCard.cliente = _clienteContato;
         crmCard.empresa = _clienteEmpresa;
         crmCard.titulo = _clienteContato+(_clienteEmpresa?' — '+_clienteEmpresa:'');
@@ -4767,8 +4773,8 @@ async function fzSalvarNoCRM() {
       telefone:_clienteFone, email:_clienteEmail, cnpj:_clienteCnpj,
       data:hoje, prazo_entrega:_fzPrazoGlobal||7,
       status:_isRascunho?'Rascunho':'Aberto', descricao:'', servicos, responsavel:'Marcelo',
-      total_vista:parseFloat(totalVista.toFixed(2)),
-      total_prazo:parseFloat(totalPrazo.toFixed(2))
+      total_vista: totalVista,
+      total_prazo: totalPrazo
     };
     cs.orcamentos.push(novoOrc);
     _fzSavedOrcId = newId;
@@ -7017,9 +7023,16 @@ function _placaCalcRun(){
           varAprovada: svc.varAprovada || false,
           isVariacao: svc.isVariacao || false
         };
+      } else {
+        // Meta existe mas pode estar incompleto (ex: criado sem varGrupo)
+        if (!svc.meta.varGrupo && svc.varGrupo) svc.meta.varGrupo = svc.varGrupo;
+        if (!svc.meta.varAprovada && svc.varAprovada) svc.meta.varAprovada = svc.varAprovada;
+        if (!svc.meta.isVariacao && svc.isVariacao) svc.meta.isVariacao = svc.isVariacao;
       }
       // Garante array de items
       if (!svc.items) svc.items = svc.itens || [];
+      // Restaura qtd_pdf (Unid. PDF) a partir de unidades quando não definido
+      if (!svc.qtd_pdf && svc.unidades > 1) svc.qtd_pdf = svc.unidades;
       return svc;
     });
     _fzEditingIdx = 0;

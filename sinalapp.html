@@ -1294,10 +1294,12 @@ function editOrcamento(id){
         varGrupo: sv.meta.varGrupo||null,
         varAprovada: sv.meta.varAprovada||false,
         isVariacao: sv.meta.isVariacao||false
-      } : {svcLabel:sv.item||'Serviço',svcIcon:'📋',dim:'',finish:''},
-      items: sv.itens||[], nomeItem:sv.item||'Serviço',
+      } : {svcLabel:sv.item||'Serviço',svcIcon:'📋',dim:'',finish:'',material:'',
+           lastCalc:null,svcsIdx:-1,lastInputs:null,
+           varGrupo:sv.varGrupo||null,varAprovada:sv.varAprovada||false,isVariacao:sv.isVariacao||false},
+      items: sv.itens||sv.items||[], nomeItem:sv.item||'Serviço',
       prazo: sv.preco_final||0,
-      vista: sv.preco_vista||(sv.preco_final||0)*0.91,
+      vista: sv.preco_vista||Math.floor((sv.preco_final||0)/1.10),
       descricao:sv.descricao||''
     }))
   };
